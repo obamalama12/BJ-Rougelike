@@ -1,6 +1,13 @@
 // The table: dealing, player actions, the dealer and the scoring show.
 
 import { coach } from '../coach';
+import { saloonBackdrop } from '../saloon';
+
+/** Gold ink printed on the felt: a rule following the rail, the house name in an arc, a faint emblem. */
+const FELT_PRINT = `<svg class="felt-print" viewBox="0 0 968 470" preserveAspectRatio="xMidYMin meet" aria-hidden="true">
+  <defs><path id="feltArc" d="M270,215 A300 150 0 0 1 698,215"/></defs>
+  <text class="fp-house"><textPath href="#feltArc" startOffset="50%" text-anchor="middle">BUCK DUCKS SALOON · EST. 1873</textPath></text>
+</svg><div class="felt-emblem">${iconSvg('horseshoe')}</div><div class="felt-rail-line"></div>`;
 import { showdownIntro } from '../scenes';
 import type { Card, HandTypeId, Outcome, Run, ScoreEvent, Src } from '../../core/types';
 import { HAND_TYPE, handTotal, classifyHand, handBase } from '../../core/cards';
@@ -73,8 +80,9 @@ export class TableScreen {
   constructor(hud: Hud) {
     this.hud = hud;
     this.el = div('table-screen');
+    this.el.appendChild(h('div', { class: 'saloon', html: saloonBackdrop() }));
     this.felt = div('felt');
-    this.felt.innerHTML = `<div class="felt-inner"><div class="felt-pattern"></div><div class="felt-rule">
+    this.felt.innerHTML = `<div class="felt-inner"><div class="felt-pattern"></div>${FELT_PRINT}<div class="felt-rule">
       <span>Dealer stands on 17</span><span class="dot">◆</span><span>No fowl play</span></div></div>`;
     this.cardLayer = div('card-layer');
     this.dealerBadge = div('total-badge dealer-badge');

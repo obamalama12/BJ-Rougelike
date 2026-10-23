@@ -824,3 +824,32 @@
 /* The pot rests between hands */
 .pot.idle .pot-body { opacity: 0.45; transition: opacity 0.25s; }
 .pot .pot-body { transition: opacity 0.25s; }
+
+/* --- The saloon behind the table ------------------------------------------------------- */
+.saloon {
+  position: absolute;
+  inset: -500px -1400px;
+  z-index: 0;
+  pointer-events: none;
+  /* the same plank wall continues past the stage edges on wide screens */
+  background:
+    linear-gradient(180deg, rgba(13, 5, 2, 0.55), rgba(13, 5, 2, 0.05) 45%, rgba(13, 5, 2, 0.6)),
+    repeating-linear-gradient(90deg, #4a240f 0 22px, #50270f 22px 42px, #1e0d04 42px 44px);
+  background-position: 0 0, 1400px 0;
+}
+.saloon-svg { position: absolute; left: 1400px; top: 500px; width: 1600px; height: 900px; }
+.table-screen .dealer { z-index: 1; }
+
+/* --- Gold ink printed on the felt ------------------------------------------------------- */
+.felt-print { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.fp-house { font-family: var(--f-display); font-size: 15px; letter-spacing: 0.26em; fill: rgba(242, 193, 78, 0.3); }
+.felt-emblem { position: absolute; left: 50%; top: 52%; width: 230px; height: 230px; margin: -115px 0 0 -115px; opacity: 0.045; pointer-events: none; }
+.felt-emblem .icon { width: 100%; height: 100%; color: #f2c14e; --i1: #f2c14e; --i2: transparent; --i3: #f2c14e; --i4: #f2c14e; }
+.felt-rail-line {
+  position: absolute;
+  inset: 12px;
+  border-radius: 44% 44% 22px 22px / 28% 28% 22px 22px;
+  border: 1.5px solid rgba(242, 193, 78, 0.32);
+  box-shadow: inset 0 0 0 4px transparent, inset 0 0 0 5px rgba(242, 193, 78, 0.18);
+  pointer-events: none;
+}
