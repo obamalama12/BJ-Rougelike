@@ -33,16 +33,37 @@ function tumbleweedSprite(seed: number): HTMLCanvasElement {
   const g = c.getContext('2d')!;
   let h = seed * 9301 + 49297;
   const rnd = () => ((h = (h * 9301 + 49297) % 233280) / 233280);
+  // A tangle of twigs crossing through a ball: random curves between points inside the circle.
+  const pt = (r: number) => {
+    const a = rnd() * Math.PI * 2;
+    const d = Math.sqrt(rnd()) * r;
+    return [48 + Math.cos(a) * d, 48 + Math.sin(a) * d * 0.92];
+  };
+  const twigs = Array.from({ length: 34 }, () => [pt(40), pt(26), pt(40)]);
   g.lineCap = 'round';
-  for (let i = 0; i < 46; i++) {
-    const r1 = 10 + rnd() * 32;
-    const a1 = rnd() * Math.PI * 2;
-    const a2 = a1 + 0.6 + rnd() * 1.6;
-    g.strokeStyle = `rgba(${120 + rnd() * 60},${80 + rnd() * 40},${40 + rnd() * 20},0.9)`;
-    g.lineWidth = 1.2 + rnd() * 1.6;
-    g.beginPath();
-    g.arc(48, 48, r1, a1, a2);
-    g.stroke();
+  g.lineJoin = 'round';
+  for (const [pass, color, width] of [
+    [0, '#2a1408', 3.6],
+    [1, '#c8945a', 1.6],
+  ] as const) {
+    g.strokeStyle = color;
+    for (const [p0, p1, p2] of twigs) {
+      g.lineWidth = width * (0.8 + rnd() * 0.4);
+      g.beginPath();
+      g.moveTo(p0[0], p0[1]);
+      g.quadraticCurveTo(p1[0], p1[1], p2[0], p2[1]);
+      g.stroke();
+    }
+    if (pass === 1) {
+      g.strokeStyle = '#e8c890';
+      g.lineWidth = 1;
+      for (const [p0, p1, p2] of twigs.slice(0, 12)) {
+        g.beginPath();
+        g.moveTo(p0[0], p0[1]);
+        g.quadraticCurveTo(p1[0], p1[1], p2[0], p2[1]);
+        g.stroke();
+      }
+    }
   }
   return c;
 }
