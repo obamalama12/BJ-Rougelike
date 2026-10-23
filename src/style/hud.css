@@ -684,3 +684,14 @@
 .cons-slot.selected { transform: translateY(-8px); z-index: 5; }
 .cons-actions { position: absolute; bottom: -16px; display: flex; gap: 4px; z-index: 6; }
 .wall-pips .pip.gang { border-color: var(--plate-gold); border-width: 2px; }
+
+/* Money and Grit react when they change */
+.wall-money-val.gain { animation: moneyGain 0.7s ease-out; }
+.wall-money-val.spend { animation: moneySpend 0.5s ease-out; }
+@keyframes moneyGain { 0% { transform: scale(1); } 25% { transform: scale(1.22); color: #3f8a30; } 100% { transform: scale(1); } }
+@keyframes moneySpend { 0% { transform: scale(1); } 30% { transform: scale(0.88); color: #a02a18; } 100% { transform: scale(1); } }
+.wall-grit.hurt .grit-shoes { animation: gritHurt 0.45s ease-out; }
+.wall-grit.healed .grit-shoes { animation: gritHeal 0.6s ease-out; }
+@keyframes gritHurt { 0%, 100% { transform: none; } 20% { transform: translateX(-5px); } 40% { transform: translateX(5px); } 60% { transform: translateX(-3px); } 80% { transform: translateX(2px); } }
+@keyframes gritHeal { 0% { transform: none; filter: none; } 35% { transform: scale(1.08); filter: drop-shadow(0 0 6px rgba(127, 224, 122, 0.9)); } 100% { transform: none; filter: none; } }
+.reduce-motion .wall-money-val, .reduce-motion .wall-grit .grit-shoes { animation: none !important; }

@@ -81,7 +81,7 @@ export function titleScreen(): HTMLElement {
     stat('Best hand', fmtNum(profile.bestHand)),
     stat('Furthest town', `${profile.bestNight} of ${NIGHTS}`),
   );
-  const hint = keyHint('title-hint', [['H', 'Hit'], ['S', 'Stand'], ['D', 'Double'], ['P', 'Split'], ['F', 'Fold'], ['Space', 'Deal']]);
+  const hint = keyHint('title-hint', [['H', 'Hit'], ['S', 'Stand'], ['D', 'Double'], ['P', 'Split'], ['F', 'Fold'], ['1-3', 'Wager'], ['Q W E', 'Side bet'], ['Space', 'Deal']]);
   el.append(div('title-ground'), hero, villain, fan, logo, menu, stats, hint);
   return el;
 }

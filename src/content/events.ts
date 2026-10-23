@@ -144,9 +144,9 @@ export const EVENTS: EventDef[] = [
     title: 'A Duel in the Road',
     icon: 'revolver',
     character: 'jorogumo',
-    text: 'A roadrunner steps into the road and taps his holster. "Draw when the bell rings."',
+    text: 'A roadrunner steps into the road and taps his holster. "Draw when the sign says so."',
     choices: [
-      { label: 'Accept the duel', detail: 'Win: gain $20 and heal 1 Grit. Lose: -3 Grit', apply: () => ({ text: 'You face each other and wait for the bell.', duel: { stake: 3, reward: 20 } }) },
+      { label: 'Accept the duel', detail: 'Win: gain $20 and heal 1 Grit. Lose: -3 Grit', apply: () => ({ text: 'You face each other in the empty street and wait for the sign.', duel: { stake: 3, reward: 20 } }) },
       { label: 'Pay him off', detail: 'Lose $5', can: (run) => run.money >= 5, apply: (c) => { c.money(-5); return 'He counts it twice and runs off.'; } },
       { label: 'Back away slowly', detail: '-1 Grit', apply: (c) => { loseGrit(c, 1); return 'You back away. He laughs the whole time. -1 Grit.'; } },
     ],

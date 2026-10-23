@@ -394,7 +394,7 @@ export class TableScreen {
       const on = t.sideBet === id;
       const b = h('button', { class: `side-opt${on ? ' on' : ''}`, type: 'button', disabled: !ready || (!on && run.money < d.cost) });
       b.innerHTML = `<span class="side-name">${d.name}</span><span class="side-pay">pays $${d.pays}</span>`;
-      tip(b, () => `<div class="tt-title">${d.name}</div><div class="tt-body">Costs $${d.cost}. Pays $${d.pays} if: ${d.text.toLowerCase()}.<br><span class="t-dim">Click again to take it back.</span></div>`, 'right');
+      tip(b, () => `<div class="tt-title">${d.name}</div><div class="tt-body">Costs $${d.cost}. Pays $${d.pays} if: ${d.text.toLowerCase()}.<br><span class="t-dim">Key ${['Q', 'W', 'E'][Object.keys(SIDE_BETS).indexOf(id)]}. Click again to take it back.</span></div>`, 'right');
       b.addEventListener('click', () => {
         if (!ready || app.busy) return;
         if (!placeSideBet(run, on ? null : id)) return toast('Not enough Bucks', 'bad');
@@ -432,7 +432,7 @@ export class TableScreen {
       const b = h('button', { class: `wager-opt w${w}${t.wager === w ? ' on' : ''}`, type: 'button', disabled: t.phase !== 'ready' });
       const piles = ([[2], [3, 2], [4, 3, 3]] as const)[w - 1];
       b.innerHTML = `<span class="wager-chips">${piles.map((n) => `<span class="pile">${'<i></i>'.repeat(n)}</span>`).join('')}</span><span class="wager-name">${name}</span><span class="wager-x">X${w}</span>`;
-      tip(b, () => `<div class="tt-title">${name}</div><div class="tt-body">${desc}</div>`, 'left');
+      tip(b, () => `<div class="tt-title">${name}</div><div class="tt-body">${desc}<br><span class="t-dim">Key ${w}</span></div>`, 'left');
       b.addEventListener('click', () => {
         if (t.phase !== 'ready' || app.busy) return;
         setWager(run, w);
@@ -485,6 +485,15 @@ export class TableScreen {
     if (t.phase === 'ready' && (k === ' ' || k === 'enter')) {
       e.preventDefault();
       void this.deal();
+      return;
+    }
+    // 1/2/3 pick the wager; Q/W/E toggle a side bet.
+    if (t.phase === 'ready' && (k === '1' || k === '2' || k === '3')) {
+      this.wagerEl.querySelectorAll<HTMLButtonElement>('.wager-opt')[Number(k) - 1]?.click();
+      return;
+    }
+    if (t.phase === 'ready' && (k === 'q' || k === 'w' || k === 'e')) {
+      this.sideEl.querySelectorAll<HTMLButtonElement>('.side-opt')[['q', 'w', 'e'].indexOf(k)]?.click();
       return;
     }
     if (t.phase !== 'player') return;
@@ -781,6 +790,8 @@ export class TableScreen {
         return this.hud.consEl(src.uid);
       case 'host':
         return this.el.querySelector('.host-plate .host-med') ?? this.hud.refs.calc;
+      case 'side':
+        return this.sideEl.querySelector('.side-opt.on') ?? this.sideEl;
       default:
         return this.hud.refs.calc;
     }

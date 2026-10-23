@@ -304,7 +304,8 @@ export type Src =
   | { kind: 'cons'; uid: number }
   | { kind: 'deck' }
   | { kind: 'host' }
-  | { kind: 'hand' };
+  | { kind: 'hand' }
+  | { kind: 'side' };
 
 export type ScoreEvent =
   | { t: 'base'; chips: number; mult: number; handType: HandTypeId; level: number }

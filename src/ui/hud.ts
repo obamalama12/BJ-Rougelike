@@ -142,8 +142,15 @@ export class Hud {
     const cap = gritCap(run);
     r.grit.innerHTML = `<div class="grit-label">Grit <b>${run.grit}</b></div><div class="grit-shoes">${Array.from({ length: cap }, (_, i) => `<span class="gshoe${i < run.grit ? ' full' : ''}">${iconSvg('horseshoe')}</span>`).join('')}</div>`;
     r.grit.classList.toggle('low', run.grit <= 3);
-    r.money.textContent = `$${run.money}`;
+    this.tickMoney(run.money);
     r.money.classList.toggle('neg', run.money < 0);
+    // Grit lost or gained: shake or pop the horseshoes once.
+    if (this.lastGrit !== null && run.grit !== this.lastGrit) {
+      r.grit.classList.remove('hurt', 'healed');
+      void r.grit.offsetWidth;
+      r.grit.classList.add(run.grit < this.lastGrit ? 'hurt' : 'healed');
+    }
+    this.lastGrit = run.grit;
     clear(r.tags);
     for (const tg of run.tags) {
       const tk = tagToken(tg.id);
@@ -239,6 +246,33 @@ export class Hud {
     }
   }
 
+  private moneyShown: number | null = null;
+  private moneyAnim = 0;
+  private lastGrit: number | null = null;
+
+  /** Count the Bucks readout to the new value, flashing green for gains and red for spending. */
+  private tickMoney(to: number) {
+    const el = this.refs.money;
+    const from = this.moneyShown;
+    this.moneyShown = to;
+    cancelAnimationFrame(this.moneyAnim);
+    if (from === null || from === to) {
+      el.textContent = `$${to}`;
+      return;
+    }
+    el.classList.remove('gain', 'spend');
+    void el.offsetWidth;
+    el.classList.add(to > from ? 'gain' : 'spend');
+    const t0 = performance.now();
+    const dur = Math.min(700, 180 + Math.abs(to - from) * 25);
+    const step = (now: number) => {
+      const k = Math.min(1, (now - t0) / dur);
+      el.textContent = `$${Math.round(from + (to - from) * (1 - Math.pow(1 - k, 3)))}`;
+      if (k < 1) this.moneyAnim = requestAnimationFrame(step);
+    };
+    this.moneyAnim = requestAnimationFrame(step);
+  }
+
   setScore(score: number, target: number, animate = false) {
     const r = this.refs;
     if (!r.score) return;
@@ -294,6 +328,8 @@ export class Hud {
     const r = this.refs;
     r.chips.textContent = fmtNum(Math.floor(chips));
     r.mult.textContent = fmtMult(mult);
+    // An empty pot sits back on the felt until a hand is live.
+    r.calc.classList.toggle('idle', !chips && !mult);
     if (bump === 'chips') jiggle(r.chips.parentElement?.parentElement ?? null, 'bump');
     if (bump === 'mult') jiggle(r.mult.parentElement, 'bump');
     this.renderStacks(chips);

@@ -820,3 +820,7 @@
 .hot-streak.blazing { box-shadow: inset 0 0 0 1.5px #ff8a3d, inset 0 0 0 3px var(--key), inset 0 0 0 4px #ffcf7a, 0 0 18px rgba(255, 120, 40, 0.55), var(--lift-1); }
 .hot-streak.blazing .hs-flame { width: 26px; height: 32px; }
 .reduce-motion .hs-flame { animation: none; }
+
+/* The pot rests between hands */
+.pot.idle .pot-body { opacity: 0.45; transition: opacity 0.25s; }
+.pot .pot-body { transition: opacity 0.25s; }

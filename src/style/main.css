@@ -706,3 +706,8 @@ body.no-grain #grain {
 
 /* Tall hats and feathers may reach above the portrait's box; framed spots crop with their own container. */
 svg.portrait { overflow: visible; }
+
+/* Typesetting: no lone words at the end of wrapped lines, balanced headings. */
+.tt-body, .tt-sub, .poster-curse, .stop-text, .stop-result, .choice-detail, .coach-text, .howto-text,
+.scp-curse, .bubble, .sc-quote, .nr-shoe-text, .hr-desc, .cl-next-text span, .tn-name { text-wrap: pretty; }
+.tt-title, .stop-title, .poster-name, .scp-name, .cl-title, .howto-title, .end-title { text-wrap: balance; }

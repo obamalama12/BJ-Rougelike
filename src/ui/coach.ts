@@ -129,7 +129,7 @@ export function openHowToPlay() {
   });
   box.append(
     grid,
-    keyHint('howto-keys', [['H', 'Hit'], ['S', 'Stand'], ['D', 'Double'], ['P', 'Split'], ['F', 'Fold'], ['Space', 'Deal']]),
+    keyHint('howto-keys', [['H', 'Hit'], ['S', 'Stand'], ['D', 'Double'], ['P', 'Split'], ['F', 'Fold'], ['1-3', 'Wager'], ['Q W E', 'Side bet'], ['Space', 'Deal']]),
   );
   let close = () => {};
   box.appendChild(div('howto-foot', button('Saddle Up', 'primary', () => close())));

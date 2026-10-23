@@ -862,10 +862,10 @@ function paySideBet(run: Run, won: boolean) {
   if (won) {
     run.money += def.pays;
     run.stats.moneyEarned += def.pays;
-    fxQueue.push({ t: 'money', v: def.pays, src: { kind: 'hand' } });
-    fxQueue.push({ t: 'msg', text: `${def.name} pays!`, color: '#7fe07a', src: { kind: 'hand' } });
+    fxQueue.push({ t: 'money', v: def.pays, src: { kind: 'side' } });
+    fxQueue.push({ t: 'msg', text: `${def.name} pays!`, color: '#7fe07a', src: { kind: 'side' } });
   } else {
-    fxQueue.push({ t: 'msg', text: `${def.name} lost`, color: '#c9b89a', src: { kind: 'hand' } });
+    fxQueue.push({ t: 'msg', text: `${def.name} lost`, color: '#c9b89a', src: { kind: 'side' } });
   }
 }
 
