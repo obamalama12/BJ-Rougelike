@@ -1,5 +1,6 @@
 // The trail map: pick your route through town toward the Outlaw.
 
+import { coach } from '../coach';
 import type { Run, TrailNode } from '../../core/types';
 import { HOST } from '../../content/hosts';
 import { COLS, NODE_INFO, nodeTarget, reachable, travel, isTableNode } from '../../game/trail';
@@ -32,7 +33,7 @@ export function trailScreen(hud: Hud): HTMLElement {
   }
   const el = div('trail-screen');
   const map = div('trail-map');
-  map.innerHTML = `<div class="map-paper"></div><div class="map-title"><span>${townName(run.night)}</span><small>Pick your trail, partner</small></div>`;
+  map.innerHTML = `<div class="map-paper"></div><div class="map-title"><span>${townName(run.night)}</span><small>Choose your route to the Outlaw</small></div>`;
   const svgNS = 'http://www.w3.org/2000/svg';
   const svg = document.createElementNS(svgNS, 'svg');
   svg.setAttribute('class', 'trail-lines');
@@ -106,6 +107,8 @@ export function trailScreen(hud: Hud): HTMLElement {
   hud.renderTrays();
   hud.canUse = true;
   hud.onChange = () => {};
+  void coach('trail', { x: 800, y: 470 });
+  void coach('grit', { x: 1090, y: 200, point: 'up' });
   return el;
 }
 

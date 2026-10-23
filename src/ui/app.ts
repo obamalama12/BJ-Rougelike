@@ -192,16 +192,31 @@ export function refreshTip() {
 // Modals & toasts
 // ---------------------------------------------------------------------------
 
+/** Close functions of open dismissable modals, newest last (Escape closes the top one). */
+const modalStack: (() => void)[] = [];
+window.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape' || !modalStack.length) return;
+  e.preventDefault();
+  e.stopImmediatePropagation();
+  modalStack[modalStack.length - 1]();
+});
+
 export function modal(content: HTMLElement, opts: { onClose?: () => void; cls?: string; dismissable?: boolean } = {}) {
   const back = div(`modal-back ${opts.cls ?? ''}`);
   const box = div('modal-box', content);
   back.appendChild(box);
+  let closed = false;
   const close = () => {
+    if (closed) return;
+    closed = true;
+    const i = modalStack.indexOf(close);
+    if (i >= 0) modalStack.splice(i, 1);
     back.classList.add('closing');
     setTimeout(() => back.remove(), 200);
     opts.onClose?.();
   };
   if (opts.dismissable !== false) {
+    modalStack.push(close);
     back.addEventListener('pointerdown', (e) => {
       if (e.target === back) close();
     });
@@ -212,6 +227,7 @@ export function modal(content: HTMLElement, opts: { onClose?: () => void; cls?: 
 }
 
 export function closeAllModals() {
+  modalStack.length = 0;
   clear(app.modalLayer);
 }
 

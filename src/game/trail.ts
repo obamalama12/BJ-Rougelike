@@ -19,14 +19,14 @@ export const TABLE_INFO: Record<'saloon' | 'highstakes' | 'bank' | 'outlaw', { k
 };
 
 export const NODE_INFO: Record<NodeKind, { name: string; icon: string; blurb: string }> = {
-  saloon: { name: 'Saloon Game', icon: 'saloon', blurb: 'A friendly game. Mostly.' },
+  saloon: { name: 'Saloon Game', icon: 'saloon', blurb: 'A regular card table. Low target, small purse' },
   highstakes: { name: 'High Stakes', icon: 'tophat', blurb: 'Bigger target, bigger purse' },
   bank: { name: 'Bank Job', icon: 'moneybag', blurb: 'A cursed table with a rare Doodad as the prize' },
   store: { name: 'General Store', icon: 'crate', blurb: 'Doodads, Tonics, Crates and Deeds' },
-  doc: { name: 'Doc’s Office', icon: 'tonic', blurb: 'Patch up your Grit, or have a card removed' },
+  doc: { name: 'Doc Hoot', icon: 'tonic', blurb: 'Patch up your Grit, or have a card removed' },
   camp: { name: 'Campfire', icon: 'campfire', blurb: 'Rest, or spin a yarn to level up a hand' },
-  event: { name: 'Strange Happenings', icon: 'wanted', blurb: 'Who knows what’s down this road' },
-  outlaw: { name: 'Showdown', icon: 'revolver', blurb: 'The Outlaw who runs this town' },
+  event: { name: 'Strange Happenings', icon: 'wanted', blurb: 'A random encounter. Could help, could cost you' },
+  outlaw: { name: 'Showdown', icon: 'revolver', blurb: 'The boss of this town. Win to ride on to the next one' },
 };
 
 // ---------------------------------------------------------------------------
@@ -310,10 +310,10 @@ export function resolveDuel(run: Run, won: boolean): string {
     run.money += d.reward;
     run.stats.moneyEarned += d.reward;
     heal(run, 1);
-    ev.result = `You were faster. The stranger tips his hat and tosses you $${d.reward}.`;
+    ev.result = `You were faster. The roadrunner pays up: $${d.reward} and +1 Grit.`;
   } else {
     hurt(run, d.stake);
-    ev.result = `Too slow, partner. You lose ${d.stake} Grit and most of your dignity.`;
+    ev.result = `Too slow. You lose ${d.stake} Grit, and the roadrunner keeps your hat.`;
     if (run.grit <= 0) run.phase = 'gameover';
   }
   return ev.result;

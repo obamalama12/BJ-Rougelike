@@ -1,5 +1,5 @@
-// The Charms: the spirits and trinkets that bend the rules of the table.
-// Text tokens: {c:} chips, {m:} mult, {x:} xmult, {$:} embers, {g:} highlight,
+// Doodads: passive items that change scoring and bend the rules of the table.
+// Text tokens: {c:} Pot, {m:} Odds, {x:} xOdds, {$:} Bucks, {g:} highlight,
 // {s:suit} suit name, {h:handType} hand type name, {r:} warning, {d:} dim.
 
 import type { CharmDef } from '../game/api';
@@ -20,7 +20,7 @@ const fmtX = (n: number) => `X${Math.round(n * 100) / 100}`;
 // Plain power
 // ---------------------------------------------------------------------------
 
-C({ id: 'paper_lantern', name: 'Rubber Ducky', rarity: 1, cost: 2, icon: 'rubberduck', hue: '#ff8a3d',
+C({ id: 'paper_lantern', name: 'Squeaky Toy', rarity: 1, cost: 2, icon: 'rubberduck', hue: '#ff8a3d',
   text: '{m:+4} Odds',
   hand: (c) => c.mult(4) });
 
@@ -49,7 +49,7 @@ C({ id: 'mochi', name: 'Gas Station Hot Dog', rarity: 1, cost: 4, icon: 'hotdog'
   } });
 
 C({ id: 'persimmon', name: 'Cooling Pie', rarity: 1, cost: 5, icon: 'pie', hue: '#ff7a1a',
-  text: '{m:+15} Odds. {g:1 in 6} chance a coyote swipes it off the windowsill after each table',
+  text: '{m:+15} Odds. {g:1 in 6} chance a coyote steals it at the end of each table',
   available: (run) => !run.flags.persimmonGone,
   hand: (c) => c.mult(15),
   tableEnd: (c, s) => {
@@ -57,7 +57,7 @@ C({ id: 'persimmon', name: 'Cooling Pie', rarity: 1, cost: 5, icon: 'pie', hue: 
   } });
 
 C({ id: 'golden_persimmon', name: 'Golden Pie', rarity: 1, cost: 4, icon: 'pie', hue: '#ffd23f',
-  text: '{x:X3} Odds. {g:1 in 1000} chance a coyote swipes it after each table',
+  text: '{x:X3} Odds. {g:1 in 1000} chance a coyote steals it at the end of each table',
   available: (run) => !!run.flags.persimmonGone,
   hand: (c) => c.xmult(3),
   tableEnd: (c, s) => { if (c.chance(1000)) { c.msg('Swiped!'); c.destroyCharm(s.uid); } } });
@@ -67,7 +67,7 @@ C({ id: 'lantern_festival', name: 'Hoedown', rarity: 1, cost: 4, icon: 'banjo', 
   hand: (c) => c.mult(3 * c.run.charms.length) });
 
 C({ id: 'empty_shrine', name: 'Ghost Town', rarity: 2, cost: 8, icon: 'ghost', hue: '#c7c1d9',
-  text: (s, run) => `{x:X1} Odds for each empty Doodad slot. Counts itself {d:(currently {x:X${Math.max(1, charmSlotsFree(run) + 1)}})}`,
+  text: (s, run) => `{x:X1} Odds, plus {x:X1} for each empty Doodad slot {d:(currently {x:X${Math.max(1, charmSlotsFree(run) + 1)}})}`,
   hand: (c) => c.xmult(Math.max(1, charmSlotsFree(c.run) + 1)) });
 
 C({ id: 'oni_drum', name: 'Itchy Trigger Finger', rarity: 2, cost: 6, icon: 'fist', hue: '#ff3d3d',
@@ -133,7 +133,7 @@ C({ id: 'four_winds', name: 'Four Corners', rarity: 2, cost: 6, icon: 'compass',
     });
     if (ok) c.xmult(3);
   } });
-C({ id: 'smudged_ink', name: 'Dust Storm', rarity: 2, cost: 7, icon: 'tornado', hue: '#9a8cff',
+C({ id: 'smudged_ink', name: 'Sun Glare', rarity: 2, cost: 7, icon: 'tornado', hue: '#9a8cff',
   text: '{s:moon} and {s:leaf} count as the same suit. {s:flame} and {s:bell} count as the same suit',
   rules: (r) => { r.smeared = true; } });
 C({ id: 'koi_pond', name: 'Duck Pond', rarity: 1, cost: 5, icon: 'pond', hue: '#ff7a3d',
@@ -166,13 +166,13 @@ C({ id: 'lone_heron', name: 'Odd Duck', rarity: 1, cost: 4, icon: 'duck', hue: '
   text: 'Scored odd cards {d:(A, 9, 7, 5, 3)} give {c:+31} Pot',
   card: (c, _s, card) => { if (card.ink !== 'stone' && (card.rank === 14 || (card.rank <= 9 && card.rank % 2 === 1))) c.chips(31); } });
 C({ id: 'spiral_shell', name: 'Fibonacci Feathers', rarity: 2, cost: 8, icon: 'feather', hue: '#ffc6a8',
-  text: 'Scored {g:A, 2, 3, 5, 8} give {m:+8} Odds',
+  text: 'Scored Aces, 2s, 3s, 5s and 8s give {m:+8} Odds',
   card: (c, _s, card) => { if (card.ink !== 'stone' && [14, 2, 3, 5, 8].includes(card.rank)) c.mult(8); } });
 C({ id: 'woodpecker', name: 'Pecking Order', rarity: 2, cost: 6, icon: 'magpie', hue: '#ff6b5a',
-  text: 'Retrigger each scored {g:2, 3, 4 or 5}',
+  text: 'Each scored {g:2, 3, 4 or 5} scores twice',
   retrig: (_c, _s, card) => (card.ink !== 'stone' && card.rank <= 5 ? 1 : 0) });
 C({ id: 'puppeteer', name: 'Ventriloquist', rarity: 2, cost: 6, icon: 'hand', hue: '#e6b8ff',
-  text: 'Retrigger each scored face card',
+  text: 'Each scored face card scores twice',
   retrig: (c, _s, card) => (isFace(card, c.rules) ? 1 : 0) });
 C({ id: 'seven_gods', name: 'Seven-Shooter', rarity: 2, cost: 7, icon: 'revolver', hue: '#ffd23f',
   text: 'Scored 7s give {x:X1.5} Odds',
@@ -212,7 +212,7 @@ C({ id: 'nine_tails', name: 'Cloud Nine', rarity: 2, cost: 7, icon: 'cloud', hue
   text: (s, run) => `Earn {$:1} for each {g:9} in your deck at the end of a table {d:(currently {$:${run.deck.filter((c) => c.rank === 9 && c.ink !== 'stone').length}})}`,
   endMoney: (run) => run.deck.filter((c) => c.rank === 9 && c.ink !== 'stone').length });
 C({ id: 'face_collector', name: 'Rogues\u2019 Gallery', rarity: 1, cost: 5, icon: 'wanted', hue: '#ff6b6b',
-  text: '{m:+3} Odds for each face card in the hand, {m:+6} if the dealer’s upcard is a face card too',
+  text: '{m:+3} Odds per scored face card. {m:+6} per face card instead if the dealer’s upcard is also a face card',
   hand: (c) => {
     const n = c.scored.filter((k) => isFace(k, c.rules)).length;
     if (!n) return;
@@ -255,7 +255,7 @@ C({ id: 'balance_stone', name: 'White Flag', rarity: 2, cost: 6, icon: 'flag', h
   hand: (c) => { if (c.handType === 'push') { c.xmult(4); c.money(2); } } });
 
 C({ id: 'old_almanac', name: 'Farmer\u2019s Almanac', rarity: 2, cost: 6, icon: 'book', hue: '#e6c27a',
-  text: 'Adds the number of times the hand type has been played this run to Odds',
+  text: '{m:+1} Odds for each time this hand type has been played this run',
   hand: (c) => { if (c.handType) c.mult(c.run.handPlays[c.handType] ?? 0); } });
 
 C({ id: 'rolling_daruma', name: 'Rolling Tumbleweed', rarity: 1, cost: 5, icon: 'tumbleweed', hue: '#ff3d3d',
@@ -270,7 +270,7 @@ C({ id: 'rolling_daruma', name: 'Rolling Tumbleweed', rarity: 1, cost: 5, icon: 
 
 C({ id: 'bamboo_shoot', name: 'Cornfield', rarity: 1, cost: 4, icon: 'corn', hue: '#6ee7a8',
   init: () => ({ m: 0 }),
-  text: (s) => `{m:+1} Odds per hand won, {m:-1} per hand lost {d:(currently {m:+${st(s).m}})}`,
+  text: (s) => `Gains {m:+1} Odds per hand won, loses {m:1} per hand lost {d:(currently {m:+${st(s).m}})}`,
   hand: (c, s) => { if (st(s).m) c.mult(st(s).m); },
   resolve: (c, s) => {
     if (c.copy || c.outcome === 'fold') return;
@@ -292,7 +292,7 @@ C({ id: 'abacus', name: 'Twenty-One Gun Salute', rarity: 2, cost: 6, icon: 'cann
 
 C({ id: 'square_seal', name: 'Square Dance', rarity: 1, cost: 4, icon: 'accordion', hue: '#ff6b5a',
   init: () => ({ c: 0 }),
-  text: (s) => `Gains {c:+6} Pot if the winning hand has exactly {g:4} cards {d:(currently {c:+${st(s).c}})}`,
+  text: (s) => `Gains {c:+6} Pot each time a hand with exactly {g:4} cards scores {d:(currently {c:+${st(s).c}})}`,
   hand: (c, s) => { if (st(s).c) c.chips(st(s).c); },
   after: (c, s) => { if (c.cards.length === 4) { st(s).c += 6; c.msg('Upgrade!'); } } });
 
@@ -328,10 +328,10 @@ C({ id: 'third_eye', name: 'Sneaky Monocle', rarity: 2, cost: 6, icon: 'monocle'
   text: 'See the dealer’s hole card',
   rules: (r) => { r.seeHole = true; } });
 C({ id: 'scrying_bowl', name: 'Crystal Ball', rarity: 2, cost: 7, icon: 'crystal', hue: '#9fe8ff',
-  text: 'See the top card of the shoe',
+  text: 'See the top card of the draw pile',
   rules: (r) => { r.seeTop = Math.max(r.seeTop, 1); } });
 C({ id: 'paper_umbrella', name: 'Insurance Policy', rarity: 1, cost: 5, icon: 'umbrella', hue: '#ff6b8a',
-  text: 'If the dealer has a natural Blackjack, the hand is not used up',
+  text: 'If the dealer is dealt a natural, that hand is not used up',
   rules: (r) => { r.insurance = true; } });
 C({ id: 'double_happiness', name: 'Double or Nothing', rarity: 3, cost: 8, icon: 'coins', hue: '#ff3d3d',
   text: 'Doubling Down no longer costs an extra hand',
@@ -343,7 +343,7 @@ C({ id: 'lucky_coin', name: 'Two-Headed Coin', rarity: 2, cost: 7, icon: 'coin',
   text: 'Doubled hands give {x:X3} Odds instead of {x:X2}',
   rules: (r) => { r.doubleX = Math.max(r.doubleX, 3); } });
 C({ id: 'golden_carp', name: 'Golden Egg', rarity: 3, cost: 8, icon: 'egg', hue: '#ffcf3d',
-  text: 'Winning with a natural {h:blackjack} gives back {g:+1} hand',
+  text: 'Winning with a natural gives you {g:+1} hand',
   after: (c) => { if ((c.handType === 'blackjack' || c.handType === 'royal') && c.table) { c.table.handsLeft += 1; c.msg('+1 Hand', '#4fb6ff'); } } });
 C({ id: 'shrine_fox', name: 'Duck and Cover', rarity: 2, cost: 6, icon: 'shield', hue: '#ff9a3d',
   text: 'The first time you bust each table, it counts as a {h:push} instead',
@@ -354,7 +354,7 @@ C({ id: 'shrine_fox', name: 'Duck and Cover', rarity: 2, cost: 6, icon: 'shield'
     return true;
   } });
 C({ id: 'phoenix_feather', name: 'Fire Feather', rarity: 2, cost: 7, icon: 'feather', hue: '#ff5b2a',
-  text: 'Once per table, the card that would bust you burns away instead',
+  text: 'Once per table, if a card would make you bust, it is discarded instead',
   bust: () => false });
 C({ id: 'folded_fan', name: 'Know When to Fold \u2019Em', rarity: 1, cost: 5, icon: 'harmonica', hue: '#ffa8d0',
   text: (s, run) => `{c:+30} Pot for each fold remaining {d:(currently {c:+${(run.table?.foldsLeft ?? 0) * 30}})}`,
@@ -363,7 +363,7 @@ C({ id: 'empty_bowl', name: 'Empty Holster', rarity: 1, cost: 5, icon: 'holster'
   text: '{m:+15} Odds when you have {g:0} folds remaining',
   hand: (c) => { if (c.table && c.table.foldsLeft === 0) c.mult(15); } });
 C({ id: 'patient_monk', name: 'Patient Prospector', rarity: 1, cost: 4, icon: 'goldpan', hue: '#c7c1d9',
-  text: 'Earn {$:2} per fold remaining at the end of a table if you didn’t fold',
+  text: 'At the end of a table where you never folded, earn {$:2} per fold remaining',
   endMoney: (run) => (run.table && run.table.foldsUsed === 0 ? run.table.foldsLeft * 2 : 0) });
 C({ id: 'incense_burner', name: 'Campfire Stories', rarity: 3, cost: 8, icon: 'campfire', hue: '#d6b8ff',
   text: 'The first fold of each table levels up your most played hand type',
@@ -425,10 +425,10 @@ C({ id: 'paper_tiger', name: 'Easy Pickings', rarity: 1, cost: 5, icon: 'pigeon'
   text: '{m:+10} Odds if the dealer’s upcard is {g:4, 5 or 6}',
   hand: (c) => { const u = c.dealerCards[0]; if (u && u.ink !== 'stone' && u.rank >= 4 && u.rank <= 6) c.mult(10); } });
 C({ id: 'bean_counter', name: 'Bean Counter', rarity: 2, cost: 6, icon: 'beans', hue: '#c9e67a',
-  text: (s, run) => `{m:+2} Odds for each point of the shoe’s running count {d:(low cards seen minus high cards seen; currently {m:+${Math.max(0, runningCount(run)) * 2}})}`,
+  text: (s, run) => `{m:+2} Odds per point of the running count {d:(2-6s seen minus 10s, faces and Aces seen; currently {m:+${Math.max(0, runningCount(run)) * 2}})}`,
   hand: (c) => { const n = runningCount(c.run); if (n > 0) c.mult(2 * n); } });
-C({ id: 'deep_well', name: 'Wishing Well', rarity: 1, cost: 5, icon: 'bucket', hue: '#4f9dff',
-  text: (s, run) => `{c:+3} Pot for each card left in the shoe {d:(currently {c:+${(run.table?.shoe.length ?? run.deck.length) * 3}})}`,
+C({ id: 'deep_well', name: 'Deep Well', rarity: 1, cost: 5, icon: 'bucket', hue: '#4f9dff',
+  text: (s, run) => `{c:+3} Pot for each card left in the draw pile {d:(currently {c:+${(run.table?.shoe.length ?? run.deck.length) * 3}})}`,
   hand: (c) => { if (c.table) c.chips(3 * c.table.shoe.length); } });
 C({ id: 'river_stone', name: 'Light Packer', rarity: 2, cost: 6, icon: 'tent', hue: '#9fc7ff',
   text: (s, run) => `{m:+4} Odds for each card your deck is below its starting size {d:(currently {m:+${Math.max(0, startSize(run) - run.deck.length) * 4}})}`,
@@ -461,19 +461,19 @@ C({ id: 'dusk_crane', name: 'Last Call', rarity: 2, cost: 7, icon: 'mug', hue: '
   text: '{x:X3} Odds on the final hand of each table',
   hand: (c) => { if (c.isLast) c.xmult(3); } });
 C({ id: 'twilight_bell', name: 'Closing Time Bell', rarity: 2, cost: 6, icon: 'bell', hue: '#c9a3ff',
-  text: 'Retrigger every scored card on the final hand of each table',
+  text: 'On the final hand of each table, every scored card scores twice',
   retrig: (c) => (c.isLast ? 1 : 0) });
 C({ id: 'hanging_scroll', name: 'Encore! Encore!', rarity: 1, cost: 4, icon: 'piano', hue: '#f7d9a6',
-  text: 'Retrigger the first scored card {g:2} additional times',
+  text: 'The first scored card scores {g:2} extra times',
   retrig: (c, _s, card) => (c.scored[0]?.id === card.id ? 2 : 0) });
 C({ id: 'bubbling_spring', name: 'Hot Spring', rarity: 2, cost: 6, icon: 'bathtub', hue: '#7fe8ff',
   init: () => ({ n: 10 }),
-  text: (s) => `Retrigger all scored cards for the next {g:${st(s).n}} winning hands`,
+  text: (s) => `For the next {g:${st(s).n}} scoring hands, every scored card scores twice`,
   retrig: () => 1,
   after: (c, s) => { st(s).n -= 1; if (st(s).n <= 0) { c.msg('Drained'); c.destroyCharm(s.uid); } } });
 C({ id: 'punch_card', name: 'Punch Card', rarity: 2, cost: 5, icon: 'ticket', hue: '#ff6b5a',
   init: () => ({ n: 0 }),
-  text: (s) => `{x:X4} Odds every {g:6} hands played {d:(${5 - (st(s).n % 6) <= 0 ? 'Active!' : `${5 - (st(s).n % 6)} remaining`})}`,
+  text: (s) => `Every {g:6}th hand played gets {x:X4} Odds {d:(${5 - (st(s).n % 6) <= 0 ? 'Active!' : `${5 - (st(s).n % 6)} remaining`})}`,
   hand: (c, s) => { if (st(s).n % 6 === 5) c.xmult(4); },
   resolve: (c, s) => { if (!c.copy && c.outcome !== 'fold' && !c.hand?.fromSplit) st(s).n += 1; } });
 
@@ -486,7 +486,7 @@ C({ id: 'gold_leaf_fox', name: 'Gold Digger', rarity: 2, cost: 7, icon: 'pickaxe
   card: (c, _s, card) => { if (!c.copy && isFace(card, c.rules) && card.ink !== 'gilded') { card.ink = 'gilded'; c.msg('Gold Plated!', '#ffd23f'); } } });
 C({ id: 'ink_drinker', name: 'Snake Oil Sipper', rarity: 2, cost: 7, icon: 'tonic', hue: '#b04dff',
   init: () => ({ x: 1 }),
-  text: (s) => `Gains {x:X0.1} Odds per scored painted card, and drinks the paint {d:(currently {x:${fmtX(st(s).x)}})}`,
+  text: (s) => `Gains {x:X0.1} Odds per scored inked card, then removes its ink {d:(currently {x:${fmtX(st(s).x)}})}`,
   card: (c, s, card) => {
     if (c.copy || !card.ink || card.ink === 'stone') return;
     card.ink = undefined;
@@ -517,11 +517,11 @@ C({ id: 'rock_garden', name: 'Rock Collector', rarity: 2, cost: 6, icon: 'rock',
   text: 'When a table starts, add a {g:Rock} card to your deck',
   tableStart: (c) => { c.addCard({ ink: 'stone' }); c.msg('+1 Rock'); } });
 C({ id: 'shard_collector', name: 'Broken Bottle Bill', rarity: 2, cost: 6, icon: 'shotglass', hue: '#bfe9ff',
-  text: (s, run) => `{x:X0.75} Odds for each Glass card shattered this run {d:(currently {x:${fmtX(1 + run.stats.glassShattered * 0.75)}})}`,
+  text: (s, run) => `Gains {x:X0.75} Odds for each Glass card broken this run {d:(currently {x:${fmtX(1 + run.stats.glassShattered * 0.75)}})}`,
   hand: (c) => { if (c.run.stats.glassShattered) c.xmult(1 + 0.75 * c.run.stats.glassShattered); } });
 C({ id: 'lucky_daruma', name: 'Lucky Penny', rarity: 2, cost: 6, icon: 'coin', hue: '#ffd23f',
   init: () => ({ x: 1 }),
-  text: (s) => `Gains {x:X0.25} Odds each time a Lucky card triggers {d:(currently {x:${fmtX(st(s).x)}})}`,
+  text: (s) => `Gains {x:X0.25} Odds each time a {g:Lucky} card pays out {d:(currently {x:${fmtX(st(s).x)}})}`,
   hand: (c, s) => { if (st(s).x > 1) c.xmult(st(s).x); } });
 C({ id: 'treasure_map', name: 'Treasure Map', rarity: 1, cost: 5, icon: 'map', hue: '#e6c27a',
   text: 'Scored {g:Gold Plated} cards earn {$:4}',
@@ -530,10 +530,10 @@ C({ id: 'stone_garden', name: 'Quarry Quacker', rarity: 2, cost: 6, icon: 'rock'
   text: (s, run) => `{c:+25} Pot for each Rock card in your deck {d:(currently {c:+${run.deck.filter((k) => k.ink === 'stone').length * 25}})}`,
   hand: (c) => { const n = c.run.deck.filter((k) => k.ink === 'stone').length; if (n) c.chips(25 * n); } });
 C({ id: 'calligraphy_license', name: 'Fancy Penmanship', rarity: 3, cost: 8, icon: 'scroll', hue: '#ff6a5a',
-  text: (s, run) => `{x:X3} Odds if you have at least {g:16} painted cards {d:(currently ${run.deck.filter((k) => !!k.ink).length})}`,
+  text: (s, run) => `{x:X3} Odds if your deck has at least {g:16} inked cards {d:(currently ${run.deck.filter((k) => !!k.ink).length})}`,
   hand: (c) => { if (c.run.deck.filter((k) => !!k.ink).length >= 16) c.xmult(3); } });
-C({ id: 'spirit_faces', name: 'Face Paint', rarity: 2, cost: 5, icon: 'mustache', hue: '#d8ffe0',
-  text: 'All cards count as face cards (for scoring)',
+C({ id: 'spirit_faces', name: 'Disguise Kit', rarity: 2, cost: 5, icon: 'mustache', hue: '#d8ffe0',
+  text: 'Every card counts as a face card',
   rules: (r) => { r.allFace = true; } });
 C({ id: 'jade_carver', name: 'Greenback Grabber', rarity: 1, cost: 5, icon: 'dollar', hue: '#4fdc8a',
   text: 'Scored {g:Greenback} cards give an extra {m:+6} Odds',
@@ -550,7 +550,7 @@ C({ id: 'seal_maker', name: 'Rancher\u2019s Pride', rarity: 3, cost: 8, icon: 'b
   text: 'Scored cards with a brand give {x:X1.5} Odds',
   card: (c, _s, card) => { if (card.seal) c.xmult(1.5); } });
 C({ id: 'ash_walker', name: 'Pop Goes the Duck', rarity: 1, cost: 5, icon: 'bubbles', hue: '#b0a8a0',
-  text: 'When an {g:Rubber Ducky} card pops, earn {$:3} and gain {m:+3} Odds permanently',
+  text: (s) => `When a {g:Rubber Ducky} card pops, earn {$:3} and gain {m:+3} Odds {d:(currently {m:+${st(s).m ?? 0}})}`,
   init: () => ({ m: 0 }),
   hand: (c, s) => { if (st(s).m) c.mult(st(s).m); } });
 
@@ -569,7 +569,7 @@ C({ id: 'money_tree', name: 'Compound Interest', rarity: 2, cost: 5, icon: 'mone
   endMoney: (run) => Math.min(Math.floor(Math.max(0, run.money) / 5), run.interestCap) });
 C({ id: 'sky_lantern', name: 'Reward Poster', rarity: 2, cost: 6, icon: 'wanted', hue: '#ffb03d',
   init: () => ({ v: 1 }),
-  text: (s) => `Earn {$:${st(s).v}} at the end of each table. Grows by {$:2} when a Outlaw is defeated`,
+  text: (s) => `Earn {$:${st(s).v}} at the end of each table. Grows by {$:2} each time you defeat an Outlaw`,
   endMoney: (_run, s) => st(s).v,
   hostBeaten: (_c, s) => { st(s).v += 2; } });
 C({ id: 'hens_egg', name: 'Hen\u2019s Egg', rarity: 1, cost: 4, icon: 'egg', hue: '#fff1d6',
@@ -588,13 +588,13 @@ C({ id: 'straw_sandals', name: 'Bootstraps', rarity: 2, cost: 7, icon: 'boot', h
   text: (s, run) => `{m:+2} Odds for every {$:5} you hold {d:(currently {m:+${Math.max(0, Math.floor(run.money / 5)) * 2}})}`,
   hand: (c) => { const n = Math.floor(c.run.money / 5); if (n > 0) c.mult(2 * n); } });
 C({ id: 'iou_note', name: 'IOU Note', rarity: 1, cost: 1, icon: 'scroll', hue: '#f7ecd2',
-  text: 'You may go up to {$:-20} into debt',
+  text: 'You can go into debt, down to {$:-20}',
   noCopy: true });
 C({ id: 'river_pirate', name: 'Claim Jumper', rarity: 1, cost: 4, icon: 'pickaxe', hue: '#ff6b5a',
   text: (s, run) => `Adds the sell value of all other Doodads to Odds {d:(currently {m:+${run.charms.filter((k) => k.uid !== s.uid).reduce((a, k) => a + sellValue(k), 0)}})}`,
   hand: (c, s) => { const n = c.run.charms.filter((k) => k.uid !== s.uid).reduce((a, k) => a + sellValue(k), 0); if (n) c.mult(n); } });
 C({ id: 'oni_tamer', name: 'Outlaw Wrangler', rarity: 2, cost: 7, icon: 'lasso', hue: '#ff3d3d',
-  text: 'Earn {$:8} whenever a Outlaw’s curse affects you',
+  text: 'Earn {$:8} each time an Outlaw’s curse affects you',
   resolve: (c) => { if (c.table?.hostTriggered && !c.copy) { c.table.hostTriggered = false; c.money(8); } } });
 C({ id: 'stargazer', name: 'Tall Tale Teller', rarity: 2, cost: 6, icon: 'book', hue: '#a8c8ff',
   text: (s, run) => `Earn {$:1} at the end of each table for each unique Tall Tale used this run {d:(currently {$:${run.stats.uniqueStars.length}})}`,
@@ -602,11 +602,11 @@ C({ id: 'stargazer', name: 'Tall Tale Teller', rarity: 2, cost: 6, icon: 'book',
 C({ id: 'bounty_poster', name: 'Bounty Poster', rarity: 1, cost: 5, icon: 'wanted', hue: '#ffcf8a',
   text: 'Earn {$:3} for each natural {h:blackjack}',
   resolve: (c) => { if (c.handType === 'blackjack' || c.handType === 'royal') c.money(3); } });
-C({ id: 'vagabond_monk', name: 'Drifter', rarity: 3, cost: 8, icon: 'tumbleweed', hue: '#c9b8ff',
+C({ id: 'vagabond_monk', name: 'Saddle Tramp', rarity: 3, cost: 8, icon: 'tumbleweed', hue: '#c9b8ff',
   text: 'Create a {g:Tonic} when you win a hand while holding {$:4} or less',
   after: (c) => { if (c.run.money <= 4 && isWin(c.handType)) { if (c.createCons('fortune')) c.msg('+Tonic', '#c9b8ff'); } } });
 C({ id: 'shooting_star', name: 'Shooting Star', rarity: 2, cost: 6, icon: 'star', hue: '#ffe27a',
-  text: '{g:1 in 4} chance to level up the hand type when it scores',
+  text: 'When a hand scores, {g:1 in 4} chance its hand type gains a level',
   after: (c) => { if (c.handType && c.chance(4)) { c.levelUp(c.handType, 1); c.msg('Level up!'); } } });
 C({ id: 'fortune_octopus', name: 'Eight-Ball Eddie', rarity: 1, cost: 5, icon: 'bomb', hue: '#ff7ad9',
   text: 'Each scored {g:8} has a {g:1 in 4} chance to create a {g:Tonic}',
@@ -618,7 +618,7 @@ C({ id: 'seance_table', name: 'Moonshiner', rarity: 2, cost: 6, icon: 'jug', hue
   text: 'Create a {g:Moonshine} when you win a {h:flush}',
   after: (c) => { if (c.handType === 'flush') { if (c.createCons('mask')) c.msg('+Moonshine', '#b04dff'); } } });
 C({ id: 'star_counter', name: 'Old Prospector\u2019s Tales', rarity: 2, cost: 6, icon: 'goldpan', hue: '#9fc7ff',
-  text: 'Create a {g:Tall Tale} when you hit a natural {h:blackjack}',
+  text: 'Create a {g:Tall Tale} when you get a natural {h:blackjack}',
   after: (c) => { if (c.handType === 'blackjack' || c.handType === 'royal') { if (c.createCons('star')) c.msg('+Tale', '#9fc7ff'); } } });
 C({ id: 'dream_moth', name: 'Pack Rat', rarity: 1, cost: 4, icon: 'crate', hue: '#e6c8ff',
   text: '{g:1 in 2} chance to create a {g:Tonic} when you open a Crate',
@@ -645,7 +645,7 @@ C({ id: 'clown_spirit', name: 'Rodeo Clown', rarity: 1, cost: 4, icon: 'balloon'
 C({ id: 'astronomer', name: 'Astronomer Owl', rarity: 2, cost: 8, icon: 'spyglass', hue: '#7fb8ff',
   text: 'All Tall Tales and Tall Tale Crates in the shop are free',
   noCopy: true });
-C({ id: 'fortune_teller', name: 'Fortune Teller', rarity: 1, cost: 6, icon: 'crystal', hue: '#c9b8ff',
+C({ id: 'fortune_teller', name: 'Empty Bottles', rarity: 1, cost: 6, icon: 'crystal', hue: '#c9b8ff',
   text: (s, run) => `{m:+1} Odds for each Tonic used this run {d:(currently {m:+${run.stats.fortunesUsed}})}`,
   hand: (c) => { if (c.run.stats.fortunesUsed) c.mult(c.run.stats.fortunesUsed); } });
 C({ id: 'star_map', name: 'Star Chart', rarity: 2, cost: 6, icon: 'compass', hue: '#9fc7ff',
@@ -654,7 +654,7 @@ C({ id: 'star_map', name: 'Star Chart', rarity: 2, cost: 6, icon: 'compass', hue
   useCons: (c, s, kind) => { if (kind === 'star' && !c.copy) { st(s).x = Math.round((st(s).x + 0.1) * 100) / 100; c.msg('Upgrade!'); } },
   hand: (c, s) => { if (st(s).x > 1) c.xmult(st(s).x); } });
 C({ id: 'old_photograph', name: 'Hooky Hooligan', rarity: 2, cost: 6, icon: 'bandana', hue: '#d9c7a0',
-  text: (s, run) => `{x:X0.25} Odds for each trail stop you visited without playing cards {d:(currently {x:${fmtX(1 + run.stats.tablesSkipped * 0.25)}})}`,
+  text: (s, run) => `Gains {x:X0.25} Odds for each table skipped this run {d:(currently {x:${fmtX(1 + run.stats.tablesSkipped * 0.25)}})}`,
   hand: (c) => { if (c.run.stats.tablesSkipped) c.xmult(1 + 0.25 * c.run.stats.tablesSkipped); } });
 C({ id: 'red_envelope', name: 'Unopened Mail', rarity: 1, cost: 5, icon: 'mailbox', hue: '#ff3d3d',
   init: () => ({ m: 0 }),
@@ -668,12 +668,12 @@ C({ id: 'shell_game', name: 'Shell Game', rarity: 2, cost: 6, icon: 'dice', hue:
   hand: (c, s) => { if (st(s).m) c.mult(st(s).m); } });
 C({ id: 'bonfire', name: 'Bonfire', rarity: 3, cost: 9, icon: 'campfire', hue: '#ff6a2a',
   init: () => ({ x: 1 }),
-  text: (s) => `Gains {x:X0.25} Odds for each card sold. Resets when a Outlaw is defeated {d:(currently {x:${fmtX(st(s).x)}})}`,
+  text: (s) => `Gains {x:X0.25} Odds for each card sold. Resets when you defeat an Outlaw {d:(currently {x:${fmtX(st(s).x)}})}`,
   anySold: (c, s) => { st(s).x += 0.25; c.msg('Crackle!'); },
   hostBeaten: (c, s) => { st(s).x = 1; },
   hand: (c, s) => { if (st(s).x > 1) c.xmult(st(s).x); } });
 C({ id: 'jizo_statue', name: 'Second Wind', rarity: 2, cost: 5, icon: 'windmill', hue: '#c7c1d9',
-  text: 'Prevents a run from ending if you reached at least {g:25%} of the target. Crumbles afterwards',
+  text: 'If you run out of hands with at least {g:25%} of the target scored, you win the table anyway. Then this Doodad is destroyed',
   noCopy: true,
   save: (c, s) => {
     if (!c.table || c.table.score < c.table.target * 0.25) return false;
@@ -683,7 +683,7 @@ C({ id: 'jizo_statue', name: 'Second Wind', rarity: 2, cost: 5, icon: 'windmill'
   } });
 C({ id: 'frenzied_oni', name: 'Mad Bull', rarity: 2, cost: 7, icon: 'bull', hue: '#ff2d2d',
   init: () => ({ x: 1 }),
-  text: (s) => `When a Saloon or High Roller table starts, gains {x:X0.5} Odds and destroys a random other Doodad {d:(currently {x:${fmtX(st(s).x)}})}`,
+  text: (s) => `When a Saloon Game, High Stakes or Bank Job table starts, gains {x:X0.5} Odds and destroys a random other Doodad {d:(currently {x:${fmtX(st(s).x)}})}`,
   tableStart: (c, s) => {
     if (c.copy || !c.table || c.table.kind === 'host') return;
     st(s).x += 0.5;
@@ -694,7 +694,7 @@ C({ id: 'frenzied_oni', name: 'Mad Bull', rarity: 2, cost: 7, icon: 'bull', hue:
   hand: (c, s) => { if (st(s).x > 1) c.xmult(st(s).x); } });
 C({ id: 'ritual_knife', name: 'Bowie Knife', rarity: 2, cost: 6, icon: 'knife', hue: '#ff6b6b',
   init: () => ({ m: 0 }),
-  text: (s) => `When a table starts, destroys the Doodad to its right and gains twice its sell value as Odds {d:(currently {m:+${st(s).m}})}`,
+  text: (s) => `When a table starts, destroys the Doodad to its right and gains Odds equal to twice its sell value {d:(currently {m:+${st(s).m}})}`,
   tableStart: (c, s) => {
     if (c.copy) return;
     const i = c.run.charms.findIndex((k) => k.uid === s.uid);
@@ -721,7 +721,7 @@ C({ id: 'paper_ticket', name: 'Two-for-One Ticket', rarity: 2, cost: 6, icon: 't
   sold: (c) => { c.addTag('double'); } });
 C({ id: 'ghost_twin', name: 'Evil Twin', rarity: 3, cost: 8, icon: 'ghost', hue: '#e6f0ff',
   init: () => ({ n: 0 }),
-  text: (s) => `After {g:2} tables, sell this to duplicate a random Doodad {d:(${Math.min(2, st(s).n)}/2)}`,
+  text: (s) => `After {g:2} tables, sell this to copy a random other Doodad {d:(${Math.min(2, st(s).n)}/2)}`,
   noCopy: true,
   tableEnd: (c, s) => { st(s).n += 1; if (st(s).n === 2) c.msg('Ready!'); },
   sold: (c, s) => {
@@ -738,12 +738,12 @@ C({ id: 'echo_mirror', name: 'Echo Canyon', rarity: 3, cost: 10, icon: 'mesa', h
   text: 'Copies the ability of the leftmost Doodad',
   noCopy: true });
 C({ id: 'loaded_dice', name: 'Loaded Dice', rarity: 2, cost: 6, icon: 'dice', hue: '#f7ecd2',
-  text: 'Doubles all listed {g:probabilities}',
+  text: 'Doubles every chance on Doodads, cards and Tonics {d:(1 in 4 becomes 2 in 4)}',
   noCopy: true,
   rules: (r) => { r.probMult *= 2; } });
 C({ id: 'bubble_tea', name: 'Lightning Bug Jar', rarity: 1, cost: 5, icon: 'lightbulb', hue: '#d8ff7a',
   init: () => ({ m: 0 }),
-  text: (s) => `Gains {m:+1} Odds each time a card is dealt to you {d:(currently {m:+${st(s).m}})}. Resets when a Outlaw is defeated`,
+  text: (s) => `Gains {m:+1} Odds each time a card is dealt to you. Resets when you defeat an Outlaw {d:(currently {m:+${st(s).m}})}`,
   hit: (c, s) => { st(s).m += 1; },
   hostBeaten: (c, s) => { st(s).m = 0; },
   hand: (c, s) => { if (st(s).m) c.mult(st(s).m); } });
@@ -753,17 +753,17 @@ C({ id: 'mushroom_ring', name: 'Mystery Stew', rarity: 1, cost: 5, icon: 'cauldr
 C({ id: 'bee_hive', name: 'Worm Collector', rarity: 1, cost: 4, icon: 'worm', hue: '#ffd23f',
   text: 'Scored cards give {c:+8} Pot',
   card: (c) => c.chips(8) });
-C({ id: 'owl_night', name: 'Night Owl', rarity: 2, cost: 6, icon: 'owl', hue: '#a08cff',
+C({ id: 'owl_night', name: 'Barn Owl', rarity: 2, cost: 6, icon: 'owl', hue: '#a08cff',
   text: '{x:X2} Odds during Outlaw tables',
   hand: (c) => { if (c.table?.kind === 'host') c.xmult(2); } });
 C({ id: 'peach_boy', name: 'Snack Pack', rarity: 1, cost: 5, icon: 'sandwich', hue: '#ffb3c7',
   text: '{m:+8} Odds if you are holding a {g:Tonic}, {g:Tall Tale} or {g:Moonshine}',
   hand: (c) => { if (c.run.consumables.length) c.mult(8); } });
 C({ id: 'bear_hug', name: 'Seventeen Apples', rarity: 1, cost: 5, icon: 'apple', hue: '#c08a5a',
-  text: '{c:+50} Pot if the dealer had 17 exactly',
+  text: '{c:+50} Pot if the dealer stands on exactly 17',
   hand: (c) => { if (!c.dealerBusted && c.dealerTotal === 17) c.chips(50); } });
 C({ id: 'turtle_shell', name: 'Stubborn Mule', rarity: 1, cost: 5, icon: 'horse', hue: '#6ee7a8',
-  text: '{m:+6} Odds if you stood on {g:16} or less and still scored',
+  text: '{m:+6} Odds if your total is {g:16} or less',
   hand: (c) => { if (c.total <= 16) c.mult(6); } });
 C({ id: 'snake_eyes', name: 'Snake Eyes', rarity: 2, cost: 6, icon: 'snake', hue: '#7fe07a',
   text: 'If your first two cards are a pair, the hand gives {x:X2} Odds',
@@ -782,14 +782,14 @@ C({ id: 'cauldron', name: 'Chuckwagon Cook', rarity: 2, cost: 7, icon: 'cauldron
   text: (s) => `Gains {m:+1} Odds for every consumable used {d:(currently {m:+${st(s).m}})}`,
   useCons: (c, s) => { st(s).m += 1; },
   hand: (c, s) => { if (st(s).m) c.mult(st(s).m); } });
-C({ id: 'taiko_bridge', name: 'Split Decision', rarity: 1, cost: 5, icon: 'scissors', hue: '#ff6a5a',
+C({ id: 'taiko_bridge', name: 'Fork in the Road', rarity: 1, cost: 5, icon: 'scissors', hue: '#ff6a5a',
   text: '{c:+25} Pot and {m:+5} Odds if you split this hand',
   hand: (c) => { if (c.hand?.fromSplit) { c.chips(25); c.mult(5); } } });
 C({ id: 'needle_thread', name: 'Needle & Thread', rarity: 1, cost: 4, icon: 'needle', hue: '#e9dcc0',
   text: 'Winning with exactly {g:20} gives {m:+10} Odds',
   hand: (c) => { if (c.total === 20 && isWin(c.handType)) c.mult(10); } });
 C({ id: 'fishing_hook', name: 'Fishing Pole', rarity: 1, cost: 4, icon: 'fish', hue: '#9fd8ff',
-  text: 'Earn {$:1} for each card you draw beyond your first two in a winning hand',
+  text: 'Earn {$:1} for each card beyond the first two in a winning hand',
   resolve: (c) => { if (isWin(c.handType) && c.cards.length > 2) c.money(c.cards.length - 2); } });
 C({ id: 'scissors', name: 'Penny Pincher', rarity: 2, cost: 6, icon: 'coin', hue: '#d0d8e8',
   text: 'Scored cards ranked {g:2-6} give {x:X1.1} Odds',
@@ -825,7 +825,7 @@ C({ id: 'spark_plug', name: 'Big Ten', rarity: 1, cost: 5, icon: 'chips', hue: '
 C({ id: 'shimenawa', name: 'Jailhouse', rarity: 3, cost: 8, icon: 'jail', hue: '#f7d9a6',
   text: 'Protects every Doodad from being destroyed',
   noCopy: true });
-C({ id: 'shield_of_dawn', name: 'Tin Shiny Hat', rarity: 2, cost: 6, icon: 'cowboyhat', hue: '#b8c4d9',
+C({ id: 'shield_of_dawn', name: 'Tin Foil Hat', rarity: 2, cost: 6, icon: 'cowboyhat', hue: '#b8c4d9',
   text: 'Outlaw curses that debuff cards have no effect',
   noCopy: true });
 C({ id: 'spinning_top', name: 'Spin the Bottle', rarity: 1, cost: 4, icon: 'bottle', hue: '#ff9a7a',
@@ -853,7 +853,7 @@ C({ id: 'iron_gizzard', name: 'Iron Gizzard', rarity: 3, cost: 8, icon: 'anvil',
   noCopy: true,
   tableEnd: (c) => { c.run.grit = Math.min(c.run.maxGrit + 4, c.run.grit + 1); } });
 C({ id: 'gamblers_grin', name: 'Gambler\u2019s Grin', rarity: 1, cost: 5, icon: 'tooth', hue: '#ffd23f',
-  text: '{m:+10} Odds when you wager a Dollar or your Bankroll',
+  text: '{m:+10} Odds on Dollar and Bankroll wagers',
   hand: (c) => { if ((c.table?.wager ?? 1) > 1) c.mult(10); } });
 C({ id: 'safe_bet', name: 'Safe Bet', rarity: 1, cost: 4, icon: 'piggybank', hue: '#ffb3c7',
   text: '{c:+40} Pot on Penny wagers',
@@ -869,14 +869,14 @@ C({ id: 'all_in_annie', name: 'All-In Annie', rarity: 2, cost: 7, icon: 'chips',
   hand: (c) => { if ((c.table?.wager ?? 1) === 3) c.xmult(4 / 3); } });
 
 // ---------------------------------------------------------------------------
-// Legendary (only from the Silent Mask)
+// Legendary (only from The Legendary Jug)
 // ---------------------------------------------------------------------------
 
 C({ id: 'kaguya', name: 'Queen Quackington', rarity: 4, cost: 20, icon: 'crown', hue: '#ffe9a8',
   text: 'Scored Queens and Aces give {x:X1.75} Odds',
   card: (c, _s, card) => { if (card.ink !== 'stone' && (card.rank === 12 || card.rank === 14)) c.xmult(1.75); } });
 C({ id: 'fujin_raijin', name: 'The Tornado Twins', rarity: 4, cost: 20, icon: 'tornado', hue: '#7fe8ff',
-  text: 'When the dealer busts, retrigger every scored card twice',
+  text: 'When the dealer busts, every scored card scores {g:2} extra times',
   retrig: (c) => (c.dealerBusted ? 2 : 0) });
 C({ id: 'lantern_keeper', name: 'The Legendary Quackjack', rarity: 4, cost: 20, icon: 'trophy', hue: '#ffcf3d',
   init: () => ({ x: 1 }),
@@ -884,7 +884,7 @@ C({ id: 'lantern_keeper', name: 'The Legendary Quackjack', rarity: 4, cost: 20, 
   after: (c, s) => { if (c.handType === 'blackjack' || c.handType === 'royal') { st(s).x += 0.5; c.msg('Legendary!'); } },
   hand: (c, s) => { if (st(s).x > 1) c.xmult(st(s).x); } });
 C({ id: 'shuten_doji', name: 'Bottomless Pete', rarity: 4, cost: 20, icon: 'pelican', hue: '#ff3d3d',
-  text: 'You bust over {g:23}. {x:X2} Odds',
+  text: 'You bust over {g:23} instead of 21. {x:X2} Odds',
   rules: (r) => { r.bustLimit += 2; },
   hand: (c) => c.xmult(2) });
 C({ id: 'hollow_king', name: 'The Undertaker', rarity: 4, cost: 20, icon: 'skull', hue: '#e9e2cf',

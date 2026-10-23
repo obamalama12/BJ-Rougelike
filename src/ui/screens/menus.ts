@@ -16,7 +16,9 @@ import { particles } from '../../fx/particles';
 import { openOptions } from './options';
 import { openCollection } from './collection';
 import { iconSvg } from '../icons';
-import { nameOf, portraitOf } from '../characters';
+import { nameOf, portraitOf, townName } from '../characters';
+import { HOST } from '../../content/hosts';
+import { openHowToPlay } from '../coach';
 
 export function titleScreen(): HTMLElement {
   background.setPalette('menu', 1);
@@ -35,12 +37,12 @@ export function titleScreen(): HTMLElement {
   const rival = rivals[Math.floor(Date.now() / 86400000) % rivals.length];
   const hero = h('div', { class: 'title-hero', html: portraitOf('player', 'smug') });
   const villain = h('div', { class: 'title-villain', html: portraitOf(rival, 'smug') });
-  tip(villain, () => `<div class="tt-title">${nameOf(rival)}</div><div class="tt-body">Wanted in seven towns. Allegedly.</div>`);
+  tip(villain, () => `<div class="tt-title">${nameOf(rival)}</div><div class="tt-sub2">Wanted</div><div class="tt-body">${fmt(HOST[rival]?.text ?? '')}</div>`);
   const logo = div(
     'logo',
     div('logo-top', 'The Legend of'),
     div('logo-main', 'Buck Ducks'),
-    div('logo-sub', 'a blackjack roguelike of the duck frontier'),
+    div('logo-sub', 'blackjack on the duck frontier'),
   );
   const menu = div('title-menu');
   if (hasSavedRun()) {
@@ -53,6 +55,7 @@ export function titleScreen(): HTMLElement {
   }
   menu.append(
     button('New Run', hasSavedRun() ? 'big' : 'primary big', () => openNewRun()),
+    button('How to Play', 'big ghost', () => openHowToPlay()),
     button('Collection', 'big ghost', () => openCollection()),
     button('Options', 'big ghost', () => openOptions()),
   );
@@ -97,14 +100,14 @@ export function openNewRun() {
         sfx('select');
         render();
       });
-      tip(chip, () => `<div class="tt-title">${s.name}</div><div class="tt-body">${fmt(s.text)}${s.id > 1 ? '<br><span class="t-dim">Includes all previous phases</span>' : ''}</div>${locked ? '<div class="tt-sub bad">Win with this shoe on the previous phase to unlock</div>' : ''}`);
+      tip(chip, () => `<div class="tt-title">${s.name}</div><div class="tt-body">${fmt(s.text)}${s.id > 1 ? '<br><span class="t-dim">Includes every lower level</span>' : ''}</div>${locked ? '<div class="tt-sub bad">Win with this deck at the level below to unlock</div>' : ''}`);
       stakes.appendChild(chip);
     }
     const st = STAKES[stake - 1];
     const seedIn = h('input', { class: 'seed-input', placeholder: 'Random seed', maxlength: 12, value: seed }) as HTMLInputElement;
     seedIn.addEventListener('input', () => (seed = seedIn.value.toUpperCase().replace(/[^A-Z0-9]/g, '')));
     box.append(
-      div('nr-title', 'Pick Your Deck, Partner'),
+      div('nr-title', 'Choose a Deck'),
       div('nr-carousel', prev, back, shoeInfo, next),
       div('nr-sub', 'Wanted Level'),
       stakes,
@@ -136,7 +139,7 @@ export function gameOverScreen(): HTMLElement {
   const el = div('end-screen over');
   el.append(
     div('end-title', 'You Bit the Dust'),
-    div('end-sub', `Out of Grit in Town ${run.night}. The buzzards are circling.`),
+    div('end-sub', `Out of Grit in ${townName(run.night)}, town ${run.night} of ${NIGHTS}.`),
     runSummary(),
     div(
       'end-btns',
@@ -160,18 +163,17 @@ export function victoryScreen(): HTMLElement {
   const run = app.run!;
   background.setPalette('victory', 1);
   audio.setMood('shop');
-  particles.petals(120);
   recordEnd(true);
   const el = div('end-screen victory');
   el.append(
-    div('end-lanterns', ...Array.from({ length: 21 }, (_, i) => {
-      const l = div('mini-lantern');
+    div('end-badges', ...Array.from({ length: NIGHTS }, (_, i) => {
+      const l = div('end-badge');
       l.style.setProperty('--i', String(i));
       l.innerHTML = iconSvg('badge');
       return l;
     })),
-    div('end-title', 'Fastest Bill in the West'),
-    div('end-sub', 'Twenty-one bounties collected. The whole frontier tips its hat to you.'),
+    div('end-title', 'Every Bounty Paid'),
+    div('end-sub', `All ${NIGHTS} Outlaws run out of town.`),
     runSummary(),
     div(
       'end-btns',
@@ -218,8 +220,8 @@ function runSummary(): HTMLElement {
     ['Quackjacks', String(s.blackjacks)],
     ['Busts', String(s.busts)],
     ['Bucks earned', `$${s.moneyEarned}`],
-    ['Tables lit', String(s.tablesWon)],
-    ['Shoe', `${SHOE[run.shoeId]?.name} · ${STAKES[run.stake - 1]?.name}`],
+    ['Tables won', String(s.tablesWon)],
+    ['Deck', `${SHOE[run.shoeId]?.name} · ${STAKES[run.stake - 1]?.name}`],
     ['Seed', run.seed],
   ];
   return div('end-summary', ...rows.map(([a, b]) => div('es-row', div('es-label', a), div('es-val', b))));

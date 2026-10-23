@@ -12,6 +12,8 @@ export interface Settings {
   shake: boolean;
   grain: boolean;
   motion: boolean;
+  /** Show the first-time coaching notes. */
+  tips: boolean;
 }
 
 export interface Profile {
@@ -28,6 +30,8 @@ export interface Profile {
   charmWins: Record<string, number>;
   lastShoe: string;
   lastStake: number;
+  /** Coaching notes already shown. */
+  tips: Record<string, true>;
 }
 
 const KEY = 'tol.profile.v1';
@@ -35,7 +39,7 @@ const RUN_KEY = 'tol.run.v1';
 
 function defaults(): Profile {
   return {
-    settings: { speed: 1.5, music: 0.5, sfx: 0.7, shader: 'high', particles: true, shake: true, grain: true, motion: true },
+    settings: { speed: 1.5, music: 0.5, sfx: 0.7, shader: 'high', particles: true, shake: true, grain: true, motion: true, tips: true },
     runs: 0,
     wins: 0,
     bestHand: 0,
@@ -47,6 +51,7 @@ function defaults(): Profile {
     charmWins: {},
     lastShoe: 'paper',
     lastStake: 1,
+    tips: {},
   };
 }
 

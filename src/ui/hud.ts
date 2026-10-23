@@ -114,6 +114,8 @@ export class Hud {
         div('pot-odds', div('pot-label', 'Odds'), r.mult),
       ),
     );
+    const body = pot.querySelector('.pot-body') as HTMLElement;
+    tip(body, () => `<div class="tt-title">Pot × Odds</div><div class="tt-body">${fmt('A winning hand scores {c:Pot} times {m:Odds}. The kind of win sets the starting numbers. Each scored card adds its value to the Pot, and Doodads add more.')}</div>`, 'top');
     r.calc = pot;
     return pot;
   }
@@ -195,7 +197,7 @@ export class Hud {
     this.refs.target.textContent = fmtNum(target);
     if (t) {
       const rules = getRules(run);
-      this.refs.rules.textContent = `Dealer ${rules.dealerStand > 17 ? `hits to ${rules.dealerStand}` : rules.dealerHitSoft17 ? 'hits soft 17' : 'stands on 17'} \u00b7 Bust over ${rules.bustLimit} \u00b7 Charley at ${rules.charlieSize}`;
+      this.refs.rules.textContent = `Dealer draws to ${rules.dealerStand}${rules.dealerHitSoft17 ? ' (hits soft 17)' : ''} \u00b7 Over ${rules.bustLimit} busts \u00b7 ${rules.charlieSize} cards without busting wins`;
     } else this.refs.rules.textContent = 'Beat the Outlaw to ride on to the next town';
     if (t) this.setScore(t.score, t.target);
   }
@@ -342,8 +344,12 @@ export class Hud {
       this.attachDrag(card, k.uid);
       this.charmRow.appendChild(slot);
     });
-    for (let i = run.charms.length; i < slots; i++) this.charmRow.appendChild(div('charm-slot empty', div('loop')));
-    this.charmCount.textContent = `Posse ${run.charms.length}/${slots}`;
+    for (let i = run.charms.length; i < slots; i++) {
+      const empty = div('charm-slot empty', div('loop'));
+      tip(empty, () => '<div class="tt-title">Empty loop</div><div class="tt-body">Room for one more Doodad. Buy them at the General Store or win one at the Bank.</div>', 'top');
+      this.charmRow.appendChild(empty);
+    }
+    this.charmCount.textContent = `Doodads ${run.charms.length}/${slots}`;
     run.consumables.forEach((k) => {
       const slot = div('cons-slot');
       const card = consCard(k.kind, k.id, k.finish);

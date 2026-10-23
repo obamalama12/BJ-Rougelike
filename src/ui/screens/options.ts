@@ -1,6 +1,7 @@
 // Options: speed, audio, visual effects.
 
-import { app, button, modal, save } from '../app';
+import { app, button, modal, save, toast } from '../app';
+import { openHowToPlay, resetTips } from '../coach';
 import { div, h, clear } from '../dom';
 import { profile, saveProfile, saveRun } from '../profile';
 import { audio, sfx } from '../../fx/audio';
@@ -61,6 +62,20 @@ export function openOptions() {
       seg('Screen shake', [[1, 'On'], [0, 'Off']], s.shake ? 1 : 0, (v) => (s.shake = !!v)),
       seg('Paper grain', [[1, 'On'], [0, 'Off']], s.grain ? 1 : 0, (v) => (s.grain = !!v)),
       seg('Motion', [[1, 'Full'], [0, 'Reduced']], s.motion ? 1 : 0, (v) => (s.motion = !!v)),
+      seg('Doc Hoot’s tips', [[1, 'On'], [0, 'Off']], s.tips !== false ? 1 : 0, (v) => (s.tips = !!v)),
+      div(
+        'opt-row',
+        div('opt-label', 'Learning the ropes'),
+        div(
+          'seg',
+          button('How to Play', 'small ghost', () => openHowToPlay()),
+          button('Show tips again', 'small ghost', () => {
+            resetTips();
+            toast('Doc Hoot will explain things again', 'good');
+            render();
+          }),
+        ),
+      ),
     );
     const foot = div('opt-foot');
     if (app.run) {

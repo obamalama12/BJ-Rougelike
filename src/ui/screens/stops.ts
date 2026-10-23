@@ -87,10 +87,10 @@ async function runDuel(run: Run, hud: Hud, rerender: () => void) {
   if (app.busy) return;
   app.busy = true;
   const overlay = div('duel');
-  const sign = div('duel-sign', 'Wait for it...');
+  const sign = div('duel-sign', 'Steady');
   const left = h('div', { class: 'duel-bird left', html: portraitOf('player', 'neutral') });
   const right = h('div', { class: 'duel-bird right', html: portraitOf('jorogumo', 'smug') });
-  overlay.append(div('duel-sun'), left, right, sign, div('duel-hint', 'Click or press Space the moment you hear the bell. Too early and you lose.'));
+  overlay.append(div('duel-sun'), left, right, sign, div('duel-hint', 'When the sign says DRAW, click or press Space. Shoot early and you lose.'));
   app.screen.appendChild(overlay);
   audio.setMood('host');
   let state: 'wait' | 'draw' | 'done' = 'wait';
@@ -128,12 +128,12 @@ async function runDuel(run: Run, hud: Hud, rerender: () => void) {
   };
   const shoot = () => {
     if (state === 'wait') {
-      void finish(false, 'Too early! You shot your own hat.');
+      void finish(false, 'Too early. You shot a hole in your own hat.');
     } else if (state === 'draw') {
       const rt = performance.now() - drawAt;
       sfx('bust');
-      if (rt < theirs) void finish(true, `BANG! ${Math.round(rt)} ms. Fastest bill in the West!`);
-      else void finish(false, `Too slow: ${Math.round(rt)} ms vs ${Math.round(theirs)} ms`);
+      if (rt < theirs) void finish(true, `You win. ${Math.round(rt)} ms against ${Math.round(theirs)} ms.`);
+      else void finish(false, `Too slow. ${Math.round(rt)} ms against ${Math.round(theirs)} ms.`);
     }
   };
   const onKey = (e: KeyboardEvent) => {
@@ -156,7 +156,7 @@ async function runDuel(run: Run, hud: Hud, rerender: () => void) {
     sfx('gong');
     // The stranger fires on their own if you freeze.
     setTimeout(() => {
-      if (state === 'draw') void finish(false, 'He drew first. You never even cleared leather.');
+      if (state === 'draw') void finish(false, `The roadrunner fired first, at ${Math.round(theirs)} ms.`);
     }, theirs + 30);
   }, delay / Math.max(1, 1));
 }
@@ -177,7 +177,7 @@ export function docScreen(hud: Hud): HTMLElement {
     card.append(
       art('doc', 'tonic'),
       div('stop-title', 'Doc Hoot’s Office'),
-      div('stop-text', `"Hold still. This’ll only sting a whole lot." Grit: ${run.grit}/${gritCap(run)}`),
+      div('stop-text', `"Sit. Don’t touch the leeches." Your Grit: ${run.grit}/${gritCap(run)}`),
     );
     const list = div('stop-choices');
     const choice = (label: string, detail: string, ok: boolean, fn: () => void) => {
@@ -253,7 +253,7 @@ export function campScreen(hud: Hud): HTMLElement {
   const render = (yarn = false) => {
     clear(el);
     const card = div(`stop-card${yarn ? ' yarning' : ''}`);
-    card.append(h('div', { class: 'stop-art icon-art campfire', html: iconSvg('campfire') }), div('stop-title', 'Campfire'), div('stop-text', 'Crickets, beans, and a sky full of stars. You can only do one thing before you nod off.'));
+    card.append(h('div', { class: 'stop-art icon-art campfire', html: iconSvg('campfire') }), div('stop-title', 'Campfire'), div('stop-text', 'A can of beans on the coals. There’s time for one thing before you fall asleep.'));
     const done = () => {
       save();
       finishNode(run);

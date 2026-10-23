@@ -1,5 +1,6 @@
 // The table: dealing, player actions, the dealer and the scoring show.
 
+import { coach } from '../coach';
 import type { Card, HandTypeId, Outcome, Run, ScoreEvent, Src } from '../../core/types';
 import { HAND_TYPE, handTotal, classifyHand, handBase } from '../../core/cards';
 import { HOST } from '../../content/hosts';
@@ -32,13 +33,13 @@ const PLAYER_Y = 628;
 const FELT_CX = 800;
 
 const OUTCOME_LABEL: Record<Outcome, string> = {
-  blackjack: 'Quackjack!',
-  charlie: 'Charley Horse!',
-  win: 'Win',
-  dealerbust: 'Dealer Bit the Dust!',
+  blackjack: 'Quackjack',
+  charlie: 'Charley Horse',
+  win: 'Won',
+  dealerbust: 'Dealer Busts',
   push: 'Standoff',
-  lose: 'Lose',
-  bust: 'Bust!',
+  lose: 'Lost',
+  bust: 'Bust',
   fold: 'Folded',
 };
 
@@ -289,7 +290,8 @@ export class TableScreen {
     const ht = classifyHand(cards, tot.total, cards.length >= rules.charlieSize ? 'charlie' : 'win', rules);
     const lv = run.handLevels[ht];
     const b = handBase(ht, lv);
-    if (this.hud.refs.handName.textContent !== HAND_TYPE[ht].name) this.hud.setHand(ht, lv);
+    const label = `If it wins: ${HAND_TYPE[ht].name}`;
+    if (this.hud.refs.handName.textContent !== label) this.hud.setHand(ht, lv, label);
     this.hud.setCalc(b.chips, b.mult);
   }
 
@@ -324,23 +326,30 @@ export class TableScreen {
     if (t.phase === 'ready') {
       const deal = button('Deal', 'primary big deal-btn', () => void this.deal(), { sub: 'Space' });
       this.actions.append(deal);
+      if (t.dealt === 0) {
+        if (t.kind === 'host') void coach('outlaw', { x: 500, y: 330, point: 'left' });
+        void coach('table', { x: 500, y: 330, point: 'left' });
+        void coach('wager', { x: 1090, y: 350, point: 'right' });
+      }
       return;
     }
     if (t.phase !== 'player') return;
     const a = availableActions(run);
     const rules = getRules(run);
-    const mk = (label: string, key: string, cls: string, ok: boolean, fn: () => void, reason?: string, sub?: string) => {
+    const mk = (label: string, key: string, cls: string, ok: boolean, fn: () => void, what: string, reason?: string, sub?: string) => {
       const b = button(label, `act ${cls}`, fn, { disabled: !ok, sub: sub ?? key });
-      if (!ok && reason) tip(b, () => `<div class="tt-body">${reason}</div>`);
+      tip(b, () => `<div class="tt-title">${label}</div><div class="tt-body">${what}</div>${!ok && reason ? `<div class="tt-sub bad">${reason}</div>` : ''}`, 'left');
       return b;
     };
+    const extra = (n: number) => (n ? ` Uses ${n} extra hand${n > 1 ? 's' : ''}.` : '');
     this.actions.append(
-      mk('Hit', 'H', 'hit', a.hit, () => void this.doHit()),
-      mk('Stand', 'S', 'stand', a.stand, () => void this.doStand(), a.reasons.stand),
-      mk('Double', 'D', 'double', a.double, () => void this.doDouble(), a.reasons.double, `D · X${rules.doubleX}${rules.doubleCost ? ' · 1 hand' : ''}`),
-      mk('Split', 'P', 'split', a.split, () => void this.doSplit(), a.reasons.split, `P${rules.splitCost ? ' · 1 hand' : ''}`),
-      mk('Fold', 'F', 'fold', a.fold, () => void this.doFold(), a.reasons.fold, `F · ${t.foldsLeft} left`),
+      mk('Hit', 'H', 'hit', a.hit, () => void this.doHit(), 'Take another card.'),
+      mk('Stand', 'S', 'stand', a.stand, () => void this.doStand(), 'Keep what you have. The dealer plays next.', a.reasons.stand),
+      mk('Double', 'D', 'double', a.double, () => void this.doDouble(), `Take exactly one more card. A win scores X${rules.doubleX}.${extra(rules.doubleCost)}`, a.reasons.double, `D · X${rules.doubleX}${rules.doubleCost ? ' · 1 hand' : ''}`),
+      mk('Split', 'P', 'split', a.split, () => void this.doSplit(), `Split a pair into two hands played one after the other.${extra(rules.splitCost)}`, a.reasons.split, `P${rules.splitCost ? ' · 1 hand' : ''}`),
+      mk('Fold', 'F', 'fold', a.fold, () => void this.doFold(), 'Throw this hand away. It does not use up a hand.', a.reasons.fold, `F · ${t.foldsLeft} left`),
     );
+    void coach('hand', { x: 1090, y: 540, point: 'right' });
   }
 
   /** Penny / Dollar / Bankroll wager picker, shown between hands. */
@@ -598,11 +607,12 @@ export class TableScreen {
     settleOutcomes(run);
     this.layout();
     if (dealerBust && dealerNeedsToPlayOrScored(run)) {
-      const el = this.cardLayer.querySelector(`[data-id="${run.table!.dealer[run.table!.dealer.length - 1]}"]`);
-      if (el) {
-        popup(el, 'Dealer Bit the Dust!', 'pop-big pop-good');
-        burstAt(el, { n: 18, color: ['#ffe27a', '#ffb03d'] });
-      }
+      const el = div('fx-anchor');
+      el.style.left = `${FELT_CX}px`;
+      el.style.top = `${DEALER_Y + 40}px`;
+      this.el.appendChild(el);
+      setTimeout(() => el.remove(), 2500);
+      popup(el, 'Dealer Busts!', 'pop-big pop-good');
       sfx('win');
       this.mood('dealerBust', 'sweating');
       await wait(450);
@@ -757,6 +767,7 @@ export class TableScreen {
       burstAt(totalEl, { n: 60, color: ['#ff5b2a', '#ffb03d', '#ffe27a'], speed: 520 });
     }
     this.hud.setScore(t.score, t.target, true);
+    void coach('score', { x: 1140, y: 560, point: 'left' });
     if (big) this.mood('bigScore', 'shocked');
     else if (ht !== 'push' && o !== 'blackjack') this.mood('playerWin', Math.random() < 0.5 ? 'angry' : 'sad', 0.6);
     await wait(900);
@@ -885,10 +896,10 @@ export class TableScreen {
     this.lock();
     clear(this.actions);
     sfx('blackjack');
-    particles.petals(60);
     background.bump(2);
+    screenShake(1);
     this.say(line('tableWon'), 'sad', 4000);
-    const lit = div('lantern-lit', div('ll-lantern', div('ll-glow'), h('div', { class: 'll-body', html: iconSvg('badge') })), div('ll-text', t.kind === 'host' ? 'Run Outta Town!' : 'Cleaned Out!'));
+    const lit = div('table-stamp', h('div', { class: 'ts-badge', html: iconSvg('badge') }), div('ts-text', t.kind === 'host' ? 'Run Out of Town' : 'Table Cleared'), div('ts-sub', `${fmtNum(t.score)} of ${fmtNum(t.target)}`));
     this.el.appendChild(lit);
     if (run.flags.savedBy) {
       popup(this.hud.refs.score, 'Saved by a Second Wind!', 'pop-big pop-gold');

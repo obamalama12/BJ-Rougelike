@@ -61,7 +61,7 @@ function deckTab(run: Run): HTMLElement {
   const total = run.deck.length;
   const inked = run.deck.filter((c) => c.ink).length;
   const sealed = run.deck.filter((c) => c.seal).length;
-  summary.innerHTML = `${total} cards · ${inked} painted · ${sealed} branded${showShoe ? ` · <span class="t-hl">${inShoe.size}</span> left in the shoe (others dimmed)` : ''}`;
+  summary.innerHTML = `${total} cards · ${inked} inked · ${sealed} branded${showShoe ? ` · <span class="t-hl">${inShoe.size}</span> still in the draw pile (the rest are dimmed)` : ''}`;
   wrap.appendChild(summary);
   const bySuit = (s: Suit | 'stone') => run.deck.filter((c) => (s === 'stone' ? c.ink === 'stone' : c.suit === s && c.ink !== 'stone')).sort((a, b) => b.rank - a.rank);
   for (const s of [...SUITS, 'stone'] as (Suit | 'stone')[]) {

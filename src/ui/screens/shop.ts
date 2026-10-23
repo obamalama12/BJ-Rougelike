@@ -12,19 +12,20 @@ import { background } from '../../fx/background';
 import { audio, sfx } from '../../fx/audio';
 import { iconSvg } from '../icons';
 import { portraitOf } from '../characters';
+import { coach } from '../coach';
 
 const QUIPS = [
-  'Howdy, partner! All sales final. All refunds imaginary.',
-  'Fresh doodads! Only slightly stolen.',
-  'Snake oil? No no. This here is DUCK oil. Totally different.',
-  'That Outlaw\u2019s been eyein\u2019 you. Buy somethin\u2019 shiny.',
-  'I don\u2019t do haggling. I do quacking. Quack.',
-  'You break it, you bought it. You look at it funny, you also bought it.',
-  'Bread\u2019s not for sale. Bread is sacred.',
-  'Back in my day we played blackjack with pond rocks.',
-  'Tonics cure everything except bad luck. And gout.',
-  'Ain\u2019t no shame in a reroll, friend. Just bucks.',
-];
+  'Prices are on the tags. The tags are final.',
+  'Crate came in from Tucson this morning. Smells like pelican.',
+  'That Outlaw came through last week. Paid in pennies.',
+  'Don\u2019t lean on that barrel. It\u2019s the dynamite one.',
+  'I knew your father. He couldn\u2019t count to twenty-one either.',
+  'If it bites, you bought it.',
+  'Bread is not for sale. Stop asking.',
+  'Rerolls cost money. Somebody has to restock the shelf.',
+  'Closing at sundown. Sundown is whenever I say.',
+  'Tonics are on the left. The left that\u2019s got bottles on it.',
+]
 
 export function shopScreen(hud: Hud): HTMLElement {
   const run = app.run as Run;
@@ -117,6 +118,7 @@ export function shopScreen(hud: Hud): HTMLElement {
   hud.renderTrays();
   hud.canUse = true;
   hud.onChange = () => render();
+  void coach('store', { x: 800, y: 640, point: 'down' });
   return el;
 }
 

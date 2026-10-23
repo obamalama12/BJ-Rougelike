@@ -1,4 +1,4 @@
-// Shoes (starting decks) and Moon Phases (difficulty stakes) and Bundles (booster packs).
+// Decks (starting decks), Wanted Levels (difficulty) and Crates (booster packs).
 
 import type { PackDef, ShoeDef, StakeDef } from '../game/api';
 import type { Rank } from '../core/types';
@@ -10,19 +10,19 @@ export const SHOES: ShoeDef[] = [
   { id: 'gilded', name: 'Gold Rush Deck', hue: '#f0b429', back: 'gold', text: 'Start with an extra {$:10}', start: { money: 14 } },
   { id: 'jade', name: 'Greenback Deck', hue: '#1fae6c', back: 'jade', text: 'At the end of each table: {$:2} per remaining hand, {$:1} per remaining fold. {r:No interest}' },
   { id: 'ink', name: 'Black Hat Deck', hue: '#2a2340', back: 'ink', text: '{g:+1} Doodad slot. {r:-1} hand each table', start: { baseCharmSlots: 6, baseHands: 5 } },
-  { id: 'starlit', name: 'Medicine Show Deck', hue: '#7a5cff', back: 'violet', text: 'Start with the {g:Saddlebag} deed and {g:2} bottles of {g:Same Again, Barkeep}', vouchers: ['crystal_ball'], cons: [{ kind: 'fortune', id: 'the_echo' }, { kind: 'fortune', id: 'the_echo' }] },
-  { id: 'observatory', name: 'Lookout Deck', hue: '#1d2a6b', back: 'night', text: 'Start with the {g:Spyglass} deed. {r:-1} consumable slot', vouchers: ['telescope'], start: { baseConsSlots: 1 } },
-  { id: 'spirit', name: 'Moonshiner’s Deck', hue: '#9fe8ff', back: 'ghost', text: 'Moonshine may appear in the shop. Start with a jug of {g:Hex Hooch}', cons: [{ kind: 'mask', id: 'hex_mask' }] },
-  { id: 'court', name: 'High Society Deck', hue: '#ff7a3d', back: 'court', text: 'Every {g:2-5} is replaced with a face card. Ten-rich and dangerous',
+  { id: 'starlit', name: 'Tonic Peddler Deck', hue: '#7a5cff', back: 'violet', text: 'Start with the {g:Saddlebag} Deed and {g:2} copies of the {g:Same Again, Barkeep} Tonic', vouchers: ['crystal_ball'], cons: [{ kind: 'fortune', id: 'the_echo' }, { kind: 'fortune', id: 'the_echo' }] },
+  { id: 'observatory', name: 'Lookout Deck', hue: '#1d2a6b', back: 'night', text: 'Start with the {g:Spyglass} Deed. {r:-1} consumable slot', vouchers: ['telescope'], start: { baseConsSlots: 1 } },
+  { id: 'spirit', name: 'Moonshiner’s Deck', hue: '#9fe8ff', back: 'ghost', text: 'Moonshine may appear in the shop. Start with a {g:Hex Hooch}', cons: [{ kind: 'mask', id: 'hex_mask' }] },
+  { id: 'court', name: 'High Society Deck', hue: '#ff7a3d', back: 'court', text: 'Every {g:2, 3, 4 and 5} is replaced with a random face card',
     build: (c) => { for (const k of c.run.deck) if (k.rank <= 5) k.rank = c.rng.pick([11, 12, 13] as Rank[]); } },
   { id: 'little', name: 'Kiddie Table Deck', hue: '#ffb3c7', back: 'pink', text: 'No face cards in the deck. {g:+1} hand each table', start: { baseHands: 7 },
     build: (c) => { c.run.deck = c.run.deck.filter((k) => k.rank < 11 || k.rank > 13); } },
   { id: 'twin_moon', name: 'Two-Suit Deck', hue: '#6f8cff', back: 'checker', text: 'Only {s:moon} and {s:flame} cards, 26 of each',
     build: (c) => { for (const k of c.run.deck) { if (k.suit === 'leaf') k.suit = 'moon'; if (k.suit === 'bell') k.suit = 'flame'; } } },
-  { id: 'ember', name: 'Tornado Deck', hue: '#ff6a2a', back: 'ember', text: 'All ranks and suits are randomised',
+  { id: 'ember', name: 'Tornado Deck', hue: '#ff6a2a', back: 'ember', text: 'Every card gets a random rank and suit',
     build: (c) => { for (const k of c.run.deck) { k.rank = c.rng.pick(RANKS); k.suit = c.rng.pick(SUITS); } } },
-  { id: 'balance', name: 'Even Steven Deck', hue: '#e9e2cf', back: 'yinyang', text: 'Pot and Odds are {g:balanced} before scoring. {r:Targets X2}', scale: 2 },
-  { id: 'twin', name: 'Double Barrel Deck', hue: '#3fcf8e', back: 'twin', text: 'Two full decks shuffled together. {g:+1} hand each table', start: { baseHands: 7 },
+  { id: 'balance', name: 'Fifty-Fifty Deck', hue: '#e9e2cf', back: 'yinyang', text: 'Before each hand scores, Pot and Odds are both set to their average. {r:Targets X2}', scale: 2 },
+  { id: 'twin', name: 'Double Stack Deck', hue: '#3fcf8e', back: 'twin', text: 'Two full decks shuffled together. {g:+1} hand each table', start: { baseHands: 7 },
     build: (c) => { const extra = c.run.deck.map((k) => ({ ...k })); for (const k of extra) c.addCard({ rank: k.rank, suit: k.suit }); } },
   { id: 'lucky7', name: 'Lucky Seven Deck', hue: '#ffd23f', back: 'lucky', text: 'An extra {g:7} of every suit. {h:sevens} starts at level {g:3}',
     build: (c) => { for (const s of SUITS) c.addCard({ rank: 7, suit: s }); c.run.handLevels.sevens = 3; } },
@@ -32,11 +32,11 @@ export const SHOES: ShoeDef[] = [
 export const SHOE: Record<string, ShoeDef> = Object.fromEntries(SHOES.map((s) => [s.id, s]));
 
 export const STAKES: StakeDef[] = [
-  { id: 1, name: 'Greenhorn', color: '#8a93a6', text: 'Fresh off the stagecoach' },
-  { id: 2, name: 'Drifter', color: '#e2382b', text: 'Saloon tables give no reward Bucks' },
+  { id: 1, name: 'Greenhorn', color: '#8a93a6', text: 'Standard rules' },
+  { id: 2, name: 'Drifter', color: '#e2382b', text: 'Saloon Game tables pay no reward Bucks' },
   { id: 3, name: 'Gunslinger', color: '#3fcf8e', text: 'Targets grow faster' },
   { id: 4, name: 'Desperado', color: '#3d8bff', text: '{r:-1} fold each table' },
-  { id: 5, name: 'Outlaw', color: '#a35cff', text: 'The dealer hits soft 17. Targets grow faster still' },
+  { id: 5, name: 'Bandit', color: '#a35cff', text: 'The dealer hits soft 17. Targets grow faster still' },
   { id: 6, name: 'Most Wanted', color: '#ff7a3d', text: 'Shop items cost {$:1} more' },
   { id: 7, name: 'Dead or Alive', color: '#c2261a', text: '{r:-1} hand each table' },
   { id: 8, name: 'Legend', color: '#f0b429', text: 'Interest is capped at {$:3}. Targets X1.25' },
