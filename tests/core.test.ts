@@ -52,6 +52,12 @@ describe('content', () => {
     expect(new Set(ids).size).toBe(ids.length);
     expect(HOSTS.length).toBeGreaterThanOrEqual(30);
   });
+  it('gives every Outlaw and gunslinger a portrait', async () => {
+    const { CHARACTERS } = await import('../src/ui/portraits');
+    const { HEROES } = await import('../src/content/heroes');
+    for (const h of HOSTS) expect(CHARACTERS[h.id], h.id).toBeTruthy();
+    for (const h of HEROES) expect(CHARACTERS[h.portrait], h.id).toBeTruthy();
+  });
 });
 
 describe('full runs', () => {

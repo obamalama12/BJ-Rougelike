@@ -17,6 +17,7 @@ import { openOptions } from './options';
 import { openCollection } from './collection';
 import { iconSvg } from '../icons';
 import { nameOf, portraitOf, townName } from '../characters';
+import { HERO, HEROES, applyHero } from '../../content/heroes';
 import { HOST } from '../../content/hosts';
 import { openHowToPlay } from '../coach';
 import { suitSvg } from '../suits';
@@ -40,7 +41,7 @@ export function titleScreen(): HTMLElement {
   // A standoff: you versus this week's most wanted.
   const rivals = ['chochin_o', 'ubume', 'tsukuyomi', 'kitsunebi', 'otakemaru', 'baku'];
   const rival = rivals[Math.floor(Date.now() / 86400000) % rivals.length];
-  const hero = h('div', { class: 'title-hero', html: portraitOf('player', 'smug') });
+  const hero = h('div', { class: 'title-hero', html: portraitOf(HERO[profile.lastHero ?? '']?.portrait ?? 'hero_kid', 'smug') });
   const villain = h('div', { class: 'title-villain', html: portraitOf(rival, 'smug') });
   tip(villain, () => `<div class="tt-title">${nameOf(rival)}</div><div class="tt-sub2">Wanted</div><div class="tt-body">${fmt(HOST[rival]?.text ?? '')}</div>`);
   const logo = div(
@@ -89,6 +90,7 @@ export function titleScreen(): HTMLElement {
 export function openNewRun() {
   let shoeIdx = Math.max(0, SHOES.findIndex((s) => s.id === profile.lastShoe));
   let stake = profile.lastStake ?? 1;
+  let hero = HERO[profile.lastHero ?? ''] ? profile.lastHero! : HEROES[0].id;
   let seed = '';
   const box = div('newrun');
   const render = () => {
@@ -136,8 +138,27 @@ export function openNewRun() {
     stText.style.setProperty('--c', STAKE_PLATE[stake - 1] ?? st.color);
     const seedIn = h('input', { class: 'seed-input', placeholder: 'Random', maxlength: 12, value: seed, 'aria-label': 'Seed' }) as HTMLInputElement;
     seedIn.addEventListener('input', () => (seed = seedIn.value.toUpperCase().replace(/[^A-Z0-9]/g, '')));
+    // Pick your gunslinger
+    const heroes = div('nr-heroes');
+    for (const hd of HEROES) {
+      const on = hd.id === hero;
+      const b = h('button', { class: `nr-hero${on ? ' on' : ''}`, type: 'button', 'aria-pressed': on ? 'true' : 'false' });
+      b.append(h('div', { class: 'nr-hero-face', html: portraitOf(hd.portrait, on ? 'smug' : 'neutral') }), div('nr-hero-name', hd.name));
+      b.addEventListener('click', () => {
+        hero = hd.id;
+        sfx('quack');
+        render();
+      });
+      heroes.appendChild(b);
+    }
+    const hd = HERO[hero];
+    const heroText = h('div', { class: 'nr-hero-text' }, h('span', { class: 'nr-hero-perk' }, hd.perk), h('span', { html: fmt(hd.text) }));
     box.append(
-      modalTitle('nr-title', 'Choose a Deck'),
+      modalTitle('nr-title', 'Saddle Up'),
+      div('nr-sub', h('span', null, 'Your Gunslinger')),
+      heroes,
+      heroText,
+      div('nr-sub', h('span', null, 'Your Deck')),
       div('nr-carousel', prev, back, shoeInfo, next),
       div('nr-sub', h('span', null, 'Wanted Level')),
       stakes,
@@ -149,9 +170,11 @@ export function openNewRun() {
     const shoe = SHOES[shoeIdx];
     profile.lastShoe = shoe.id;
     profile.lastStake = stake;
+    profile.lastHero = hero;
     profile.runs++;
     saveProfile();
     app.run = newRun(seed || randomSeedString(), shoe.id, stake);
+    applyHero(app.run, hero);
     save();
     closeFn();
     sfx('gong');

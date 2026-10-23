@@ -30,6 +30,7 @@ export interface Profile {
   charmWins: Record<string, number>;
   lastShoe: string;
   lastStake: number;
+  lastHero?: string;
   /** Coaching notes already shown. */
   tips: Record<string, true>;
 }

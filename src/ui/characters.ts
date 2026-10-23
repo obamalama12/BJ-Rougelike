@@ -12,12 +12,20 @@ export function dealerId(t: Pick<TableState, 'kind' | 'hostId'>): string {
   return 'dealer_bart';
 }
 
+/** Portrait preset standing in for 'player' (set from the current run's gunslinger). */
+let heroPortrait = 'hero_kid';
+export function setHeroPortrait(id: string) {
+  heroPortrait = CHARACTERS[id] ? id : 'hero_kid';
+}
+
 export function portraitOf(id: string, expression: Expression = 'neutral'): string {
+  if (id === 'player') id = heroPortrait;
   const c = CHARACTERS[id] ?? CHARACTERS.dealer_bart;
   return portrait({ ...c, expression });
 }
 
 export function nameOf(id: string): string {
+  if (id === 'player') id = heroPortrait;
   return CHARACTERS[id]?.name ?? 'Stranger';
 }
 
@@ -73,6 +81,14 @@ const OUTLAW_INTROS: Record<string, string> = {
   otakemaru: 'Twenty’s the limit here. Twenty-one is a bust.',
   daitengu: 'Three hands. No folds.',
   orochi: 'Lose a hand and the flock gets bigger.',
+  carl: 'I stand on eighteen. Seventeen is for amateurs.',
+  stu: 'Two cards. Two more if you’re lucky. That’s it.',
+  tess: 'Two dollars a hand. Receipts on request.',
+  flo: 'Five cards? Darling, at my table you need six.',
+  pierre: 'Double down if you like. I won’t be impressed.',
+  earl: 'Small cards don’t count. I don’t make change.',
+  tango: 'Aces are a crutch. I took them away.',
+  dot: 'You won’t see your first card, and a tie is mine.',
 };
 
 export function line(mood: Mood, seed = Math.random()): string {

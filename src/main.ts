@@ -3,6 +3,8 @@ import '@fontsource/zilla-slab/latin-500.css';
 import '@fontsource/zilla-slab/latin-600.css';
 import '@fontsource/zilla-slab/latin-700.css';
 import { clearCoach } from './ui/coach';
+import { setHeroPortrait } from './ui/characters';
+import { HERO } from './content/heroes';
 import './style/main.css';
 import './style/system.css';
 import './style/cards.css';
@@ -44,6 +46,7 @@ let lastPhase = '';
 
 function render() {
   hideTip();
+  setHeroPortrait(HERO[app.run?.hero ?? '']?.portrait ?? 'hero_kid');
   clearCoach();
   table?.destroy();
   table = null;

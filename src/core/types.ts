@@ -248,6 +248,8 @@ export interface Run {
   cashout: { lines: { label: string; amount: number; tone?: string }[]; total: number; failed?: boolean; gritLost?: number } | null;
   lastCons: { kind: ConsKind; id: string } | null;
   stats: RunStats;
+  /** Playable gunslinger (content/heroes). */
+  hero?: string;
   endless: boolean;
   /** Assorted per-run flags (persimmon eaten, etc). */
   flags: Record<string, any>;

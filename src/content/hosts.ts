@@ -114,4 +114,30 @@ H({ id: 'orochi', name: 'The Flock', title: 'Eight Angry Geese', icon: 'goose', 
     if (c.outcome === 'lose' || c.outcome === 'bust') { c.table.target = Math.floor(c.table.target * 1.2); c.table.hostTriggered = true; }
   } });
 
+// --- Second posse -------------------------------------------------------------
+H({ id: 'carl', name: 'Card Shark Carl', title: 'Deals Off the Bottom', icon: 'crow', hue: '#4a4a6a', scale: 2, minNight: 2,
+  text: 'The dealer keeps drawing until {g:18}',
+  rules: (r) => { r.dealerStand = 18; } });
+H({ id: 'stu', name: 'Stingy Stu', title: 'Counts Every Card', icon: 'dodo', hue: '#a08a6a', scale: 2, minNight: 1,
+  text: 'You can hit at most {g:twice} per hand',
+  rules: (r) => { r.maxHits = 2; } });
+H({ id: 'tess', name: 'Tax Collector Tess', title: 'Gets Her Cut', icon: 'pelican', hue: '#5a8a5a', scale: 2, minNight: 2,
+  text: 'Every hand you deal costs {$:2}',
+  rules: (r) => { r.handCost = 2; } });
+H({ id: 'flo', name: 'Fancy Flo', title: 'Queen of the Cancan', icon: 'flamingo', hue: '#ff7ab0', scale: 2, minNight: 2,
+  text: '{h:charlie} needs {g:6} cards instead of 5',
+  rules: (r) => { r.charlieSize = Math.max(r.charlieSize, 6); } });
+H({ id: 'pierre', name: 'Pierre the Penguin', title: 'Plays It Cool', icon: 'penguin', hue: '#6a8aaa', scale: 2, minNight: 1,
+  text: 'Doubled hands score {x:X1.5} instead of X2',
+  rules: (r) => { r.doubleX = Math.min(r.doubleX, 1.5); } });
+H({ id: 'earl', name: 'Bald Eagle Earl', title: 'Keeps His Eye on the Small Change', icon: 'eagle', hue: '#e0d8c8', scale: 2, minNight: 3,
+  text: 'Cards ranked {g:2 to 5} are debuffed {d:(they don’t score)}',
+  debuff: (c) => c.rank >= 2 && c.rank <= 5 });
+H({ id: 'tango', name: 'Tango the Toucan', title: 'Hates a Sure Thing', icon: 'toucan', hue: '#ff9a3d', scale: 2, minNight: 2,
+  text: 'Aces are debuffed {d:(they don’t score)}',
+  debuff: (c) => c.rank === 14 });
+H({ id: 'dot', name: 'Dot the Dodo', title: 'Last of Her Kind', icon: 'dodo', hue: '#c9a37a', scale: 2, minNight: 3,
+  text: 'Your first card each hand is dealt face down, and ties count as losses',
+  rules: (r) => { r.firstCardDown = true; r.dealerWinsTies = true; } });
+
 export const HOST: Record<string, HostDef> = Object.fromEntries(HOSTS.map((h) => [h.id, h]));

@@ -370,7 +370,7 @@ export class TableScreen {
     };
     const extra = (n: number) => (n ? ` Uses ${n} extra hand${n > 1 ? 's' : ''}.` : '');
     this.actions.append(
-      mk('Hit', 'H', 'hit', a.hit, () => void this.doHit(), 'Take another card.'),
+      mk('Hit', 'H', 'hit', a.hit, () => void this.doHit(), 'Take another card.', a.reasons.hit),
       mk('Stand', 'S', 'stand', a.stand, () => void this.doStand(), 'Keep what you have. The dealer plays next.', a.reasons.stand),
       mk('Double', 'D', 'double', a.double, () => void this.doDouble(), `Take exactly one more card. A win scores X${rules.doubleX}.${extra(rules.doubleCost)}`, a.reasons.double, `D · X${rules.doubleX}${rules.doubleCost ? ' · 1 hand' : ''}`),
       mk('Split', 'P', 'split', a.split, () => void this.doSplit(), `Split a pair into two hands played one after the other.${extra(rules.splitCost)}`, a.reasons.split, `P${rules.splitCost ? ' · 1 hand' : ''}`),

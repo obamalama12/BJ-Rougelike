@@ -38,6 +38,9 @@ npm run build:single  # one self-contained HTML file in dist-single/
 - **Showdowns and celebrations.** Each town's Outlaw gets an entrance scene with their curse and
   a taunt. Beating them jails them, pins a sheriff badge on your 7-badge strip, and shows who's
   Wanted in the next town.
+- **Choose your gunslinger.** The Kid (starts with an uncommon Doodad), Belle Starling (+$12 and
+  richer side bets), Doc Hollandaise (+3 max Grit) or Calamity Hen (Hot Streak builds twice as
+  fast). Your pick is your face on the map, in duels and in showdowns.
 - **Hot Streak.** Win hands in a row for bonus Odds: x1.25 on the second win, up to x2. It
   carries between tables; a loss or bust puts it out, folds and ties don't.
 - **Side bets.** Before each deal you can put $2 on Pair Up (pays $14), Suited ($6) or Dealer
@@ -84,7 +87,7 @@ Tall Tales level these up.
 - **25 Telegrams**: small rewards for skipping a table.
 - **20 trail encounters** and a quick-draw duel minigame.
 - **40 illustrated characters**. Every dealer and Outlaw has a face that reacts to your play.
-- **33 Outlaws**, including Mother Goose, the Poker-Faced Penguin and Taxman Toucan, plus
+- **41 Outlaws**, including Mother Goose, the Poker-Faced Penguin and Taxman Toucan, plus
   6 final Outlaws such as the Golden Goose.
 - **16 Decks** to start with and **8 Wanted Levels** of difficulty, from Greenhorn to Legend.
 - 8 card **Inks**, 4 **Finishes** and 4 **Brands**.

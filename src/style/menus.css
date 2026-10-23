@@ -960,3 +960,29 @@
 .col-shoes .shoe-cell { width: 134px; }
 .col-shoes .shoe-name { font-size: 14px; line-height: 1.15; }
 .col-shoes .shoe-text { font-size: 11.5px; line-height: 1.28; }
+
+/* --- Gunslinger picker ------------------------------------------------------------ */
+.nr-heroes { display: flex; justify-content: center; gap: 14px; margin: 6px 0 4px; }
+.nr-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 132px;
+  padding: 8px 6px 7px;
+  color: var(--stock);
+  background: rgba(0, 0, 0, 0.25);
+  border: 1.5px solid rgba(201, 164, 106, 0.35);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: transform 0.12s, background 0.15s, border-color 0.15s;
+}
+.nr-hero:hover { transform: translateY(-3px); border-color: rgba(201, 164, 106, 0.7); }
+.nr-hero-face { width: 84px; height: 84px; border-radius: 50%; overflow: hidden; border: 2.5px solid var(--key); background: radial-gradient(circle, rgba(200, 64, 42, 0.3) 0 1.1px, transparent 1.5px) 0 0 / 5px 5px, #ead2a8; box-shadow: 0 0 0 2px rgba(201, 164, 106, 0.5); }
+.nr-hero-face .portrait { width: 100%; height: 100%; }
+.nr-hero-name { font-family: var(--f-display); font-size: 15px; white-space: nowrap; }
+.nr-hero.on { color: var(--key); background: var(--speck), var(--fibre), var(--stock); border-color: var(--key); box-shadow: inset 0 0 0 3px var(--stock), inset 0 0 0 4px var(--plate-verm), var(--lift-1); transform: translateY(-3px); }
+.nr-hero.on .nr-hero-face { box-shadow: 0 0 0 2px var(--plate-verm); }
+.nr-hero-text { display: flex; justify-content: center; align-items: baseline; gap: 10px; margin: 6px 0 10px; font-size: 16px; font-weight: 600; color: var(--stock); }
+.nr-hero-perk { font-family: var(--f-display); font-size: 16px; color: #f3d9a0; }
+.nr-hero-text .t-hl { color: #f3d9a0; }

@@ -162,6 +162,11 @@ export function beginHand(run: Run) {
   t.hidden = [];
   t.lastScore = 0;
   run.stats.handsPlayed++;
+  const rules = getRules(run);
+  if (rules.handCost) {
+    run.money -= rules.handCost;
+    fxQueue.push({ t: 'money', v: -rules.handCost, src: { kind: 'host' } });
+  }
 }
 
 /** Deal one card to the player (hand index) or the dealer. */
@@ -326,7 +331,11 @@ export function availableActions(run: Run): Actions {
   const a: Actions = { hit: true, stand: true, double: false, split: false, fold: false, reasons: {} };
   if (rules.mustHit && h.hits === 0) {
     a.stand = false;
-    a.reasons.stand = 'Jorōgumo: you must hit first';
+    a.reasons.stand = 'Roadrunner Rick: you must hit first';
+  }
+  if (h.hits >= rules.maxHits) {
+    a.hit = false;
+    a.reasons.hit = `Only ${rules.maxHits} hit${rules.maxHits > 1 ? 's' : ''} per hand at this table`;
   }
   if (cards.length === 2 && !h.doubled) {
     if (!rules.canDouble) a.reasons.double = 'Doubling is forbidden';
@@ -831,7 +840,8 @@ export { fire };
 
 /** Odds multiplier for winning hands in a row (across tables): x1.25 from the 2nd win, up to x2. */
 export function hotStreakX(run: Run): number {
-  const n = run.flags.hot ?? 0;
+  // Calamity Hen's streak builds twice as fast.
+  const n = (run.flags.hot ?? 0) * (run.hero === 'hen' ? 2 : 1) - (run.hero === 'hen' ? 1 : 0);
   return n >= 2 ? Math.min(2, 1 + 0.25 * (n - 1)) : 1;
 }
 
@@ -860,9 +870,10 @@ function paySideBet(run: Run, won: boolean) {
   t.sideBet = null;
   const def = SIDE_BETS[id];
   if (won) {
-    run.money += def.pays;
-    run.stats.moneyEarned += def.pays;
-    fxQueue.push({ t: 'money', v: def.pays, src: { kind: 'side' } });
+    const pays = def.pays + (run.hero === 'belle' ? 2 : 0);
+    run.money += pays;
+    run.stats.moneyEarned += pays;
+    fxQueue.push({ t: 'money', v: pays, src: { kind: 'side' } });
     fxQueue.push({ t: 'msg', text: `${def.name} pays!`, color: '#7fe07a', src: { kind: 'side' } });
   } else {
     fxQueue.push({ t: 'msg', text: `${def.name} lost`, color: '#c9b89a', src: { kind: 'side' } });

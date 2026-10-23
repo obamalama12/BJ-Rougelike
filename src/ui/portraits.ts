@@ -1256,5 +1256,20 @@ export const CHARACTERS: Record<string, PortraitOpts & { name: string }> = {
   tamamo: { name: 'The Black Swan', species: 'swan', plumage: '#2a2830', hat: 'feathered', accent: '#5a1a3a', accessory: 'pearls', seed: 43 },
   otakemaru: { name: 'Ma Gobbler', species: 'turkey', hat: 'cowboy', accent: '#6a4a2a', accessory: 'bandana', extras: ['scar'], seed: 44 },
   daitengu: { name: 'The Condor', species: 'eagle', plumage: '#24202a', hat: 'cowboy', accent: '#1e1a1e', accessory: 'eyepatch', seed: 45 },
+  carl: { name: 'Card Shark Carl', species: 'crow', hat: 'derby', accent: '#3a3a4a', accessory: 'bowtie', extras: ['toothpick'], seed: 51 },
+  stu: { name: 'Stingy Stu', species: 'dodo', hat: 'bowler', accent: '#4a3a2a', accessory: 'glasses', seed: 52 },
+  tess: { name: 'Tax Collector Tess', species: 'pelican', hat: 'visor', accent: '#2f6a3a', accessory: 'pearls', seed: 53 },
+  flo: { name: 'Fancy Flo', species: 'flamingo', hat: 'feathered', accent: '#c02a6a', accessory: 'pearls', seed: 54 },
+  pierre: { name: 'Pierre the Penguin', species: 'penguin', hat: 'tophat', accent: '#2a2a3a', accessory: 'monocle', seed: 55 },
+  earl: { name: 'Bald Eagle Earl', species: 'eagle', hat: 'sheriff', accent: '#6a5a3a', accessory: 'mustache', seed: 56 },
+  tango: { name: 'Tango the Toucan', species: 'toucan', hat: 'cowboy', accent: '#c8642a', accessory: 'bandana', accent2: '#2a8a5a', seed: 57 },
+  dot: { name: 'Dot the Dodo', species: 'dodo', plumage: '#c9a47a', hat: 'feathered', accent: '#6a3d6e', accessory: 'scar', seed: 58 },
+
+  // Playable gunslingers (the player's portrait is whichever one the run uses)
+  hero_kid: { name: 'The Kid', species: 'duck', hat: 'cowboy', accessory: 'bandana', accent2: '#c8302a', extras: ['toothpick'], seed: 42 },
+  hero_belle: { name: 'Belle Starling', species: 'swan', hat: 'cowboy', accent: '#7a2a4a', accessory: 'bandana', accent2: '#2a5a9a', seed: 61 },
+  hero_doc: { name: 'Doc Hollandaise', species: 'goose', hat: 'derby', accent: '#3a3a4a', accessory: 'mustache', extras: ['bowtie'], seed: 62 },
+  hero_hen: { name: 'Calamity Hen', species: 'chicken', plumage: '#d8b878', hat: 'sheriff', accent: '#8a5a2a', accessory: 'badge', seed: 63 },
+
   orochi: { name: 'The Flock', species: 'goose', plumage: '#5a4e48', hat: 'cowboy', accent: '#3a2a2a', accessory: 'bandana', extras: ['scar'], seed: 46 },
 };
