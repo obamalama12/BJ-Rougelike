@@ -35,6 +35,9 @@ npm run build:single  # one self-contained HTML file in dist-single/
     have Grit left, and each retry's target is 15% lower.
 - **A table** is blackjack against a dealer. You have a number of **Hands** and **Folds**.
   Reach the target score before you run out of hands, or you lose Grit.
+- **Showdowns and celebrations.** Each town's Outlaw gets an entrance scene with their curse and
+  a taunt. Beating them jails them, pins a sheriff badge on your 7-badge strip, and shows who's
+  Wanted in the next town.
 - **Hot Streak.** Win hands in a row for bonus Odds: x1.25 on the second win, up to x2. It
   carries between tables; a loss or bust puts it out, folds and ties don't.
 - **Side bets.** Before each deal you can put $2 on Pair Up (pays $14), Suited ($6) or Dealer

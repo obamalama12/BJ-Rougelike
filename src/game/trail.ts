@@ -197,6 +197,15 @@ export function finishNode(run: Run) {
   run.event = null;
   run.phase = 'trail';
   if (n?.kind === 'outlaw') {
+    // Remember what happened in this town for the celebration scene on the next map.
+    const done = run.trail.nodes.filter((x) => x.done);
+    run.flags.celebrate = {
+      town: run.night,
+      hostId: n.hostId ?? run.nightHost,
+      tables: done.filter((x) => isTableNode(x)).length,
+      gang: done.filter((x) => x.kind === 'gang').length,
+      tries: Math.round(run.flags.outlawTries ?? 0),
+    };
     if (run.night >= NIGHTS && !run.endless && !run.flags.victoryShown) {
       run.flags.victoryShown = true;
       run.phase = 'victory';

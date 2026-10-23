@@ -12,6 +12,7 @@ import './style/trail.css';
 import './style/stops.css';
 import './style/shop.css';
 import './style/menus.css';
+import './style/scenes.css';
 
 import { app, mountShell, hideTip, closeAllModals } from './ui/app';
 import { clear, div } from './ui/dom';

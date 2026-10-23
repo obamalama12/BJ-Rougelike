@@ -1,6 +1,7 @@
 // The trail map: pick your route through town toward the Outlaw.
 
 import { coach } from '../coach';
+import { townCelebration, type Celebration } from '../scenes';
 import type { Run, TrailNode, NodeKind } from '../../core/types';
 import { HOST } from '../../content/hosts';
 import { COLS, NODE_INFO, nodeTarget, reachable, travel, isTableNode } from '../../game/trail';
@@ -222,7 +223,15 @@ export function trailScreen(hud: Hud): HTMLElement {
   hud.renderTrays();
   hud.canUse = true;
   hud.onChange = () => {};
-  if (run.flags.townHeal) {
+  if (run.flags.celebrate) {
+    // A town was just cleaned up: celebrate before showing the new map (the Grit restore is in the scene).
+    const c = run.flags.celebrate as Celebration;
+    const heal = run.flags.townHeal ?? 0;
+    run.flags.celebrate = null;
+    run.flags.townHeal = 0;
+    save();
+    void townCelebration(run, c, heal);
+  } else if (run.flags.townHeal) {
     const n = run.flags.townHeal;
     run.flags.townHeal = 0;
     save();

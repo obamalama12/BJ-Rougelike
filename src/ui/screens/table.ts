@@ -1,6 +1,7 @@
 // The table: dealing, player actions, the dealer and the scoring show.
 
 import { coach } from '../coach';
+import { showdownIntro } from '../scenes';
 import type { Card, HandTypeId, Outcome, Run, ScoreEvent, Src } from '../../core/types';
 import { HAND_TYPE, handTotal, classifyHand, handBase } from '../../core/cards';
 import { HOST } from '../../content/hosts';
@@ -59,6 +60,7 @@ export class TableScreen {
   dealerFace: HTMLElement;
   bubble: HTMLElement;
   wagerEl: HTMLElement;
+  introPlaying = false;
   sideEl: HTMLElement;
   hotEl: HTMLElement;
   private dealerChar = 'dealer_bart';
@@ -117,7 +119,20 @@ export class TableScreen {
     (this.dealerEl.querySelector('.dealer-name') as HTMLElement).textContent = nameOf(this.dealerChar);
     if (t.hostId) tip(this.dealerFace, () => hostTooltip(t.hostId!), 'bottom');
     this.react('neutral');
-    if (t.phase === 'ready' && t.dealt === 0) setTimeout(() => this.say((t.kind === 'host' || t.kind === 'gang') && t.hostId ? outlawIntro(t.hostId) : line('greet'), 'smug', 3800), 500);
+    const greet = () => this.say((t.kind === 'host' || t.kind === 'gang') && t.hostId ? outlawIntro(t.hostId) : line('greet'), 'smug', 3800);
+    // The first time you sit down with a town's Outlaw, they get an entrance.
+    if (t.kind === 'host' && t.hostId && t.phase === 'ready' && t.dealt === 0 && run.flags.introTown !== run.night) {
+      run.flags.introTown = run.night;
+      save();
+      this.introPlaying = true;
+      app.busy = true;
+      void showdownIntro(run, t.hostId, t.target).then(() => {
+        this.introPlaying = false;
+        app.busy = false;
+        this.renderActions();
+        setTimeout(() => this.say(line('deal'), 'smug', 2500), 400);
+      });
+    } else if (t.phase === 'ready' && t.dealt === 0) setTimeout(greet, 500);
     const rules = getRules(run);
     const rule = this.felt.querySelector('.felt-rule')!;
     rule.innerHTML = `<span>Dealer ${rules.dealerStand > 17 ? `hits to ${rules.dealerStand}` : rules.dealerHitSoft17 ? 'hits soft 17' : 'stands on 17'}</span><span class="dot">◆</span><span>Bust over ${rules.bustLimit}</span><span class="dot">◆</span><span>Charley Horse at ${rules.charlieSize}</span>`;
@@ -337,7 +352,7 @@ export class TableScreen {
     if (t.phase === 'ready') {
       const deal = button('Deal', 'primary big deal-btn', () => void this.deal(), { sub: 'Space' });
       this.actions.append(deal);
-      if (t.dealt === 0) {
+      if (t.dealt === 0 && !this.introPlaying) {
         if (t.kind === 'host') void coach('outlaw', { x: 500, y: 330, point: 'left' });
         if (t.kind === 'gang') void coach('gang', { x: 500, y: 330, point: 'left' });
         void coach('table', { x: 500, y: 330, point: 'left' });
