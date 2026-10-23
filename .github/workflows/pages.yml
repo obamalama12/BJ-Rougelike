@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [main]
+    branches: [main, claude/charming-rubin-apx75w]
   workflow_dispatch:
 
 permissions:
