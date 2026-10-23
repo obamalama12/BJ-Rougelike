@@ -252,7 +252,7 @@ export function campScreen(hud: Hud): HTMLElement {
   const el = frame(hud, 'camp-screen');
   const render = (yarn = false) => {
     clear(el);
-    const card = div('stop-card');
+    const card = div(`stop-card${yarn ? ' yarning' : ''}`);
     card.append(h('div', { class: 'stop-art icon-art campfire', html: iconSvg('campfire') }), div('stop-title', 'Campfire'), div('stop-text', 'Crickets, beans, and a sky full of stars. You can only do one thing before you nod off.'));
     const done = () => {
       save();

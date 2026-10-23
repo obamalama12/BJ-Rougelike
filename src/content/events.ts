@@ -36,9 +36,9 @@ export const EVENTS: EventDef[] = [
   {
     id: 'snake_oil',
     title: 'Doc Feathersworth’s Miracle Elixir',
-    character: 'doc',
+    character: 'banker',
     icon: 'tonic',
-    text: 'A tall heron in a stovepipe hat is yelling from the back of a wagon. "Cures gout, grief, gambling losses and feather loss! Just six bucks!"',
+    text: 'A pelican in a stovepipe hat is yelling from the back of a wagon. "Cures gout, grief, gambling losses and feather loss! Just six bucks!"',
     choices: [
       { label: 'Buy a bottle', detail: '50/50: +3 Grit and a Tonic, or it’s pond water (-1 Grit)', cost: 6,
         apply: (c) => {
@@ -134,8 +134,8 @@ export const EVENTS: EventDef[] = [
     icon: 'crystal',
     text: 'A coot draped in scarves waves you into her tent. "I see... cards in your future. Many cards."',
     choices: [
-      { label: 'A reading ($4)', detail: 'Gain 2 Tonics', cost: 4, apply: (c) => { c.createCons('fortune'); c.createCons('fortune'); return 'She hands you two bottles. "Drink these when the moon is... whenever, really."'; } },
-      { label: 'The deep reading ($9)', detail: 'Gain a Moonshine and +1 level to your most played hand', cost: 9, apply: (c) => { c.createCons('mask'); c.levelUp(mostPlayed(c.run), 1); return 'Her eyes roll back. Yours do too. You come out wiser and holding a jug.'; } },
+      { label: 'A reading', detail: 'Gain 2 Tonics', cost: 4, apply: (c) => { c.createCons('fortune'); c.createCons('fortune'); return 'She hands you two bottles. "Drink these when the moon is... whenever, really."'; } },
+      { label: 'The deep reading', detail: 'Gain a Moonshine and +1 level to your most played hand', cost: 9, apply: (c) => { c.createCons('mask'); c.levelUp(mostPlayed(c.run), 1); return 'Her eyes roll back. Yours do too. You come out wiser and holding a jug.'; } },
       { label: 'Politely decline', detail: 'Nothing happens', apply: () => '"I knew you would say that," she says.' },
     ],
   },
@@ -143,6 +143,7 @@ export const EVENTS: EventDef[] = [
     id: 'duel',
     title: 'High Noon',
     icon: 'revolver',
+    character: 'jorogumo',
     text: 'A lanky roadrunner blocks the road. "This trail ain’t big enough for the two of us. Draw when the bell rings."',
     choices: [
       { label: 'Accept the duel', detail: 'Win: +$20 and +1 Grit. Lose: -3 Grit', apply: () => ({ text: 'You face each other. The tumbleweeds hold their breath...', duel: { stake: 3, reward: 20 } }) },
@@ -156,7 +157,7 @@ export const EVENTS: EventDef[] = [
     icon: 'balloon',
     text: 'A wagon covered in balloons and bunting. A juggling flamingo is selling mystery boxes.',
     choices: [
-      { label: 'Buy a mystery box ($4)', detail: 'Gain a random Doodad', cost: 4, can: room, apply: (c) => { c.createCharm(); return 'You open the box. A Doodad pops out and winks at you.'; } },
+      { label: 'Buy a mystery box', detail: 'Gain a random Doodad', cost: 4, can: room, apply: (c) => { c.createCharm(); return 'You open the box. A Doodad pops out and winks at you.'; } },
       { label: 'Join the act', detail: 'Gain $8, -1 Grit', apply: (c) => { c.money(8); loseGrit(c, 1); return 'You get juggled. The crowd pays $8. You are dizzy (-1 Grit).'; } },
       { label: 'Watch the show', detail: 'Heal 1 Grit', apply: (c) => { gainGrit(c, 1); return 'A good show. +1 Grit.'; } },
     ],
@@ -165,9 +166,10 @@ export const EVENTS: EventDef[] = [
     id: 'card_sharp',
     title: 'A Card Sharp’s Offer',
     icon: 'cards',
-    text: 'A crow in a fancy vest shuffles one-handed. "I could teach you a trick or two. For a price."',
+    character: 'shokera',
+    text: 'A raven in a fancy vest shuffles one-handed. "I could teach you a trick or two. For a price."',
     choices: [
-      { label: 'Learn a trick ($10)', detail: 'Level up Quackjack and Dead Eye', cost: 10, apply: (c) => { c.levelUp('blackjack', 1); c.levelUp('twentyone', 1); return 'You learn to deal seconds. Quackjack and Dead Eye level up.'; } },
+      { label: 'Learn a trick', detail: 'Level up Quackjack and Dead Eye', cost: 10, apply: (c) => { c.levelUp('blackjack', 1); c.levelUp('twentyone', 1); return 'You learn to deal seconds. Quackjack and Dead Eye level up.'; } },
       { label: 'Swipe his deck', detail: 'Add 3 random painted cards. -2 Grit', apply: (c) => {
         const inks = ['jade', 'crimson', 'gilded', 'glass', 'lucky', 'spirit', 'ash'] as const;
         for (let i = 0; i < 3; i++) c.addCard({ ink: c.rng.pick(inks) });
@@ -274,6 +276,7 @@ export const EVENTS: EventDef[] = [
     title: 'The Great Cattle Drive',
     icon: 'bull',
     minTown: 2,
+    character: 'otakemaru',
     text: 'A herd of very confused cows is thundering through the canyon. A cowpoke turkey is yelling for help.',
     choices: [
       { label: 'Help drive the herd', detail: '-2 Grit, gain $15', apply: (c) => { loseGrit(c, 2); c.money(15); return 'Yee-haw, sort of. $15 for a hard day’s work. -2 Grit.'; } },
