@@ -832,8 +832,11 @@ C({ id: 'spinning_top', name: 'Spinning Top', rarity: 1, cost: 4, icon: 'spiral'
   text: '{m:+0} to {m:+23} Mult, at random',
   hand: (c) => c.mult(Math.floor(c.rng.next() * 24)) });
 C({ id: 'blind_swordsman', name: 'Blind Swordsman', rarity: 3, cost: 9, icon: 'sword', hue: '#b8c4d9',
-  text: '{x:X3} Mult if you won without ever seeing the dealer’s hole card... or you couldn’t see one of your cards',
-  hand: (c) => { if (c.table && (c.table.hidden.length > 0 || c.cards.some((k) => c.table!.hidden.includes(k.id)))) c.xmult(3); } });
+  text: '{x:X3} Mult if you stood on your first two cards against a dealer showing a 10 or an Ace',
+  hand: (c) => {
+    const up = c.dealerCards[0];
+    if (c.cards.length === 2 && (c.hand?.hits ?? 0) === 0 && up && (isTenValue(up) || up.rank === 14)) c.xmult(3);
+  } });
 C({ id: 'night_market', name: 'Night Market', rarity: 1, cost: 5, icon: 'lantern', hue: '#ffcf3d',
   text: 'Shop items cost {$:1} less',
   noCopy: true });

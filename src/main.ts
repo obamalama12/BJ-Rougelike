@@ -1,7 +1,7 @@
-import '@fontsource/shojumaru/400.css';
-import '@fontsource/m-plus-rounded-1c/400.css';
-import '@fontsource/m-plus-rounded-1c/700.css';
-import '@fontsource/m-plus-rounded-1c/800.css';
+import '@fontsource/shojumaru/latin-400.css';
+import '@fontsource/m-plus-rounded-1c/latin-400.css';
+import '@fontsource/m-plus-rounded-1c/latin-700.css';
+import '@fontsource/m-plus-rounded-1c/latin-800.css';
 import './style/main.css';
 import './style/cards.css';
 import './style/screens.css';

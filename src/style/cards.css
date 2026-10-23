@@ -365,7 +365,7 @@
   text-shadow: 0 3px 0 #000;
 }
 .card.disabled .card-inner { filter: grayscale(1) brightness(0.6); }
-.card.unseen .card-inner { filter: grayscale(0.9) brightness(0.45); }
+.card.unseen .card-inner { filter: saturate(0.45) brightness(0.72); }
 .card.mini { --cw: 56px; --ch: 78px; }
 .card.mini .card-inner { animation: none; }
 .card.mini .pc-art { transform: scale(0.5); transform-origin: 0 0; inset: 11px 10px; width: 144px; height: 224px; }
@@ -684,7 +684,7 @@
 }
 .token .icon { width: 70%; height: 70%; --i1: #fff3d0; --i2: #fff; }
 .token:hover { transform: scale(1.1) rotate(-6deg); transition: transform 0.15s; }
-.token.unseen { filter: grayscale(1) brightness(0.5); }
+.token.unseen { filter: saturate(0.4) brightness(0.75); }
 
 /* Host medallions ---------------------------------------------------------------- */
 
@@ -723,7 +723,7 @@
   color: #12081f;
 }
 .hm-art .icon { width: 74%; height: 74%; color: #fff3d0; --i1: var(--hue); --i2: #fff3d0; --i3: #12081f; --i4: #ffcf3d; filter: drop-shadow(0 0 6px color-mix(in srgb, var(--hue) 70%, transparent)); }
-.host-med.unseen { filter: grayscale(1) brightness(0.5); }
+.host-med.unseen { filter: saturate(0.4) brightness(0.75); }
 
 /* Shake on score */
 .jiggle .card-inner, .jiggle.card-inner, .jiggle:not(.card) { animation: jig 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.4); }

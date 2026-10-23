@@ -6,7 +6,9 @@ import {
   afterDeal, availableActions, beginHand, cardsOf, dealTo, dealerHit, dealerShouldHit, double, endFold,
   endRound, fillSplit, fold, hit, scoreHand, settleOutcomes, settleSplit, split, stand,
 } from '../src/game/table';
-import { buyItem, buyPack, cashOut, leaveShop, pickFromPack, selectTable, skipPack, winTable, maybeOpenTagPack, useCons } from '../src/game/shop';
+import { buyItem, buyPack, buyVoucher, cashOut, leaveShop, pickFromPack, reroll, selectTable, sellCharm, skipPack, winTable, maybeOpenTagPack, useCons } from '../src/game/shop';
+import { CHARM } from '../src/content/charms';
+import { charmSlots } from '../src/game/engine';
 import { handTotal } from '../src/core/cards';
 import type { Run } from '../src/core/types';
 import { CONS } from '../src/content/consumables';
@@ -69,16 +71,31 @@ function playHand(run: Run): 'ready' | 'won' | 'lost' {
 
 function shopBot(run: Run) {
   const s = run.shop!;
-  for (const it of s.items) {
-    if (it.kind === 'charm' && !it.sold && run.money - it.price >= 0) buyItem(run, it.uid);
-    if (it.kind === 'cons' && it.cons === 'star' && !it.sold && run.money - it.price >= 6) buyItem(run, it.uid);
-  }
-  for (const p of s.packs) {
-    if (!p.sold && run.money - p.price >= 8 && p.packId.startsWith('charm')) {
-      buyPack(run, p.uid);
-      packBot(run);
+  const rar = (id: string) => CHARM[id]?.rarity ?? 1;
+  for (let pass = 0; pass < 3; pass++) {
+    const items = [...s.items].filter((i) => !i.sold).sort((a, b) => (b.kind === 'charm' ? rar((b as any).id) : 0) - (a.kind === 'charm' ? rar((a as any).id) : 0));
+    for (const it of items) {
+      if (it.sold || run.money < it.price) continue;
+      if (it.kind === 'charm') {
+        if (run.charms.length >= charmSlots(run)) {
+          const worst = [...run.charms].sort((a, b) => rar(a.id) - rar(b.id))[0];
+          if (!worst || rar(worst.id) >= rar(it.id)) continue;
+          sellCharm(run, worst.uid);
+        }
+        buyItem(run, it.uid);
+      } else if (it.kind === 'cons' && it.cons === 'star') {
+        if (buyItem(run, it.uid, true).ok) useCons(run, run.consumables[run.consumables.length - 1].uid);
+      }
     }
+    for (const p of s.packs) {
+      if (!p.sold && run.money >= p.price && (p.packId.startsWith('charm') || p.packId.startsWith('star'))) {
+        buyPack(run, p.uid);
+        packBot(run);
+      }
+    }
+    if (run.money >= 12 && pass < 2) reroll(run);
   }
+  if (s.voucher && run.money >= 10) buyVoucher(run);
   for (const k of [...run.consumables]) if (k.kind === 'star') useCons(run, k.uid);
 }
 
@@ -86,8 +103,14 @@ function packBot(run: Run) {
   let g = 0;
   while (run.pack && g++ < 10) {
     const p = run.pack;
-    const i = p.options.findIndex((o) => !o.taken && !(o.kind === 'cons' && CONS[o.id]?.targets));
-    if (i < 0 || !pickFromPack(run, i).ok) skipPack(run);
+    let best = -1;
+    let score = -1;
+    p.options.forEach((o, i) => {
+      if (o.taken) return;
+      const v = o.kind === 'charm' ? CHARM[o.id].rarity * 10 : o.kind === 'cons' && !CONS[o.id]?.targets ? 5 : -1;
+      if (v > score) { score = v; best = i; }
+    });
+    if (best < 0 || !pickFromPack(run, best).ok) skipPack(run);
   }
 }
 

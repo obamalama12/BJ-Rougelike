@@ -1,7 +1,7 @@
 // The table: dealing, player actions, the dealer and the scoring show.
 
 import type { Card, HandTypeId, Outcome, Run, ScoreEvent, Src } from '../../core/types';
-import { HAND_TYPE, handTotal } from '../../core/cards';
+import { HAND_TYPE, handTotal, classifyHand, handBase } from '../../core/cards';
 import { HOST } from '../../content/hosts';
 import {
   afterDeal, availableActions, beginHand, cardsOf, dealTo, dealerHit, dealerShouldHit, double, endFold, endRound,
@@ -51,6 +51,7 @@ export class TableScreen {
   shoeCount: HTMLElement;
   banner: HTMLElement;
   cards = new Map<number, HTMLElement>();
+  handCx: number[] = [];
   private keyHandler: (e: KeyboardEvent) => void;
   private flameTimer = 0;
 
@@ -177,8 +178,10 @@ export class TableScreen {
     const nh = t.hands.length;
     const span = nh > 1 ? Math.min(330, 1000 / nh) : 0;
     clear(this.handBadges);
+    this.handCx = [];
     t.hands.forEach((hand, hi) => {
       const cx = FELT_CX - ((nh - 1) * span) / 2 + hi * span;
+      this.handCx[hi] = cx;
       const n = hand.cards.length;
       const sp = nh > 2 ? 34 : n > 5 ? 52 : nh > 1 ? 46 : 74;
       const active = t.phase === 'player' && hi === t.active && nh > 1;
@@ -191,6 +194,7 @@ export class TableScreen {
     });
     // Dealer badge
     this.updateDealerBadge();
+    this.projectHand();
     // Anything else on the layer flies to the discard pile.
     for (const [id, el] of this.cards) {
       if (live.has(id)) continue;
@@ -251,6 +255,27 @@ export class TableScreen {
     b.textContent = txt;
     if (doubled) b.appendChild(div('badge-x2', `X${rules.doubleX}`));
     return b;
+  }
+
+  /** While playing, preview the hand type this hand would score if it wins. */
+  private projectHand() {
+    const run = this.run;
+    const t = run.table!;
+    if (t.phase !== 'player') return;
+    const hand = t.hands[t.active];
+    if (!hand || hand.cards.some((id) => this.isHidden(id))) {
+      this.hud.setHand(null);
+      return;
+    }
+    const rules = getRules(run);
+    const cards = cardsOf(run, hand.cards);
+    const tot = handTotal(cards, rules);
+    if (tot.bust) return;
+    const ht = classifyHand(cards, tot.total, cards.length >= rules.charlieSize ? 'charlie' : 'win', rules);
+    const lv = run.handLevels[ht];
+    const b = handBase(ht, lv);
+    if (this.hud.refs.handName.textContent !== HAND_TYPE[ht].name) this.hud.setHand(ht, lv);
+    this.hud.setCalc(b.chips, b.mult);
   }
 
   private updateDealerBadge() {
@@ -556,14 +581,19 @@ export class TableScreen {
   private outcomeFx(hi: number, o: Outcome) {
     const t = this.run.table!;
     const hand = t.hands[hi];
-    const el = this.cards.get(hand.cards[hand.cards.length - 1]);
-    if (!el) return;
+    const card = this.cards.get(hand.cards[hand.cards.length - 1]);
+    // Cards may still be flying in, so anchor effects to the hand's resting spot.
+    const el = div('fx-anchor');
+    el.style.left = `${this.handCx[hi] ?? FELT_CX}px`;
+    el.style.top = `${PLAYER_Y - CH / 2 + 10}px`;
+    this.el.appendChild(el);
+    setTimeout(() => el.remove(), 2500);
     switch (o) {
       case 'bust':
         popup(el, 'Bust!', 'pop-big pop-bad');
         sfx('bust');
         screenShake(1.2);
-        el.classList.add('burn');
+        card?.classList.add('burn');
         break;
       case 'blackjack':
         popup(el, 'Blackjack!', 'pop-big pop-gold');

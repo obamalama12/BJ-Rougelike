@@ -895,3 +895,5 @@
 .picker-grid { display: flex; gap: 14px; justify-content: center; padding-top: 18px; }
 .picker-foot { display: flex; justify-content: center; align-items: center; gap: 14px; margin-top: 24px; }
 .picker-count { font-weight: 800; opacity: 0.7; margin-right: 10px; }
+
+.fx-anchor { position: absolute; width: 1px; height: 1px; pointer-events: none; }
