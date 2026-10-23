@@ -46,6 +46,8 @@ export const PACKS: PackDef[] = [
   { id: 'charm_normal', name: 'Doodad Crate', kind: 'charm', size: 2, picks: 1, cost: 4, weight: 4, tier: 'normal' },
   { id: 'charm_jumbo', name: 'Jumbo Doodad Crate', kind: 'charm', size: 4, picks: 1, cost: 6, weight: 2, tier: 'jumbo' },
   { id: 'charm_mega', name: 'Mega Doodad Crate', kind: 'charm', size: 4, picks: 2, cost: 8, weight: 0.5, tier: 'mega' },
+  // Won from Gang Members, never sold.
+  { id: 'bounty', name: 'Bounty', kind: 'charm', size: 3, picks: 1, cost: 0, weight: 0, tier: 'jumbo' },
   { id: 'fortune_normal', name: 'Tonic Crate', kind: 'fortune', size: 3, picks: 1, cost: 4, weight: 4, tier: 'normal' },
   { id: 'fortune_jumbo', name: 'Jumbo Tonic Crate', kind: 'fortune', size: 5, picks: 1, cost: 6, weight: 2, tier: 'jumbo' },
   { id: 'fortune_mega', name: 'Mega Tonic Crate', kind: 'fortune', size: 5, picks: 2, cost: 8, weight: 0.5, tier: 'mega' },

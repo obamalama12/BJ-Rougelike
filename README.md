@@ -26,6 +26,9 @@ npm run build:single  # one self-contained HTML file in dist-single/
   - **Bank Job**: a harder table with an Outlaw's curse and a rare Doodad as the prize.
   - **General Store** (the shop), **Doc Hoot** (heal, or remove cards from your deck),
     **Campfire** (rest, level up a hand type, or polish a Doodad).
+  - **Gang Members**: halfway through every town, the whole middle column of the map is the
+    Outlaw's gang. Each is a named bird with their own curse; beat one for a **Bounty** (pick 1 of
+    3 Doodads, one of them rare) and 1 Grit.
   - **Strange Happenings**: 34 encounters with choices, including a quick-draw duel. You won't
     meet the same one twice in a run until you've seen them all.
   - The **Outlaw** at the end of the town. If you lose, you can try again as long as you

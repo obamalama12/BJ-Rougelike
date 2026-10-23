@@ -6,6 +6,7 @@ import type { TableState } from '../core/types';
 
 export function dealerId(t: Pick<TableState, 'kind' | 'hostId'>): string {
   if (t.kind === 'host' && t.hostId) return CHARACTERS[t.hostId] ? t.hostId : 'dealer_bart';
+  if (t.kind === 'gang' && t.hostId) return CHARACTERS[t.hostId] ? t.hostId : 'dealer_bart';
   if (t.kind === 'bank') return 'banker';
   if (t.kind === 'silk') return 'dealer_lola';
   return 'dealer_bart';

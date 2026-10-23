@@ -25,6 +25,7 @@ const NOTES: Record<string, string> = {
   score: 'A winning hand scores {c:Pot} × {m:Odds}. The kind of win sets the starting numbers, every card adds its value to the {c:Pot}, and Doodads pile on more.',
   store: 'Doodads ride in your bandolier along the bottom and work every hand on their own. Tonics and the like go in the satchel; click one to use it.',
   outlaw: 'Every Outlaw bends one rule. The curse is printed on the Wanted poster. Read it before you play.',
+  gang: 'This one rides with the Outlaw. Gang members carry a curse too, printed on the poster. Beat them and you collect a {g:Bounty}: pick one of three Doodads, one of them rare.',
 };
 
 /** Notes waiting to be shown, and the close function of the one on screen. */

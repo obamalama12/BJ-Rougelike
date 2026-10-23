@@ -160,6 +160,11 @@ export function trailScreen(hud: Hud): HTMLElement {
       const name = HOST[n.hostId ?? '']?.name ?? info.name;
       node.innerHTML = `<div class="tn-seal">${SEAL}<div class="tn-face">${portraitOf(n.hostId ?? run.nightHost, open ? 'smug' : 'neutral')}</div></div>
         <div class="tn-label boss"><span class="tn-kicker">Showdown</span><span class="tn-name">${name}</span></div>`;
+    } else if (n.kind === 'gang') {
+      // A smaller seal for the Outlaw's gang, with the member's face and target.
+      const name = HOST[n.hostId ?? '']?.name ?? info.name;
+      node.innerHTML = `<div class="tn-seal gang">${SEAL}<div class="tn-face">${portraitOf(n.hostId ?? run.nightHost, open ? 'angry' : 'neutral')}</div>${n.done ? '<span class="tn-check"></span>' : ''}</div>
+        <div class="tn-label boss gang"><span class="tn-kicker">Gang · ${fmtNum(nodeTarget(run, n))}</span><span class="tn-name">${name}</span></div>`;
     } else {
       const shape = shapeOf(n.kind);
       node.innerHTML = `<div class="tn-icon tn-${shape}"><span class="tn-ht"></span>${iconSvg(info.icon)}${n.done ? '<span class="tn-check"></span>' : ''}</div>`;
@@ -170,7 +175,7 @@ export function trailScreen(hud: Hud): HTMLElement {
     tip(node, () => nodeTip(run, n), 'top');
     node.addEventListener('click', () => {
       if (!open || app.busy) return;
-      sfx(n.kind === 'outlaw' ? 'honk' : isTableNode(n) ? 'quack' : 'select');
+      sfx(n.kind === 'outlaw' || n.kind === 'gang' ? 'honk' : isTableNode(n) ? 'quack' : 'select');
       travel(run, n.id);
       save();
       app.render();
@@ -223,9 +228,9 @@ function nodeTip(run: Run, n: TrailNode): string {
   const info = NODE_INFO[n.kind];
   let extra = '';
   if (isTableNode(n)) extra += `<br>Score at least <span class="t-hl">${fmtNum(nodeTarget(run, n))}</span>`;
-  if ((n.kind === 'bank' || n.kind === 'outlaw') && n.hostId) {
+  if ((n.kind === 'bank' || n.kind === 'gang' || n.kind === 'outlaw') && n.hostId) {
     const host = HOST[n.hostId];
     extra += `<br><br><b>${host?.name}</b>: ${fmt(host?.text ?? '')}`;
   }
-  return `<div class="tt-title">${n.kind === 'outlaw' ? HOST[n.hostId ?? '']?.name ?? info.name : info.name}</div><div class="tt-body">${info.blurb}${extra}</div>`;
+  return `<div class="tt-title">${n.kind === 'outlaw' || n.kind === 'gang' ? HOST[n.hostId ?? '']?.name ?? info.name : info.name}</div><div class="tt-body">${info.blurb}${extra}</div>`;
 }

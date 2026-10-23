@@ -29,7 +29,7 @@ import {
   startNight,
   createCharm,
 } from './engine';
-import { TABLE_INFO, OUTLAW_RETRY, finishNode, hurt, nextTown } from './trail';
+import { TABLE_INFO, OUTLAW_RETRY, finishNode, gritCap, heal, hurt, nextTown } from './trail';
 
 // ---------------------------------------------------------------------------
 // Outlaw rerolls (Fate Thread deed)
@@ -54,7 +54,7 @@ export function payRerollHost(run: Run) {
 // Winning or losing a table / cash out
 // ---------------------------------------------------------------------------
 
-const KIND_KEY = { paper: 'saloon', silk: 'highstakes', bank: 'bank', host: 'outlaw' } as const;
+const KIND_KEY = { paper: 'saloon', silk: 'highstakes', bank: 'bank', gang: 'gang', host: 'outlaw' } as const;
 
 /** A deposit made at the Bank of Golden Egg City pays out after the next table, win or lose. */
 function bankPayout(run: Run, lines: { label: string; amount: number; tone?: string }[]) {
@@ -93,6 +93,16 @@ export function winTable(run: Run) {
   if (t.kind === 'bank') {
     if (createCharm(run, { rarity: 3 })) fxQueue.push({ t: 'msg', text: 'Rare Doodad!', color: '#ff6a3d', src: { kind: 'deck' } });
     else lines.push({ label: 'Loot (no room for the Doodad)', amount: 10, tone: 'gold' });
+  }
+  // Gang members pay a Bounty: a free pick of Doodads, opened back on the trail.
+  if (t.kind === 'gang') {
+    run.flags.openPack = 'bounty';
+    run.stats.gangBeaten = (run.stats.gangBeaten ?? 0) + 1;
+    lines.push({ label: 'Bounty: pick 1 of 3 Doodads', amount: 0, tone: 'chips' });
+    if (run.grit < gritCap(run)) {
+      heal(run, 1);
+      lines.push({ label: 'You take his canteen: +1 Grit', amount: 0, tone: 'chips' });
+    }
   }
   // Table end hooks (scaling, eggs...).
   fire(run, 'tableEnd');
@@ -472,7 +482,9 @@ export function openPack(run: Run, packId: string, returnTo: 'shop' | 'trail') {
   const used = new Set<string>();
   for (let i = 0; i < def.size; i++) {
     if (def.kind === 'charm') {
-      const id = rollCharm(run, { exclude: [...used] });
+      // A Bounty always has one rare and two uncommons.
+      const rarity = packId === 'bounty' ? ((i === 0 ? 3 : 2) as 2 | 3) : undefined;
+      const id = rollCharm(run, { exclude: [...used], rarity });
       used.add(id);
       pack.options.push({ kind: 'charm', id, finish: rollFinish(run) });
     } else if (def.kind === 'card') {

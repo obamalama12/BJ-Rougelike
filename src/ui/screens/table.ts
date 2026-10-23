@@ -100,7 +100,7 @@ export class TableScreen {
   mount() {
     const run = this.run;
     const t = run.table!;
-    const host = t.kind === 'host' ? HOST[t.hostId!] : null;
+    const host = t.kind === 'host' || t.kind === 'gang' ? HOST[t.hostId!] : null;
     background.setPalette(host ? 'host' : 'table', 0.25);
     audio.setMood(host ? 'host' : 'table');
     if (host && t.phase === 'ready' && t.dealt === 0) setTimeout(() => sfx('honk'), 300);
@@ -111,7 +111,7 @@ export class TableScreen {
     (this.dealerEl.querySelector('.dealer-name') as HTMLElement).textContent = nameOf(this.dealerChar);
     if (t.hostId) tip(this.dealerFace, () => hostTooltip(t.hostId!), 'bottom');
     this.react('neutral');
-    if (t.phase === 'ready' && t.dealt === 0) setTimeout(() => this.say(t.kind === 'host' && t.hostId ? outlawIntro(t.hostId) : line('greet'), 'smug', 3800), 500);
+    if (t.phase === 'ready' && t.dealt === 0) setTimeout(() => this.say((t.kind === 'host' || t.kind === 'gang') && t.hostId ? outlawIntro(t.hostId) : line('greet'), 'smug', 3800), 500);
     const rules = getRules(run);
     const rule = this.felt.querySelector('.felt-rule')!;
     rule.innerHTML = `<span>Dealer ${rules.dealerStand > 17 ? `hits to ${rules.dealerStand}` : rules.dealerHitSoft17 ? 'hits soft 17' : 'stands on 17'}</span><span class="dot">◆</span><span>Bust over ${rules.bustLimit}</span><span class="dot">◆</span><span>Charley Horse at ${rules.charlieSize}</span>`;
@@ -331,6 +331,7 @@ export class TableScreen {
       this.actions.append(deal);
       if (t.dealt === 0) {
         if (t.kind === 'host') void coach('outlaw', { x: 500, y: 330, point: 'left' });
+        if (t.kind === 'gang') void coach('gang', { x: 500, y: 330, point: 'left' });
         void coach('table', { x: 500, y: 330, point: 'left' });
         void coach('wager', { x: 1090, y: 350, point: 'right' });
       }

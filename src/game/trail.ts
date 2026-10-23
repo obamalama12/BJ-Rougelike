@@ -11,10 +11,11 @@ import { openShop } from './shop';
 export const COLS = 6;
 
 /** Difficulty and payout of each kind of table. */
-export const TABLE_INFO: Record<'saloon' | 'highstakes' | 'bank' | 'outlaw', { kind: TableKind; scale: number; reward: number; gritOnFail: number; name: string }> = {
+export const TABLE_INFO: Record<'saloon' | 'highstakes' | 'bank' | 'gang' | 'outlaw', { kind: TableKind; scale: number; reward: number; gritOnFail: number; name: string }> = {
   saloon: { kind: 'paper', scale: 1, reward: 3, gritOnFail: 2, name: 'Saloon Game' },
   highstakes: { kind: 'silk', scale: 1.5, reward: 5, gritOnFail: 3, name: 'High Stakes' },
   bank: { kind: 'bank', scale: 1.8, reward: 6, gritOnFail: 3, name: 'Bank Job' },
+  gang: { kind: 'gang', scale: 1.3, reward: 4, gritOnFail: 2, name: 'Gang Member' },
   outlaw: { kind: 'host', scale: 2, reward: 6, gritOnFail: 4, name: 'Showdown' },
 };
 
@@ -26,6 +27,7 @@ export const NODE_INFO: Record<NodeKind, { name: string; icon: string; blurb: st
   doc: { name: 'Doc Hoot', icon: 'tonic', blurb: 'Patch up your Grit, or have a card removed' },
   camp: { name: 'Campfire', icon: 'campfire', blurb: 'Rest, or spin a yarn to level up a hand' },
   event: { name: 'Strange Happenings', icon: 'wanted', blurb: 'A random encounter. Could help, could cost you' },
+  gang: { name: 'Gang Member', icon: 'wanted', blurb: 'One of the Outlaw’s gang, with a curse of their own. Beat them for a Bounty: pick 1 of 3 Doodads' },
   outlaw: { name: 'Showdown', icon: 'revolver', blurb: 'The boss of this town. Win to ride on to the next one' },
 };
 
@@ -38,9 +40,10 @@ export function generateTrail(run: Run) {
   const town = run.night;
   const pools: NodeKind[][] = [
     ['saloon', 'saloon', 'event'],
-    ['saloon', 'highstakes', 'event', 'camp'],
-    ['store', 'saloon', 'doc', 'event', ...(town >= 2 ? (['bank'] as NodeKind[]) : [])],
-    ['saloon', 'highstakes', 'event', 'camp', ...(town >= 2 ? (['bank'] as NodeKind[]) : [])],
+    ['saloon', 'highstakes', 'event', 'camp', 'store'],
+    // Halfway through every town the whole column is the Outlaw's gang: every route meets one.
+    ['gang'],
+    ['saloon', 'highstakes', 'event', 'doc', ...(town >= 2 ? (['bank'] as NodeKind[]) : [])],
     ['store', 'camp', 'doc'],
     ['outlaw'],
   ];
@@ -80,8 +83,11 @@ export function generateTrail(run: Run) {
   }
   // Curses and encounters
   const regular = Object.values(HOST).filter((h) => !h.showdown && h.minNight <= Math.max(1, town));
+  // Gang members are different birds from the Outlaw and from each other.
+  const gang = r.shuffle(regular.filter((h) => h.id !== run.nightHost));
   for (const n of nodes) {
     if (n.kind === 'bank') n.hostId = r.pick(regular).id;
+    if (n.kind === 'gang') n.hostId = (gang.shift() ?? r.pick(regular)).id;
     if (n.kind === 'event') {
       // Prefer events this run hasn't met yet, then any not already on this map.
       const seen: string[] = run.flags.eventsSeen ?? [];
@@ -112,7 +118,7 @@ export const OUTLAW_RETRY = 0.85;
 export const TOWN_HEAL = 2;
 
 export function nodeTarget(run: Run, n: TrailNode): number {
-  const kind = n.kind === 'outlaw' ? 'outlaw' : (n.kind as 'saloon' | 'highstakes' | 'bank');
+  const kind = n.kind as 'saloon' | 'highstakes' | 'bank' | 'gang' | 'outlaw';
   // Tables grow a little further down the trail. The Outlaw's own multiplier already makes it the
   // town's hardest table, so it skips the column bonus (stacking both made showdowns a wall).
   const base = nightBase(run) * (n.kind === 'outlaw' ? 1 : 1 + 0.12 * n.col);
@@ -130,7 +136,7 @@ function round(n: number) {
 }
 
 export function isTableNode(n: TrailNode) {
-  return n.kind === 'saloon' || n.kind === 'highstakes' || n.kind === 'bank' || n.kind === 'outlaw';
+  return n.kind === 'saloon' || n.kind === 'highstakes' || n.kind === 'bank' || n.kind === 'gang' || n.kind === 'outlaw';
 }
 
 // ---------------------------------------------------------------------------
@@ -155,6 +161,7 @@ export function travel(run: Run, id: number) {
     case 'saloon':
     case 'highstakes':
     case 'bank':
+    case 'gang':
     case 'outlaw': {
       const info = TABLE_INFO[n.kind];
       if (n.hostId) discover(run, 'host', n.hostId);

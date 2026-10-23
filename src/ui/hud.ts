@@ -20,7 +20,7 @@ import { pickTargets } from './picker';
 import { iconSvg } from './icons';
 import { portraitOf, townName } from './characters';
 
-const KIND_NAME: Record<string, string> = { paper: 'Saloon Game', silk: 'High Stakes', bank: 'Bank Job', host: 'Showdown' };
+const KIND_NAME: Record<string, string> = { paper: 'Saloon Game', silk: 'High Stakes', bank: 'Bank Job', gang: 'Wanted', host: 'Showdown' };
 
 export class Hud {
   el: HTMLElement;
@@ -165,18 +165,19 @@ export class Hud {
       const p = this.poster;
       clear(p);
       const isOutlaw = t ? t.kind === 'host' : true;
-      const cursed = isOutlaw || t?.kind === 'bank';
+      const isGang = t?.kind === 'gang';
+      const cursed = isOutlaw || isGang || t?.kind === 'bank';
       const title = t ? (t.kind === 'host' ? 'Wanted' : KIND_NAME[t.kind]) : 'Wanted';
       const face = div('poster-face');
-      if (cursed) face.innerHTML = portraitOf(isOutlaw ? hostId : 'banker', 'smug');
+      if (cursed) face.innerHTML = portraitOf(isOutlaw || isGang ? hostId : 'banker', 'smug');
       else face.innerHTML = `<div class="poster-icon">${iconSvg(t?.kind === 'silk' ? 'tophat' : 'saloon')}</div>`;
       if (cursed && host) tip(face, () => hostTooltip(hostId), 'right');
-      const name = div('poster-name', isOutlaw ? host?.name ?? 'Outlaw' : t?.kind === 'bank' ? 'The Vault' : t?.kind === 'silk' ? 'High Rollers' : 'Saloon Regulars');
+      const name = div('poster-name', isOutlaw || isGang ? host?.name ?? 'Outlaw' : t?.kind === 'bank' ? 'The Vault' : t?.kind === 'silk' ? 'High Rollers' : 'Saloon Regulars');
       const curse = cursed && host ? h('div', { class: 'poster-curse', html: t?.hostDisabled ? '<s>Curse lifted</s>' : fmt(host.text) }) : null;
       this.refs.target = div('poster-target-val');
       this.refs.score = div('poster-score-val', '0');
       this.refs.scoreBar = div('poster-bar-fill');
-      const reward = t ? { paper: 3, silk: 5, bank: 6, host: 6 }[t.kind] : 6;
+      const reward = t ? { paper: 3, silk: 5, bank: 6, gang: 4, host: 6 }[t.kind] : 6;
       p.append(
         div('poster-head', title),
         face,
@@ -185,7 +186,7 @@ export class Hud {
         div('poster-row', div('poster-label', t ? 'Score at least' : 'Showdown target'), this.refs.target),
         t ? div('poster-row', div('poster-label', 'Winnings'), this.refs.score) : '',
         t ? div('poster-bar', this.refs.scoreBar) : '',
-        div('poster-reward', `Reward $${reward}${t?.kind === 'bank' ? ' + loot' : ''}`),
+        div('poster-reward', `Reward $${reward}${t?.kind === 'bank' ? ' + loot' : isGang ? ' + Bounty' : ''}`),
         (this.refs.rules = div('poster-rules')),
         div('poster-nail l'),
         div('poster-nail r'),

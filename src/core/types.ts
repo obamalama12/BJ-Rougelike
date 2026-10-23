@@ -58,7 +58,7 @@ export interface TagInst {
 }
 
 /** paper = Saloon game, silk = High Stakes, bank = Bank Job (elite), host = Outlaw showdown. */
-export type TableKind = 'paper' | 'silk' | 'bank' | 'host';
+export type TableKind = 'paper' | 'silk' | 'bank' | 'gang' | 'host';
 
 export interface PlayerHand {
   cards: number[];
@@ -115,7 +115,7 @@ export interface TableState {
   gritLost: number;
 }
 
-export type NodeKind = 'saloon' | 'highstakes' | 'bank' | 'store' | 'doc' | 'camp' | 'event' | 'outlaw';
+export type NodeKind = 'saloon' | 'highstakes' | 'bank' | 'gang' | 'store' | 'doc' | 'camp' | 'event' | 'outlaw';
 
 export interface TrailNode {
   id: number;
@@ -201,6 +201,7 @@ export interface RunStats {
   cardsSold: number;
   packsSkipped: number;
   hostsBeaten: number;
+  gangBeaten?: number;
   glassShattered: number;
   facesDestroyed: number;
   cardsFolded: number;
