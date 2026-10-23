@@ -1,6 +1,6 @@
 // Visual builders for every kind of card in the game.
 
-import type { Card, CharmInst, ConsKind, FinishId } from '../core/types';
+import type { Card, CharmInst, ConsKind, FinishId, Suit } from '../core/types';
 import { SUIT_INFO, rankLabel, isFace, INK_INFO, FINISH_INFO, SEAL_INFO, cardName, cardChips } from '../core/cards';
 import { CHARM, charmText, sellValue } from '../content/charms';
 import { CONS, consText } from '../content/consumables';
@@ -9,7 +9,7 @@ import { TAG } from '../content/tags';
 import { HOST } from '../content/hosts';
 import { PACK, SHOE } from '../content/shoes';
 import { iconSvg } from './icons';
-import { suitSvg, faceArt, PIPS } from './suits';
+import { suitSvg, suitInner, faceArt, PIPS, PRINT, mixHex, halftone } from './suits';
 import { fmt, esc } from './dom';
 import type { Run } from '../core/types';
 
@@ -55,34 +55,117 @@ function shell(cls: string, front: string, back = '') {
 // Playing cards
 // ---------------------------------------------------------------------------
 
+/** Print colours per suit: plate colour and a deeper shade for the corner index. */
+const SUIT_PRINT: Record<Suit, { col: string; deep: string }> = {
+  moon: { col: '#33679e', deep: '#1d3f69' }, // denim
+  flame: { col: '#d6432a', deep: '#a2271a' }, // vermilion
+  leaf: { col: '#5a8a4a', deep: '#33602b' }, // sage / cactus
+  bell: { col: '#d99d22', deep: '#86580a' }, // mustard / brass
+};
+const WILD_PRINT = { col: '#7a5aa8', deep: '#4b2f78' };
+
+/** Emblem for the card back: a duck in a cowboy hat inside a horseshoe, on a rope ring. */
+let backEmblem = '';
+function cardBackEmblem(): string {
+  if (backEmblem) return backEmblem;
+  const K = PRINT.key;
+  const P = PRINT.paper;
+  let rays = '';
+  for (let i = 0; i < 16; i++) {
+    const a0 = ((i * 22.5 - 5) * Math.PI) / 180;
+    const a1 = ((i * 22.5 + 5) * Math.PI) / 180;
+    rays += `M50 50L${(50 + 34 * Math.cos(a0)).toFixed(2)} ${(50 + 34 * Math.sin(a0)).toFixed(2)}L${(50 + 34 * Math.cos(a1)).toFixed(2)} ${(50 + 34 * Math.sin(a1)).toFixed(2)}Z`;
+  }
+  backEmblem = `<svg class="cb-art" viewBox="0 0 100 100" aria-hidden="true">
+    <circle cx="50" cy="50" r="47" fill="${P}" stroke="${K}" stroke-width="3"/>
+    <circle cx="50" cy="50" r="41.5" fill="none" stroke="${K}" stroke-width="3.2" stroke-dasharray="3.2 2.6"/>
+    <circle cx="50" cy="50" r="35" fill="currentColor" stroke="${K}" stroke-width="2.4"/>
+    <path d="${rays}" fill="${K}" opacity=".22"/>
+    <g transform="translate(19 19.5) scale(.62)" color="${P}">${suitInner('moon')}</g>
+    <path d="M38 58C38 50 43 45 50 45C57 45 62 50 62 58C62 65 57 69 50 69C43 69 38 65 38 58Z" fill="${PRINT.white}" stroke="${K}" stroke-width="2.4"/>
+    <path d="M60 58C67 55.5 74 56.5 76 60C73 64 66 64.5 60 62.5Z" fill="${PRINT.ochre}" stroke="${K}" stroke-width="2.2" stroke-linejoin="round"/>
+    <circle cx="54" cy="55" r="2.2" fill="${K}"/>
+    <path d="M41 46C41 37 44 32 50 32C56 32 59 37 59 46Z" fill="${K}"/>
+    <path d="M32 47C36 44 64 44 68 47C64 50 36 50 32 47Z" fill="${K}"/>
+    <path d="M41.5 43H58.5" stroke="${PRINT.ochre}" stroke-width="2"/>
+  </svg>`;
+  return backEmblem;
+}
+
 export function cardBackHtml(shoeId: string): string {
   const shoe = SHOE[shoeId];
   return `<div class="cback back-${shoe?.back ?? 'red'}" style="--bk:${shoe?.hue ?? '#e2382b'}">
     <div class="cback-frame"><div class="cback-pattern"></div>
-    <div class="cback-emblem">${iconSvg('horseshoe')}</div></div></div>`;
+    <div class="cback-emblem">${cardBackEmblem()}</div></div></div>`;
+}
+
+function aceArt(suit: Suit, col: string): string {
+  const K = PRINT.key;
+  const tint = mixHex(col, PRINT.paper, 0.72);
+  let rays = '';
+  for (let i = 0; i < 24; i += 2) {
+    const a0 = (i * 15 * Math.PI) / 180;
+    const a1 = ((i + 1) * 15 * Math.PI) / 180;
+    rays += `M56 68L${(56 + 37 * Math.cos(a0)).toFixed(2)} ${(68 + 37 * Math.sin(a0)).toFixed(2)}L${(56 + 37 * Math.cos(a1)).toFixed(2)} ${(68 + 37 * Math.sin(a1)).toFixed(2)}Z`;
+  }
+  let dots = '';
+  for (let i = 0; i < 24; i++) {
+    const a = ((i * 15 + 7.5) * Math.PI) / 180;
+    dots += `<circle cx="${(56 + 40.5 * Math.cos(a)).toFixed(2)}" cy="${(68 + 40.5 * Math.sin(a)).toFixed(2)}" r="${i % 2 ? 1 : 1.6}"/>`;
+  }
+  const name = SUIT_INFO[suit].plural.toUpperCase();
+  return `<svg class="ace-art" viewBox="0 0 112 156" aria-hidden="true">
+    <circle cx="56" cy="68" r="37" fill="${PRINT.paper}"/>
+    <path d="${rays}" fill="${tint}"/>
+    <circle cx="56" cy="68" r="37" fill="none" stroke="${K}" stroke-width="2.4"/>
+    <circle cx="56" cy="68" r="33.5" fill="none" stroke="${K}" stroke-width=".9"/>
+    <g fill="${K}">${dots}</g>
+    <g transform="translate(29 41) scale(.54)" color="${col}">${suitInner(suit, 2.6)}</g>
+    <path d="M24 114H32V128H24L27.5 121Z M88 114H80V128H88L84.5 121Z" fill="${col}" stroke="${K}" stroke-width="1.6" stroke-linejoin="round"/>
+    <path d="M30 111H82V125H30Z" fill="${PRINT.paper}" stroke="${K}" stroke-width="1.8"/>
+    <text x="56" y="121.6" text-anchor="middle" textLength="${Math.min(46, name.length * 5.4)}" lengthAdjust="spacingAndGlyphs"
+      font-family="Rye, Georgia, serif" font-size="8.4" fill="${K}">${name}</text>
+  </svg>`;
+}
+
+function stoneArt(): string {
+  const K = PRINT.key;
+  return `<svg class="stone-art" viewBox="0 0 112 156" aria-hidden="true">
+    <path d="M22 104C16 92 20 74 32 66C38 52 54 46 68 52C82 54 94 66 92 82C98 94 92 110 78 114C64 120 40 120 30 114C26 112 23 108 22 104Z" fill="#9a958a" stroke="${K}" stroke-width="2.6" stroke-linejoin="round"/>
+    <path d="${halftone(20, 50, 96, 120, 4.2, (x, y) => (x + y > 150 ? Math.min(1.5, (x + y - 150) / 26) : 0))}" fill="${K}" opacity=".55"/>
+    <path d="M38 70C44 62 54 58 62 60M30 84C33 78 36 75 40 73" fill="none" stroke="${PRINT.paper}" stroke-width="2.4" stroke-linecap="round"/>
+    <path d="M56 66L60 78L54 86L58 98M60 78L70 82M74 92L80 100L78 108M40 96L46 104" fill="none" stroke="${K}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M20 122H92" stroke="${K}" stroke-width="2"/>
+    <path d="M30 111H82V125H30Z" fill="${PRINT.paper}" stroke="${K}" stroke-width="1.8"/>
+    <text x="56" y="121.6" text-anchor="middle" font-family="Rye, Georgia, serif" font-size="8.4" fill="${K}" textLength="30" lengthAdjust="spacingAndGlyphs">ROCK</text>
+  </svg>`;
 }
 
 export function playingCardFront(c: Card): string {
   if (c.ink === 'stone') {
-    return `<div class="pc-body stone"><div class="stone-art">${iconSvg('rock')}</div>${sealHtml(c)}</div>`;
+    return `<div class="pc-body stone"><div class="pc-frame"></div>${stoneArt()}${sealHtml(c)}</div>`;
   }
-  const s = SUIT_INFO[c.suit];
-  const color = c.ink === 'spirit' ? '#8de8d0' : s.ink;
+  const pr = c.ink === 'spirit' ? WILD_PRINT : SUIT_PRINT[c.suit];
   const lbl = rankLabel(c.rank);
-  const corner = `<div class="pc-corner"><span class="pc-rank">${lbl}</span>${suitSvg(c.suit)}</div>`;
+  const idx = `<span class="pc-rank${lbl.length > 1 ? ' ten' : ''}">${lbl}</span>${suitSvg(c.suit)}`;
   let art: string;
+  let kind: string;
   if (c.rank >= 11 && c.rank <= 13) {
-    art = `<div class="pc-art face">${faceArt(c.rank as 11 | 12 | 13, s.color, s.ink)}</div>`;
+    kind = 'is-face';
+    art = `<div class="pc-art face">${faceArt(c.rank as 11 | 12 | 13, pr.col, pr.deep)}</div>`;
   } else if (c.rank === 14) {
-    art = `<div class="pc-art ace"><div class="enso"></div>${suitSvg(c.suit, 'ace-suit')}</div>`;
+    kind = 'is-ace';
+    art = `<div class="pc-art ace">${aceArt(c.suit, pr.col)}</div>`;
   } else {
+    kind = 'is-num';
     const pips = PIPS[c.rank] ?? [];
-    art = `<div class="pc-art pips">${pips
+    art = `<div class="pc-art pips n${c.rank}">${pips
       .map(([x, y, flip]) => `<span class="pip${flip ? ' flip' : ''}" style="left:${x}%;top:${y}%">${suitSvg(c.suit)}</span>`)
       .join('')}</div>`;
   }
-  return `<div class="pc-body ink-${c.ink ?? 'none'}" style="--suit:${color};--suit-light:${s.color}">
-    ${corner}${art}<div class="pc-corner br">${`<span class="pc-rank">${lbl}</span>`}${suitSvg(c.suit)}</div>
+  return `<div class="pc-body ${kind} s-${c.suit} ink-${c.ink ?? 'none'}" style="--suit:${pr.col};--suit-deep:${pr.deep}">
+    <div class="pc-frame"></div>${art}
+    <div class="pc-corner">${idx}</div><div class="pc-corner br">${idx}</div>
     ${c.ink ? `<div class="ink-badge">${inkGlyph(c.ink)}</div>` : ''}${sealHtml(c)}</div>`;
 }
 

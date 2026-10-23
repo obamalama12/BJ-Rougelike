@@ -1,5 +1,7 @@
 /* ==========================================================================
    Cards: playing cards, charms, consumables, relics, bundles, tokens, hosts
+   Playing cards are drawn as a frontier letterpress deck: cream stock, a dark
+   key ink, one flat colour plate per suit, halftone + hatching for shade.
    ========================================================================== */
 
 .card {
@@ -32,7 +34,7 @@
 .reduce-motion .card-inner { animation: none; }
 .card:hover .card-inner {
   transition: transform 0.12s ease-out, filter 0.2s;
-  filter: drop-shadow(0 10px 14px rgba(0, 0, 0, 0.45));
+  filter: drop-shadow(3px 7px 0 rgba(20, 8, 2, 0.35));
 }
 .card.down .card-inner { transform: rotateX(var(--rx)) rotateY(calc(180deg + var(--ry))); }
 .face {
@@ -42,7 +44,7 @@
   overflow: hidden;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
-  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.35), 0 8px 18px rgba(0, 0, 0, 0.35);
+  box-shadow: 3px 4px 0 rgba(20, 8, 2, 0.5);
 }
 .face.back { transform: rotateY(180deg); }
 .shine {
@@ -56,6 +58,7 @@
   z-index: 8;
 }
 .card:hover .shine { opacity: 1; }
+.pcard .shine { display: none; }
 .finish-layer {
   position: absolute;
   inset: 0;
@@ -64,201 +67,267 @@
   display: none;
 }
 
-/* Washi paper texture used across cards */
+/* Paper texture used across cards */
 .pc-body,
+.cback,
 .cs-fortune,
 .rl-body {
-  background-image:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.04 .9' numOctaves='2' seed='4'/%3E%3CfeColorMatrix values='0 0 0 0 .55 0 0 0 0 .42 0 0 0 0 .25 0 0 0 .22 0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23p)'/%3E%3C/svg%3E"),
-    radial-gradient(ellipse at 30% 18%, #fffaf0 0%, #f7ecd2 45%, #e9d4a8 100%);
+  --fibre: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.035 .8' numOctaves='2' seed='4'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .3 0 0 0 0 .15 0 0 0 .2 0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23p)'/%3E%3C/svg%3E");
+  --speck: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90'%3E%3Cfilter id='s'%3E%3CfeTurbulence baseFrequency='.9' numOctaves='1' seed='9'/%3E%3CfeColorMatrix values='0 0 0 0 .2 0 0 0 0 .1 0 0 0 0 .05 14 0 0 0 -9.9'/%3E%3C/filter%3E%3Crect width='90' height='90' filter='url(%23s)'/%3E%3C/svg%3E");
+}
+.cs-fortune,
+.rl-body {
+  background-image: var(--fibre), radial-gradient(ellipse at 30% 18%, #fffaf0 0%, #f7ecd2 45%, #e9d4a8 100%);
 }
 
 /* Playing cards ------------------------------------------------------------- */
 
 .pc-body {
-  --suit: #c2261a;
+  --suit: #33679e;
+  --suit-deep: #1d3f69;
+  --key: #2a1408;
+  --stock: #f5e8cb;
+  --pip: 23.5cqw;
   position: absolute;
   inset: 0;
   border-radius: 11px;
-  border: 2px solid #b8955e;
+  border: 1.5px solid var(--key);
+  background: var(--speck), var(--fibre), var(--stock);
   color: var(--suit);
+  container-type: size;
+  overflow: hidden;
 }
-.pc-body::before {
-  content: '';
+/* printed double rule just inside the edge */
+.pc-frame {
   position: absolute;
-  inset: 5px;
-  border-radius: 7px;
-  border: 1.5px solid color-mix(in srgb, var(--suit) 45%, transparent);
+  inset: 3.2cqw;
+  border-radius: 5cqw;
+  border: 0.9cqw solid var(--suit);
+  box-shadow: inset 0 0 0 1.1cqw var(--stock), inset 0 0 0 1.6cqw var(--suit);
   pointer-events: none;
+  z-index: 1;
 }
 .pc-corner {
   position: absolute;
-  left: 7px;
-  top: 6px;
+  left: 2.6cqw;
+  top: 2.6cqw;
+  width: 19.5cqw;
+  padding: 1.4cqw 0 1.6cqw;
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 24px;
-  z-index: 3;
+  z-index: 4;
+  background: var(--stock);
+  border-radius: 3cqw;
 }
-.pc-corner.br { left: auto; top: auto; right: 7px; bottom: 6px; transform: rotate(180deg); }
+.pc-corner.br { left: auto; top: auto; right: 2.6cqw; bottom: 2.6cqw; transform: rotate(180deg); }
 .pc-rank {
-  font-family: var(--f-display);
-  font-size: 22px;
-  line-height: 1.05;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
+  font-family: 'Rye', var(--f-display), Georgia, serif;
+  font-size: 22cqw;
+  line-height: 0.92;
+  color: var(--suit-deep);
+  letter-spacing: -0.02em;
 }
-.pc-corner .suit { width: 16px; height: 16px; margin-top: 1px; }
-.pc-art { position: absolute; inset: 22px 20px; }
-.pip { position: absolute; width: 22px; height: 22px; transform: translate(-50%, -50%); }
-.pip.flip { transform: translate(-50%, -50%) rotate(180deg); }
-.pip .suit { width: 100%; height: 100%; display: block; filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.15)); }
-.pc-art.face { inset: 10px 8px 10px 30px; display: grid; place-items: center; }
-.face-art { width: 100%; height: 100%; }
-.pc-art.ace { display: grid; place-items: center; }
-.ace-suit { width: 54px; height: 54px; position: relative; z-index: 1; filter: drop-shadow(0 2px 0 rgba(0, 0, 0, 0.2)); }
-.enso {
-  position: absolute;
-  width: 78px;
-  height: 78px;
-  border-radius: 50%;
-  border: 7px solid var(--suit);
-  border-right-color: transparent;
-  border-top-width: 4px;
-  opacity: 0.32;
-  transform: rotate(-30deg);
-}
+.pc-rank.ten { letter-spacing: -0.14em; margin-left: -0.12em; transform: scaleX(0.8); }
+.pc-corner .suit { width: 17cqw; height: 17cqw; margin-top: 0.6cqw; }
+
+.suit { display: block; overflow: visible; }
+.suit .s-hatch { display: none; }
+.pc-art { position: absolute; inset: 0; z-index: 2; }
+.pc-art .pip { position: absolute; width: var(--pip); height: var(--pip); transform: translate(-50%, -50%); }
+.pc-art .pip.flip { transform: translate(-50%, -50%) rotate(180deg); }
+.pc-art .pip .suit { width: 100%; height: 100%; }
+.pc-art.n2, .pc-art.n3 { --pip: 27cqw; }
+.pc-art.n9, .pc-art.n10 { --pip: 21.5cqw; }
+
+/* Faces: the portrait fills the printed frame; indices sit on cream tabs */
+.pc-art.face { inset: 3.2cqw; border-radius: 5cqw; overflow: hidden; }
+.face-art { display: block; width: 100%; height: 100%; }
+.is-face .pc-frame { z-index: 3; box-shadow: inset 0 0 0 0.7cqw var(--key); border-color: var(--stock); border-width: 1.2cqw; }
+.is-face .pc-corner { box-shadow: 0 0 0 1.2cqw var(--key); left: 4.4cqw; top: 4.4cqw; border-radius: 1cqw 1cqw 5cqw 1cqw; }
+.is-face .pc-corner.br { right: 4.4cqw; bottom: 4.4cqw; left: auto; top: auto; }
+
+/* Ace: one big engraved medallion */
+.ace-art { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+/* Ink badge (top right): a solid key-ink roundel with a cream icon */
 .ink-badge {
   position: absolute;
-  right: 6px;
-  top: 6px;
-  width: 22px;
-  height: 22px;
+  right: 4.4cqw;
+  top: 4.4cqw;
+  width: 18cqw;
+  height: 18cqw;
   border-radius: 50%;
-  background: var(--ink);
-  color: var(--ink);
-  display: grid;
-  place-items: center;
-  z-index: 4;
-  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.3);
-}
-.ink-badge .icon { width: 18px; height: 18px; }
-.ink-badge .f1 { fill: #ffcf3d; }
-.ink-badge .f2 { fill: #f7ecd2; }
-.ink-badge .f3 { fill: #2a2148; }
-.ink-badge .f4 { fill: #ffcf3d; }
-.ink-badge .icon { color: #f7ecd2; }
-
-/* Inks */
-.pc-body.ink-jade { background: radial-gradient(ellipse at 30% 20%, #e8fff1, #a8e8c4 60%, #5fbf8e); border-color: #1f8a56; }
-.pc-body.ink-crimson { background: radial-gradient(ellipse at 30% 20%, #fff0ec, #ffb8a8 60%, #e8604a); border-color: #a3201a; }
-.pc-body.ink-gilded {
-  background: linear-gradient(115deg, #fff6c8 0%, #f6cf5a 25%, #fff0a8 42%, #d89a1e 62%, #ffe27a 80%, #c88a10 100%);
-  background-size: 220% 220%;
-  animation: gild 3.5s ease-in-out infinite;
-  border-color: #8a5a0a;
-}
-@keyframes gild { 50% { background-position: 100% 100%; } }
-.pc-body.ink-glass {
-  background: linear-gradient(135deg, rgba(235, 248, 255, 0.92), rgba(170, 215, 245, 0.75) 50%, rgba(230, 246, 255, 0.9));
-  border-color: #7fb8e0;
-}
-.pc-body.ink-glass::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(120deg, transparent 20%, rgba(255, 255, 255, 0.8) 24%, transparent 30%, transparent 60%, rgba(255, 255, 255, 0.5) 63%, transparent 66%);
-  pointer-events: none;
-}
-.pc-body.ink-lucky {
-  background:
-    radial-gradient(circle, rgba(255, 210, 63, 0.5) 1.5px, transparent 2px) 0 0 / 14px 14px,
-    radial-gradient(ellipse at 30% 20%, #f4fff0, #c8f0b4 60%, #7fd07a);
-  border-color: #3f9a3a;
-}
-.pc-body.ink-spirit {
-  --suit: #8a2a8a !important;
-  background: linear-gradient(160deg, #ffe8f4, #fff2c0 30%, #d8f4ff 60%, #e8ffe0);
-  background-size: 300% 300%;
-  animation: spirit 5s ease-in-out infinite;
-  border-color: #6ab8c8;
-  box-shadow: inset 0 0 20px rgba(120, 220, 210, 0.6);
-}
-@keyframes spirit { 50% { background-position: 100% 50%; } }
-.pc-body.ink-ash {
-  background:
-    radial-gradient(circle, transparent 3px, rgba(120, 190, 255, 0.55) 3.5px 4.5px, transparent 5px) 3px 5px / 19px 23px,
-    radial-gradient(ellipse at 30% 20%, #fffbe0, #ffe266 60%, #f0b020);
-  border-color: #c88a10;
-  --suit: #7a3a08 !important;
-}
-.pc-body.stone {
-  background:
-    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.25), transparent 40%),
-    repeating-radial-gradient(circle at 70% 80%, #8a8e98 0 6px, #7a7e88 6px 9px),
-    #80848e;
-  border-color: #4a4e58;
-  display: grid;
-  place-items: center;
-  color: #2a2e38;
-}
-.stone-art .icon { width: 70px; height: 70px; opacity: 0.6; }
-.stone-art .f1, .stone-art .f2, .stone-art .f3, .stone-art .f4 { fill: rgba(255, 255, 255, 0.25); }
-
-/* Seals */
-.wax-seal {
-  position: absolute;
-  left: 50%;
-  bottom: 6px;
-  width: 30px;
-  height: 30px;
-  margin-left: -15px;
-  border-radius: 50% 46% 52% 48%;
-  background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--seal) 60%, #fff), var(--seal) 55%, color-mix(in srgb, var(--seal) 60%, #000));
-  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.35), inset 0 -2px 3px rgba(0, 0, 0, 0.3);
+  background: var(--key);
+  box-shadow: 0 0 0 1.2cqw var(--stock);
   display: grid;
   place-items: center;
   z-index: 5;
-  color: rgba(0, 0, 0, 0.45);
 }
-.wax-seal .icon { width: 20px; height: 20px; }
-.wax-seal .f1, .wax-seal .f2, .wax-seal .f3, .wax-seal .f4 { fill: rgba(255, 255, 255, 0.25); }
+.ink-badge .icon { width: 78%; height: 78%; color: var(--key); --i1: var(--stock); --i2: var(--stock); --i3: var(--key); --i4: var(--stock); }
 
-/* Finishes */
-.fin-foil .finish-layer,
-.fin-holo .finish-layer,
-.fin-prism .finish-layer { display: block; }
-.fin-foil .finish-layer {
-  background: repeating-linear-gradient(115deg, rgba(255, 255, 255, 0) 0 12px, rgba(200, 230, 255, 0.55) 18px, rgba(255, 255, 255, 0) 26px);
-  background-size: 200% 200%;
-  background-position: var(--mx) var(--my);
-  mix-blend-mode: color-dodge;
-  opacity: 0.7;
-}
-.fin-holo .finish-layer {
-  background: linear-gradient(125deg, #ff6a8a, #ffcf3d, #6aff9a, #6ac8ff, #c06aff, #ff6a8a);
-  background-size: 300% 300%;
-  background-position: var(--mx) var(--my);
-  mix-blend-mode: color-dodge;
-  opacity: 0.45;
-  animation: holo 6s linear infinite;
-}
-@keyframes holo { to { filter: hue-rotate(360deg); } }
-.fin-prism .finish-layer {
+/* Inks: the card is reprinted on different stock / with a different plate ---------- */
+
+/* Greenback: banknote stock with a guilloche pattern */
+.pc-body.ink-jade {
+  --stock: #dfe6c6;
   background:
-    conic-gradient(from 0deg at var(--mx) var(--my), #ff3d6a, #ffcf3d, #3dff8a, #3dc8ff, #b03dff, #ff3d6a);
-  mix-blend-mode: overlay;
-  opacity: 0.65;
-  animation: holo 3s linear infinite;
+    var(--speck),
+    repeating-radial-gradient(circle at 0 0, transparent 0 5px, rgba(47, 110, 70, 0.22) 5px 6px),
+    repeating-radial-gradient(circle at 100% 100%, transparent 0 5px, rgba(47, 110, 70, 0.22) 5px 6px),
+    var(--stock);
+  border-color: #1f4a2c;
 }
-.fin-phantom .face.front { filter: invert(0.92) hue-rotate(180deg) saturate(1.3); }
-.fin-phantom .card-inner::after {
+.pc-body.ink-jade .pc-frame { border-color: #2f6e46; box-shadow: inset 0 0 0 1.1cqw var(--stock), inset 0 0 0 1.6cqw #2f6e46; }
+.pc-body.ink-jade .ink-badge { background: #2f6e46; }
+/* Red Hot: chilli-red stock with heat hatching */
+.pc-body.ink-crimson {
+  --stock: #f6d3bd;
+  background: var(--speck), repeating-linear-gradient(-45deg, rgba(200, 50, 30, 0.2) 0 1.5px, transparent 1.5px 6px), var(--stock);
+  border-color: #7a1a0c;
+}
+.pc-body.ink-crimson .pc-frame { border-color: #c8321e; box-shadow: inset 0 0 0 1.1cqw var(--stock), inset 0 0 0 1.6cqw #c8321e; }
+.pc-body.ink-crimson .ink-badge { background: #b02a18; }
+/* Gold Plated: a metallic-ink overprint (line screen + a slow sheen band) */
+.pc-body.ink-gilded {
+  --stock: #ecc56a;
+  background:
+    linear-gradient(115deg, transparent 0 38%, rgba(255, 246, 200, 0.75) 38% 46%, transparent 46% 52%, rgba(255, 246, 200, 0.5) 52% 55%, transparent 55%) 0 0 / 300% 100%,
+    repeating-linear-gradient(115deg, rgba(122, 78, 10, 0.22) 0 1px, transparent 1px 3px),
+    var(--speck),
+    var(--stock);
+  animation: gild 5s ease-in-out infinite;
+  border-color: #6a4206;
+}
+.pc-body.ink-gilded .pc-frame { border-color: #7a4e0a; box-shadow: inset 0 0 0 1.1cqw #f6dc8e, inset 0 0 0 1.6cqw #7a4e0a; }
+.pc-body.ink-gilded .pc-corner, .pc-body.ink-gilded .ink-badge { --stock: #f6dc8e; }
+.pc-body.ink-gilded .ink-badge { background: #7a4e0a; }
+@keyframes gild { 0% { background-position: 100% 0, 0 0, 0 0, 0 0; } 60%, 100% { background-position: -50% 0, 0 0, 0 0, 0 0; } }
+.reduce-motion .pc-body.ink-gilded { animation: none; }
+/* Glass: pale blue stock with hard-edged glints */
+.pc-body.ink-glass {
+  --stock: #e2eef0;
+  background:
+    linear-gradient(120deg, transparent 0 22%, rgba(255, 255, 255, 0.85) 22% 27%, transparent 27% 31%, rgba(255, 255, 255, 0.85) 31% 33%, transparent 33% 64%, rgba(255, 255, 255, 0.7) 64% 67%, transparent 67%),
+    var(--stock);
+  border-color: #3d6f86;
+}
+.pc-body.ink-glass .pc-frame { border-color: #5b9ab5; border-style: dashed; box-shadow: none; }
+.pc-body.ink-glass .ink-badge { background: #3d6f86; }
+/* Lucky: clover-green halftone */
+.pc-body.ink-lucky {
+  --stock: #eef0cf;
+  background: radial-gradient(circle, rgba(70, 140, 60, 0.32) 0 1.3px, transparent 1.8px) 0 0 / 6px 6px, var(--stock);
+  border-color: #2e5a24;
+}
+.pc-body.ink-lucky .pc-frame { border-color: #4a8a3a; box-shadow: inset 0 0 0 1.1cqw var(--stock), inset 0 0 0 1.6cqw #4a8a3a; }
+.pc-body.ink-lucky .ink-badge { background: #3f7a32; }
+/* Wild: printed in violet with a four-suit border */
+.pc-body.ink-spirit {
+  --stock: #f1e6f0;
+  background: radial-gradient(circle, rgba(122, 90, 168, 0.22) 0 1px, transparent 1.4px) 0 0 / 5px 5px, var(--speck), var(--stock);
+  border-color: #3a2260;
+}
+.pc-body.ink-spirit .pc-frame {
+  border: 1.8cqw solid transparent;
+  border-image: conic-gradient(#33679e 0 25%, #d6432a 0 50%, #5a8a4a 0 75%, #d99d22 0) 1;
+  box-shadow: none;
+  border-radius: 0;
+}
+.pc-body.ink-spirit .ink-badge { background: #4b2f78; }
+/* Rubber Ducky: yellow stock with bath bubbles */
+.pc-body.ink-ash {
+  --stock: #f7dc76;
+  background:
+    radial-gradient(circle, transparent 0 3px, rgba(51, 103, 158, 0.55) 3px 4px, transparent 4.4px) 3px 5px / 19px 23px,
+    radial-gradient(circle, transparent 0 1.6px, rgba(51, 103, 158, 0.45) 1.6px 2.4px, transparent 2.8px) 12px 15px / 19px 23px,
+    var(--stock);
+  border-color: #8a5a08;
+}
+.pc-body.ink-ash .pc-frame { border-color: #c27a12; box-shadow: inset 0 0 0 1.1cqw var(--stock), inset 0 0 0 1.6cqw #c27a12; }
+.pc-body.ink-ash .ink-badge { background: #33679e; }
+/* Rock: a grey stone slab, no rank or suit */
+.pc-body.stone {
+  --stock: #b9b4a8;
+  --suit: #4a4740;
+  background:
+    var(--speck),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='r'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.06' numOctaves='3' seed='2'/%3E%3CfeColorMatrix values='0 0 0 0 .2 0 0 0 0 .19 0 0 0 0 .17 0 0 0 -2.2 1.25'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23r)'/%3E%3C/svg%3E"),
+    var(--stock);
+  border-color: var(--key);
+}
+.pc-body.stone .pc-frame { border-color: #4a4740; box-shadow: inset 0 0 0 1.1cqw #b9b4a8, inset 0 0 0 1.6cqw #4a4740; }
+.stone-art { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 2; }
+
+/* Brands: a branding-iron stamp, bottom left */
+.wax-seal {
+  position: absolute;
+  left: 3.6cqw;
+  bottom: 3.6cqw;
+  width: 22cqw;
+  height: 22cqw;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  rotate: -14deg;
+  background: var(--seal);
+  border-radius: 50%;
+  box-shadow: 0 0 0 1cqw var(--key), 0 0 0 2.2cqw var(--stock, #f5e8cb), 0.8cqw 1.2cqw 0 2.2cqw rgba(20, 8, 2, 0.35);
+  clip-path: none;
+}
+.wax-seal::before {
   content: '';
   position: absolute;
-  inset: -4px;
-  border-radius: 14px;
-  box-shadow: 0 0 18px 4px rgba(170, 120, 255, 0.7);
-  pointer-events: none;
+  inset: 1.6cqw;
+  border-radius: 50%;
+  border: 0.8cqw dashed rgba(42, 20, 8, 0.75);
+}
+.wax-seal .icon { width: 66%; height: 66%; color: var(--key); --i1: var(--key); --i2: #f5e8cb; --i3: var(--key); --i4: #f5e8cb; }
+
+/* Finishes: printed overlays, not glows ------------------------------------------ */
+.fin-foil .finish-layer,
+.fin-holo .finish-layer,
+.fin-prism .finish-layer,
+.fin-phantom .finish-layer { display: block; }
+/* Shiny: silver-foil line screen with a light band that follows the pointer */
+.fin-foil .finish-layer {
+  background:
+    linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.7) 44%, rgba(214, 226, 236, 0.2) 50%, transparent 62%) var(--mx) 0 / 260% 100% no-repeat,
+    repeating-linear-gradient(110deg, rgba(130, 150, 170, 0.32) 0 1px, transparent 1px 3px);
+  mix-blend-mode: hard-light;
+  box-shadow: inset 0 0 0 4px #9fb1c1, inset 0 0 0 5.5px #2a1408;
+  border-radius: 11px;
+}
+/* Holographic: a three-ink stripe overprint that drifts */
+.fin-holo .finish-layer {
+  background: repeating-linear-gradient(125deg, rgba(214, 67, 42, 0.26) 0 4px, rgba(217, 157, 34, 0.26) 4px 8px, rgba(90, 138, 74, 0.26) 8px 12px, rgba(51, 103, 158, 0.26) 12px 16px);
+  background-size: 200% 200%;
+  mix-blend-mode: multiply;
+  animation: holoDrift 9s linear infinite;
+  box-shadow: inset 0 0 0 4px rgba(51, 103, 158, 0.55);
+  border-radius: 11px;
+}
+@keyframes holoDrift { to { background-position: 90px 60px; } }
+/* Prismatic: misregistered CMY halftone rosette, slowly breathing */
+.fin-prism .finish-layer {
+  background:
+    radial-gradient(circle, rgba(0, 170, 210, 0.42) 0 1.3px, transparent 1.8px) 0 0 / 6px 6px,
+    radial-gradient(circle, rgba(230, 40, 130, 0.38) 0 1.3px, transparent 1.8px) 2px 3px / 6px 6px,
+    radial-gradient(circle, rgba(250, 210, 0, 0.5) 0 1.3px, transparent 1.8px) 4px 1px / 6px 6px;
+  mix-blend-mode: multiply;
+  animation: prismShift 4s ease-in-out infinite;
+  box-shadow: inset 0 0 0 3px rgba(230, 40, 130, 0.5), inset 0 0 0 6px rgba(0, 170, 210, 0.45);
+  border-radius: 11px;
+}
+@keyframes prismShift { 50% { background-position: 1px 1px, 3px 1px, 2px 3px; } }
+.reduce-motion .fin-holo .finish-layer, .reduce-motion .fin-prism .finish-layer { animation: none; }
+/* Ghostly: printed as a negative, with a ghost double-strike */
+.fin-phantom .face.front { filter: invert(0.9) hue-rotate(180deg) saturate(0.9); }
+.fin-phantom .finish-layer {
+  border: 2px dashed rgba(42, 20, 8, 0.7);
+  border-radius: 9px;
+  inset: 5px;
+  translate: 2px 2px;
 }
 .fin-foil, .fin-holo, .fin-prism { --glow: 0 0 0 transparent; }
 
@@ -266,92 +335,178 @@
 
 .cback {
   --bk: #c2261a;
+  --key: #2a1408;
+  --cream: #f5e8cb;
+  --line: rgba(245, 232, 203, 0.42);
   position: absolute;
   inset: 0;
   border-radius: 11px;
-  background: var(--bk);
-  padding: 6px;
+  border: 1.5px solid var(--key);
+  background: var(--speck), var(--fibre), var(--cream);
+  container-type: size;
 }
 .cback-frame {
   position: absolute;
-  inset: 6px;
-  border-radius: 7px;
-  border: 2px solid rgba(255, 207, 61, 0.75);
+  inset: 5cqw;
+  border-radius: 5cqw;
+  border: 1.2cqw solid var(--key);
   overflow: hidden;
-  box-shadow: inset 0 0 0 3px rgba(0, 0, 0, 0.15);
+  background: var(--bk);
 }
 .cback-pattern {
   position: absolute;
   inset: 0;
-  /* Seigaiha waves */
+  /* default: diamond lattice with dots at the crossings */
   background:
-    radial-gradient(circle, rgba(255, 255, 255, 0.55) 2px, transparent 2.6px) 0 0 / 18px 18px,
-    radial-gradient(circle, transparent 4px, rgba(255, 255, 255, 0.28) 4.5px 5.5px, transparent 6px) 9px 9px / 18px 18px,
-    conic-gradient(from 45deg, rgba(0, 0, 0, 0.12) 25%, transparent 0 50%, rgba(0, 0, 0, 0.12) 0 75%, transparent 0) 0 0 / 36px 36px,
-    linear-gradient(160deg, color-mix(in srgb, var(--bk) 85%, #fff), color-mix(in srgb, var(--bk) 70%, #000));
+    radial-gradient(circle, var(--cream) 0 1.3px, transparent 1.8px) 0 0 / 12px 12px,
+    repeating-linear-gradient(45deg, var(--line) 0 1.2px, transparent 1.2px 8.49px),
+    repeating-linear-gradient(-45deg, var(--line) 0 1.2px, transparent 1.2px 8.49px),
+    var(--bk);
 }
-.back-gold .cback-pattern,
-.back-lucky .cback-pattern {
+.cback-pattern::after {
+  content: '';
+  position: absolute;
+  inset: 3.5cqw;
+  border-radius: 3cqw;
+  border: 1px solid var(--cream);
+  box-shadow: 0 0 0 2px var(--bk), 0 0 0 3px var(--cream);
+  opacity: 0.8;
+}
+/* Red Bandana: bandana print */
+.back-red .cback-pattern {
   background:
-    radial-gradient(circle, rgba(255, 255, 255, 0.35) 2px, transparent 3px) 0 0 / 14px 14px,
-    linear-gradient(160deg, color-mix(in srgb, var(--bk) 85%, #fff), color-mix(in srgb, var(--bk) 60%, #000));
+    radial-gradient(circle, var(--cream) 0 1.4px, transparent 1.9px) 0 0 / 9px 9px,
+    radial-gradient(circle, transparent 0 4px, var(--cream) 4px 5.4px, transparent 5.8px) 4.5px 4.5px / 18px 18px,
+    var(--bk);
 }
-.back-checker .cback-pattern {
+/* Blue Jeans: denim twill with orange stitching */
+.back-blue .cback-pattern {
   background:
-    conic-gradient(rgba(255, 255, 255, 0.18) 25%, transparent 0 50%, rgba(255, 255, 255, 0.18) 0 75%, transparent 0) 0 0 / 18px 18px,
-    linear-gradient(160deg, #6f8cff, #c2261a);
+    repeating-linear-gradient(62deg, rgba(255, 255, 255, 0.16) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(-28deg, rgba(0, 0, 0, 0.12) 0 1px, transparent 1px 4px),
+    color-mix(in srgb, var(--bk) 75%, #1a2a4a);
 }
+.back-blue .cback-pattern::after { border: 1.5px dashed #e3a93b; box-shadow: none; inset: 4cqw; opacity: 1; }
+/* Gold Rush: sunburst */
+.back-gold .cback-pattern {
+  background:
+    repeating-conic-gradient(from 0deg at 50% 50%, rgba(42, 20, 8, 0.2) 0 6deg, transparent 6deg 12deg),
+    var(--bk);
+}
+/* Greenback: banknote guilloche */
+.back-jade .cback-pattern {
+  background:
+    repeating-radial-gradient(circle at 0 0, transparent 0 4px, var(--line) 4px 5px),
+    repeating-radial-gradient(circle at 100% 100%, transparent 0 4px, var(--line) 4px 5px),
+    color-mix(in srgb, var(--bk) 80%, #0e3020);
+}
+/* Black Hat: brass cross-hatching on black */
 .back-ink .cback-pattern {
   background:
-    repeating-linear-gradient(45deg, rgba(255, 207, 61, 0.12) 0 2px, transparent 2px 10px),
-    linear-gradient(160deg, #3a2f5e, #110c22);
+    repeating-linear-gradient(45deg, rgba(227, 169, 59, 0.3) 0 1px, transparent 1px 6px),
+    repeating-linear-gradient(-45deg, rgba(227, 169, 59, 0.3) 0 1px, transparent 1px 6px),
+    #221a2c;
 }
-.back-yinyang .cback-pattern { background: linear-gradient(90deg, #f7ecd2 50%, #1b1430 50%); }
-.back-ember .cback-pattern {
+.back-ink .cback-pattern::after { border-color: #e3a93b; box-shadow: 0 0 0 2px #221a2c, 0 0 0 3px #e3a93b; }
+/* Medicine Show: wagon stripes */
+.back-violet .cback-pattern {
   background:
-    radial-gradient(circle, rgba(255, 220, 120, 0.6) 1.5px, transparent 2.5px) 0 0 / 11px 17px,
-    linear-gradient(160deg, #ff8a3d, #6a1a04);
+    repeating-linear-gradient(90deg, var(--bk) 0 7px, var(--cream) 7px 9px, color-mix(in srgb, var(--bk) 70%, #000) 9px 16px, var(--cream) 16px 18px);
 }
+/* Lookout: night sky */
+.back-night .cback-pattern {
+  background:
+    radial-gradient(circle, var(--cream) 0 1.2px, transparent 1.7px) 3px 4px / 17px 13px,
+    radial-gradient(circle, rgba(245, 232, 203, 0.6) 0 0.8px, transparent 1.2px) 11px 9px / 11px 15px,
+    var(--bk);
+}
+/* Moonshiner: scalloped mash ripples */
 .back-ghost .cback-pattern,
 .back-mirror .cback-pattern {
   background:
-    radial-gradient(circle at 50% 100%, transparent 7px, rgba(255, 255, 255, 0.3) 8px 10px, transparent 11px) 0 0 / 24px 12px,
-    linear-gradient(160deg, color-mix(in srgb, var(--bk) 70%, #fff), color-mix(in srgb, var(--bk) 50%, #000));
+    radial-gradient(circle at 50% 100%, transparent 0 5px, rgba(42, 20, 8, 0.35) 5px 6.2px, transparent 6.6px 8px, rgba(42, 20, 8, 0.35) 8px 9.2px, transparent 9.6px) 0 0 / 20px 10px,
+    radial-gradient(circle at 50% 100%, transparent 0 5px, rgba(42, 20, 8, 0.35) 5px 6.2px, transparent 6.6px 8px, rgba(42, 20, 8, 0.35) 8px 9.2px, transparent 9.6px) 10px 5px / 20px 10px,
+    var(--bk);
 }
+/* Mirror Mirror: chevrons */
+.back-mirror .cback-pattern {
+  background:
+    linear-gradient(135deg, rgba(42, 20, 8, 0.28) 25%, transparent 25%) -6px 0 / 12px 12px,
+    linear-gradient(225deg, rgba(42, 20, 8, 0.28) 25%, transparent 25%) -6px 0 / 12px 12px,
+    linear-gradient(315deg, rgba(42, 20, 8, 0.28) 25%, transparent 25%) 0 0 / 12px 12px,
+    linear-gradient(45deg, rgba(42, 20, 8, 0.28) 25%, transparent 25%) 0 0 / 12px 12px,
+    var(--bk);
+}
+/* High Society: harlequin diamonds */
 .back-court .cback-pattern {
   background:
-    repeating-conic-gradient(from 45deg, rgba(255, 207, 61, 0.22) 0 25%, transparent 0 50%) 0 0 / 16px 16px,
-    linear-gradient(160deg, #ff8a3d, #8a1a0a);
+    linear-gradient(135deg, var(--bk) 25%, transparent 25%) -8px 0 / 16px 22px,
+    linear-gradient(225deg, var(--bk) 25%, transparent 25%) -8px 0 / 16px 22px,
+    linear-gradient(315deg, var(--bk) 25%, transparent 25%) 0 0 / 16px 22px,
+    linear-gradient(45deg, var(--bk) 25%, transparent 25%) 0 0 / 16px 22px,
+    color-mix(in srgb, var(--bk) 60%, #5a1a08);
+}
+/* Kiddie Table: gingham */
+.back-pink .cback-pattern {
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.45) 0 6px, transparent 6px 12px),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.45) 0 6px, transparent 6px 12px),
+    color-mix(in srgb, var(--bk) 80%, #c0305a);
+}
+/* Two-Suit: denim / vermilion checkerboard */
+.back-checker .cback-pattern {
+  background: repeating-conic-gradient(#33679e 0 25%, #d6432a 0 50%) 0 0 / 16px 16px;
+}
+/* Tornado: whirl */
+.back-ember .cback-pattern {
+  background:
+    repeating-radial-gradient(circle at 50% 50%, transparent 0 7px, rgba(42, 20, 8, 0.2) 7px 9px),
+    repeating-conic-gradient(from 10deg at 50% 50%, rgba(245, 232, 203, 0.35) 0 8deg, transparent 8deg 20deg),
+    var(--bk);
+}
+/* Even Steven: half and half */
+.back-yinyang .cback-pattern {
+  background:
+    radial-gradient(circle, rgba(42, 20, 8, 0.28) 0 1.2px, transparent 1.6px) 0 0 / 6px 6px,
+    linear-gradient(135deg, var(--cream) 50%, var(--key) 50%);
+}
+/* Double Barrel: twin pinstripes */
+.back-twin .cback-pattern {
+  background:
+    repeating-linear-gradient(90deg, var(--line) 0 1.5px, transparent 1.5px 4px, var(--line) 4px 5.5px, transparent 5.5px 14px),
+    repeating-linear-gradient(0deg, rgba(42, 20, 8, 0.18) 0 1.5px, transparent 1.5px 14px),
+    var(--bk);
+}
+/* Lucky Seven: quatrefoil clover dots */
+.back-lucky .cback-pattern {
+  background:
+    radial-gradient(circle, rgba(42, 90, 30, 0.75) 0 1.6px, transparent 2.1px) 0 3px / 12px 12px,
+    radial-gradient(circle, rgba(42, 90, 30, 0.75) 0 1.6px, transparent 2.1px) 3px 0 / 12px 12px,
+    radial-gradient(circle, rgba(42, 90, 30, 0.75) 0 1.6px, transparent 2.1px) 6px 3px / 12px 12px,
+    radial-gradient(circle, rgba(42, 90, 30, 0.75) 0 1.6px, transparent 2.1px) 3px 6px / 12px 12px,
+    var(--bk);
 }
 .cback-emblem {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 54px;
-  height: 54px;
-  margin: -27px 0 0 -27px;
-  border-radius: 50%;
-  background: radial-gradient(circle, #fff3d0, #f0c060);
-  border: 3px solid #2a1410;
-  display: grid;
-  place-items: center;
-  color: #2a1410;
-  box-shadow: 0 0 0 4px rgba(255, 207, 61, 0.35), 0 0 20px rgba(255, 180, 60, 0.6);
+  width: 56cqw;
+  height: 56cqw;
+  margin: -28cqw 0 0 -28cqw;
+  color: color-mix(in srgb, var(--bk) 85%, #2a1408);
+  z-index: 1;
 }
-.cback-emblem .icon { width: 38px; height: 38px; }
-.cback-emblem .f1 { fill: #e8402c; }
-.cback-emblem .f2 { fill: #fff3d0; }
-.cback-emblem .f3 { fill: #2a1410; }
-.cback-emblem .f4 { fill: #ffcf3d; }
+.back-yinyang .cback-emblem { color: #6f6a5a; }
+.cb-art { display: block; width: 100%; height: 100%; overflow: visible; }
 
 /* States */
 .card.picked .card-inner { transform: translateY(-16px) rotateX(var(--rx)) rotateY(var(--ry)); }
-.card.picked .face.front { box-shadow: 0 0 0 4px #ffcf3d, 0 0 26px rgba(255, 207, 61, 0.8), 0 10px 20px rgba(0, 0, 0, 0.4); }
+.card.picked .face.front { box-shadow: 0 0 0 3px #f2c14e, 0 0 0 5px #2a1408, 5px 9px 0 rgba(20, 8, 2, 0.45); }
 .card.debuffed .face.front::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: repeating-linear-gradient(-45deg, rgba(40, 20, 60, 0.55) 0 8px, rgba(40, 20, 60, 0.25) 8px 16px);
+  background: repeating-linear-gradient(-45deg, rgba(42, 20, 8, 0.6) 0 3px, transparent 3px 8px);
   z-index: 9;
 }
 .card.debuffed .face.front::before {
@@ -360,24 +515,30 @@
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  font-size: 60px;
-  color: #ff4b3a;
+  font-size: 64px;
+  font-weight: 900;
+  color: #d6432a;
   z-index: 10;
-  text-shadow: 0 3px 0 #000;
+  text-shadow: 3px 3px 0 #2a1408;
 }
 .card.disabled .card-inner { filter: grayscale(1) brightness(0.6); }
 .card.unseen .card-inner { filter: saturate(0.45) brightness(0.72); }
+
+/* Deck-view minis: everything scales with the card (container units); the
+   corner index is boosted because the strip overlaps cards from the right. */
 .card.mini { --cw: 56px; --ch: 78px; }
 .card.mini .card-inner { animation: none; }
-.card.mini .pc-art { transform: scale(0.5); transform-origin: 0 0; inset: 11px 10px; width: 144px; height: 224px; }
-.card.mini .pc-rank { font-size: 15px; }
-.card.mini .pc-corner { left: 3px; top: 3px; width: 14px; }
-.card.mini .pc-corner .suit { width: 10px; height: 10px; }
+.card.mini .face { border-radius: 6px; box-shadow: 2px 2px 0 rgba(20, 8, 2, 0.5); }
+.card.mini .pc-body { border-radius: 6px; border-width: 1px; }
+.card.mini .pc-rank { font-size: 27cqw; }
+.card.mini .pc-corner { width: 25cqw; left: 1.8cqw; top: 1.8cqw; }
+.card.mini .pc-corner .suit { width: 21cqw; height: 21cqw; }
 .card.mini .pc-corner.br { display: none; }
-.card.mini .wax-seal { width: 16px; height: 16px; margin-left: -8px; bottom: 3px; }
-.card.mini .wax-seal .icon { display: none; }
-.card.mini .ink-badge { width: 14px; height: 14px; right: 3px; top: 3px; }
-.card.mini .ink-badge .icon { width: 11px; height: 11px; }
+.card.mini .pc-art.pips { left: 8cqw; }
+.card.mini .ink-badge { width: 22cqw; height: 22cqw; right: 3cqw; top: 3cqw; }
+.card.mini .wax-seal { width: 24cqw; height: 24cqw; left: 3cqw; bottom: 3cqw; }
+.card.mini .wax-seal::before { display: none; }
+.card.mini .cback { border-radius: 6px; }
 .card.mini.dim { opacity: 0.35; }
 
 .icon { display: block; color: var(--ink); }
