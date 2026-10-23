@@ -6,7 +6,7 @@ import { HAND_TYPE } from '../../core/cards';
 import { newRun, NIGHTS } from '../../game/engine';
 import { continueEndless } from '../../game/shop';
 import { randomSeedString } from '../../core/rng';
-import { app, button, modal, save, tip } from '../app';
+import { app, button, keyHint, modal, modalTitle, save, tip } from '../app';
 import { playingCard, cardBackHtml } from '../art';
 import { div, fmt, fmtNum, h, clear } from '../dom';
 import { hasSavedRun, loadRun, maxStake, profile, saveProfile, saveRun } from '../profile';
@@ -19,6 +19,11 @@ import { iconSvg } from '../icons';
 import { nameOf, portraitOf, townName } from '../characters';
 import { HOST } from '../../content/hosts';
 import { openHowToPlay } from '../coach';
+import { suitSvg } from '../suits';
+
+/** Wanted Level plates: the deck's own print colours rather than screen colours. */
+const STAKE_PLATE = ['#6e6250', '#c8402a', '#557a46', '#2f5d8a', '#6a3d6e', '#c9692a', '#8a1e14', '#d99a22'];
+const STAR = 'M20 2.5l4.6 10.6 11.5 1-8.7 7.6 2.6 11.3L20 27.1l-10 5.9 2.6-11.3-8.7-7.6 11.5-1z';
 
 export function titleScreen(): HTMLElement {
   background.setPalette('menu', 1);
@@ -40,30 +45,44 @@ export function titleScreen(): HTMLElement {
   tip(villain, () => `<div class="tt-title">${nameOf(rival)}</div><div class="tt-sub2">Wanted</div><div class="tt-body">${fmt(HOST[rival]?.text ?? '')}</div>`);
   const logo = div(
     'logo',
-    div('logo-top', 'The Legend of'),
+    div('logo-top', h('span', null, 'The Legend of')),
     div('logo-main', 'Buck Ducks'),
-    div('logo-sub', 'blackjack on the duck frontier'),
+    h('div', {
+      class: 'logo-sub',
+      html: `<span class="logo-suits">${suitSvg('moon')}${suitSvg('flame')}</span><span>Blackjack on the Duck Frontier</span><span class="logo-suits">${suitSvg('leaf')}${suitSvg('bell')}</span>`,
+    }),
+    h('div', { class: 'logo-seal', html: iconSvg('badge') }),
   );
   const menu = div('title-menu');
+  const primary = div('tm-primary');
   if (hasSavedRun()) {
-    menu.appendChild(
+    primary.appendChild(
       button('Continue', 'primary big', () => {
         app.run = loadRun();
         app.render();
       }),
     );
   }
+  primary.appendChild(button('New Run', hasSavedRun() ? 'big' : 'primary big', () => openNewRun()));
   menu.append(
-    button('New Run', hasSavedRun() ? 'big' : 'primary big', () => openNewRun()),
-    button('How to Play', 'big ghost', () => openHowToPlay()),
-    button('Collection', 'big ghost', () => openCollection()),
-    button('Options', 'big ghost', () => openOptions()),
+    primary,
+    div(
+      'tm-bar',
+      button('How to Play', 'tm-link', () => openHowToPlay()),
+      button('Collection', 'tm-link', () => openCollection()),
+      button('Options', 'tm-link', () => openOptions()),
+    ),
   );
+  const stat = (label: string, val: string) => div('ts-cell', div('ts-val', val), div('ts-label', label));
   const stats = div(
     'title-stats',
-    `Runs ${profile.runs} · Victories ${profile.wins} · Best hand ${fmtNum(profile.bestHand)} · Furthest town ${profile.bestNight}`,
+    stat('Runs', fmtNum(profile.runs)),
+    stat('Victories', fmtNum(profile.wins)),
+    stat('Best hand', fmtNum(profile.bestHand)),
+    stat('Furthest town', `${profile.bestNight} of ${NIGHTS}`),
   );
-  el.append(div('title-ground'), hero, villain, fan, logo, menu, stats, div('title-hint', 'H / S / D / P / F to Hit, Stand, Double, Split, Fold · Space to deal'));
+  const hint = keyHint('title-hint', [['H', 'Hit'], ['S', 'Stand'], ['D', 'Double'], ['P', 'Split'], ['F', 'Fold'], ['Space', 'Deal']]);
+  el.append(div('title-ground'), hero, villain, fan, logo, menu, stats, hint);
   return el;
 }
 
@@ -88,31 +107,42 @@ export function openNewRun() {
       sfx('deal');
       render();
     });
-    const shoeInfo = div('nr-shoe-info', div('nr-shoe-name', shoe.name), h('div', { class: 'nr-shoe-text', html: fmt(shoe.text) }), div('nr-shoe-idx', `${shoeIdx + 1} / ${SHOES.length}`));
+    const dots = div('nr-dots', ...SHOES.map((_, i) => h('span', { class: `nr-dot${i === shoeIdx ? ' on' : ''}` })));
+    const shoeInfo = div(
+      'nr-shoe-info',
+      div('nr-shoe-idx', `Deck No. ${shoeIdx + 1} of ${SHOES.length}`),
+      div('nr-shoe-name', shoe.name),
+      h('div', { class: 'nr-shoe-text', html: fmt(shoe.text) }),
+      dots,
+    );
     const stakes = div('nr-stakes');
     for (const s of STAKES) {
       const locked = s.id > maxStake(shoe.id);
-      const chip = h('button', { class: `stake-chip${s.id === stake ? ' on' : ''}${locked ? ' locked' : ''}`, type: 'button', style: { '--c': s.color } as any });
-      chip.innerHTML = `<span class="moon-phase p${s.id}" style="--c:${s.color}">${s.id}</span>`;
+      const plate = STAKE_PLATE[s.id - 1] ?? s.color;
+      const chip = h('button', { class: `stake-chip${s.id === stake ? ' on' : ''}${locked ? ' locked' : ''}`, type: 'button', 'aria-label': `${s.name}${locked ? ' (locked)' : ''}` });
+      chip.style.setProperty('--c', plate);
+      chip.innerHTML = `<svg class="sc-star" viewBox="0 0 40 36" aria-hidden="true"><path d="${STAR}"/></svg><span class="sc-num">${s.id}</span>`;
       chip.addEventListener('click', () => {
         if (locked) return;
         stake = s.id;
         sfx('select');
         render();
       });
-      tip(chip, () => `<div class="tt-title">${s.name}</div><div class="tt-body">${fmt(s.text)}${s.id > 1 ? '<br><span class="t-dim">Includes every lower level</span>' : ''}</div>${locked ? '<div class="tt-sub bad">Win with this deck at the level below to unlock</div>' : ''}`);
+      tip(chip, () => `<div class="tt-title">${s.name}</div><div class="tt-sub2">Wanted Level ${s.id}</div><div class="tt-body">${fmt(s.text)}${s.id > 1 ? '<br><span class="t-dim">Includes every lower level</span>' : ''}</div>${locked ? '<div class="tt-sub bad">Win with this deck at the level below to unlock</div>' : ''}`);
       stakes.appendChild(chip);
     }
     const st = STAKES[stake - 1];
-    const seedIn = h('input', { class: 'seed-input', placeholder: 'Random seed', maxlength: 12, value: seed }) as HTMLInputElement;
+    const stText = h('div', { class: 'nr-stake-text' }, h('span', { class: 'nr-stake-name' }, st.name), h('span', { class: 'nr-stake-desc', html: fmt(st.text) }));
+    stText.style.setProperty('--c', STAKE_PLATE[stake - 1] ?? st.color);
+    const seedIn = h('input', { class: 'seed-input', placeholder: 'Random', maxlength: 12, value: seed, 'aria-label': 'Seed' }) as HTMLInputElement;
     seedIn.addEventListener('input', () => (seed = seedIn.value.toUpperCase().replace(/[^A-Z0-9]/g, '')));
     box.append(
-      div('nr-title', 'Choose a Deck'),
+      modalTitle('nr-title', 'Choose a Deck'),
       div('nr-carousel', prev, back, shoeInfo, next),
-      div('nr-sub', 'Wanted Level'),
+      div('nr-sub', h('span', null, 'Wanted Level')),
       stakes,
-      h('div', { class: 'nr-stake-text', html: `<b style="color:${st.color}">${st.name}</b> · ${fmt(st.text)}` }),
-      div('nr-foot', seedIn, button('Begin', 'primary big', () => start())),
+      stText,
+      div('nr-foot', h('label', { class: 'seed-field' }, h('span', { class: 'seed-label' }, 'Seed'), seedIn), button('Begin', 'primary big', () => start())),
     );
   };
   const start = () => {
@@ -138,6 +168,7 @@ export function gameOverScreen(): HTMLElement {
   recordEnd(false);
   const el = div('end-screen over');
   el.append(
+    div('end-kicker', h('span', null, 'The End of the Trail')),
     div('end-title', 'You Bit the Dust'),
     div('end-sub', `Out of Grit in ${townName(run.night)}, town ${run.night} of ${NIGHTS}.`),
     runSummary(),
@@ -172,6 +203,7 @@ export function victoryScreen(): HTMLElement {
       l.innerHTML = iconSvg('badge');
       return l;
     })),
+    div('end-kicker', h('span', null, 'Seven Towns Tamed')),
     div('end-title', 'Every Bounty Paid'),
     div('end-sub', `All ${NIGHTS} Outlaws run out of town.`),
     runSummary(),
@@ -213,18 +245,21 @@ function recordEnd(won: boolean) {
 function runSummary(): HTMLElement {
   const run = app.run!;
   const s = run.stats;
-  const rows: [string, string][] = [
-    ['Best hand', `${fmtNum(s.bestHand)}${s.bestHandType ? ` (${HAND_TYPE[s.bestHandType].name})` : ''}`],
+  const rows: [string, string, string?][] = [
+    ['Best hand', fmtNum(s.bestHand), s.bestHandType ? HAND_TYPE[s.bestHandType].name : undefined],
     ['Hands played', String(s.handsPlayed)],
     ['Hands won', String(s.handsWon)],
     ['Quackjacks', String(s.blackjacks)],
     ['Busts', String(s.busts)],
     ['Bucks earned', `$${s.moneyEarned}`],
     ['Tables won', String(s.tablesWon)],
-    ['Deck', `${SHOE[run.shoeId]?.name} · ${STAKES[run.stake - 1]?.name}`],
+    ['Deck', SHOE[run.shoeId]?.name ?? '', STAKES[run.stake - 1]?.name],
     ['Seed', run.seed],
   ];
-  return div('end-summary', ...rows.map(([a, b]) => div('es-row', div('es-label', a), div('es-val', b))));
+  return div(
+    'end-summary sheet',
+    ...rows.map(([a, b, note]) => div(`es-row${b.length > 9 ? ' long' : ''}`, div('es-label', a), div('es-val', b), note ? div('es-note', note) : null)),
+  );
 }
 
 export { NIGHTS };

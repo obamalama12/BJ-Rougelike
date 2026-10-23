@@ -1,6 +1,6 @@
 // First-time coaching notes from Doc Hoot, plus the How to Play sheet.
 
-import { app, button, modal } from './app';
+import { app, button, keyHint, modal, modalTitle } from './app';
 import { div, fmt, h } from './dom';
 import { profile, saveProfile } from './profile';
 import { portraitOf } from './characters';
@@ -64,7 +64,7 @@ function show(text: string, pos: CoachPos): Promise<void> {
     };
     note.append(
       h('div', { class: 'coach-face', html: portraitOf('doc', 'neutral') }),
-      div('coach-body', div('coach-who', 'Doc Hoot'), h('div', { class: 'coach-text', html: fmt(text) }), div('coach-foot', button('Got it', 'small primary', done), button('No more tips', 'tiny ghost', () => {
+      div('coach-body', div('coach-who', h('span', null, 'Doc Hoot'), h('small', null, 'Frontier Physician')), h('div', { class: 'coach-text', html: fmt(text) }), div('coach-foot', button('Got it', 'small primary', done), button('No more tips', 'tiny ghost', () => {
         profile.settings.tips = false;
         saveProfile();
         done();
@@ -97,14 +97,21 @@ const RULES: [string, string, string][] = [
 
 export function openHowToPlay() {
   const box = div('howto');
-  box.append(div('ri-title', 'How to Play'));
+  box.append(modalTitle('ri-title', 'How to Play'));
   const grid = div('howto-grid');
-  for (const [icon, title, text] of RULES) {
-    grid.appendChild(div('howto-item', h('div', { class: 'howto-icon', html: iconSvg(icon) }), div('howto-title', title), h('div', { class: 'howto-text', html: fmt(text) })));
-  }
+  RULES.forEach(([icon, title, text], i) => {
+    grid.appendChild(
+      div(
+        'howto-item sheet',
+        h('div', { class: 'howto-icon', html: iconSvg(icon) }),
+        div('howto-title', h('small', null, `No. ${i + 1}`), title),
+        h('div', { class: 'howto-text', html: fmt(text) }),
+      ),
+    );
+  });
   box.append(
     grid,
-    div('howto-keys', 'Keys: H hit · S stand · D double · P split · F fold · Space deal'),
+    keyHint('howto-keys', [['H', 'Hit'], ['S', 'Stand'], ['D', 'Double'], ['P', 'Split'], ['F', 'Fold'], ['Space', 'Deal']]),
   );
   let close = () => {};
   box.appendChild(div('howto-foot', button('Saddle Up', 'primary', () => close())));

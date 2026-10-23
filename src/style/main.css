@@ -170,143 +170,199 @@ body.no-grain #grain {
 .t-suit { font-weight: 700; }
 .t-hand { color: #ffcf7a; font-weight: 700; }
 
-/* Tooltip: a slip of paper ------------------------------------------------ */
+/* Tooltip: a slip of card stock with the printed double rule ----------------- */
 
 .tooltip {
+  --plate: var(--plate-leather);
   position: fixed;
   z-index: 100;
   max-width: calc(280px * var(--ui-scale) + 40px);
-  min-width: 170px;
-  padding: 10px 13px 11px;
-  background: var(--paper);
-  color: var(--ink);
-  border: 2px solid var(--ink-line);
-  border-radius: 3px;
+  min-width: 180px;
+  padding: 12px 16px 13px;
+  background: var(--speck), var(--fibre), var(--stock);
+  color: var(--key);
+  border: 1.5px solid var(--key);
+  border-radius: 10px;
   box-shadow: var(--lift-2);
   pointer-events: none;
   opacity: 0;
   transform: translateY(4px);
   transition: opacity 0.1s, transform 0.1s;
   font-size: clamp(13px, calc(15px * var(--ui-scale) + 3px), 18px);
-  line-height: 1.3;
+  line-height: 1.32;
+}
+.tooltip::before {
+  content: '';
+  position: absolute;
+  inset: 3.5px;
+  border-radius: 7px;
+  border: 1.5px solid var(--plate);
+  box-shadow: inset 0 0 0 1.5px var(--stock), inset 0 0 0 2.5px var(--plate);
+  pointer-events: none;
 }
 .tooltip.show { opacity: 1; transform: none; }
 .tt-title {
   font-family: var(--f-display);
-  font-size: 1.2em;
-  color: var(--ink);
-  margin-bottom: 5px;
-  padding-bottom: 4px;
-  border-bottom: 2px solid var(--ink);
+  font-size: 1.16em;
+  line-height: 1.12;
+  color: var(--key);
+  margin: 1px 0 7px;
+  padding-bottom: 8px;
+  /* engraved double rule: a heavy line over a hairline */
+  background:
+    linear-gradient(var(--plate), var(--plate)) left bottom / 100% 1.5px no-repeat,
+    linear-gradient(var(--plate), var(--plate)) left bottom 3px / 100% 0.75px no-repeat;
 }
-.tt-sub2 { color: var(--gold-3); font-size: 0.85em; margin: -2px 0 6px; letter-spacing: 0.04em; font-weight: 700; }
+.tt-sub2 {
+  margin: -2px 0 6px;
+  font-size: 0.7em;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--plate-verm);
+}
 .tt-body { font-weight: 600; }
 .tooltip .t-chips { color: #1f4f86; }
 .tooltip .t-mult { color: #b0301a; }
-.tooltip .t-xmult { color: var(--paper); }
+.tooltip .t-xmult { color: var(--stock); }
 .tooltip .t-money { color: #8a5a0a; }
 .tooltip .t-hl { color: #6a2a8a; }
 .tooltip .t-hand { color: #a8261a; }
-.tooltip .t-dim { color: rgba(36, 18, 8, 0.6); }
+.tooltip .t-dim { color: rgba(42, 20, 8, 0.6); }
 .tooltip .t-bad { color: #a8261a; }
 .tt-sub {
-  margin-top: 7px;
+  margin-top: 8px;
+  padding-top: 7px;
   font-size: 0.9em;
-  border-top: 1.5px dashed rgba(36, 18, 8, 0.4);
-  padding-top: 5px;
+  border-top: 1px solid color-mix(in srgb, var(--plate) 55%, transparent);
 }
-.tt-sub.bad { color: #a8261a; }
-.tt-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+.tt-sub b { font-family: var(--f-display); font-weight: 400; letter-spacing: 0.02em; }
+.tt-sub.bad { color: #a8261a; font-weight: 700; }
+.tt-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 9px; }
 .tt-tags > span {
-  font-size: 0.76em;
+  font-size: 0.68em;
   font-weight: 700;
-  padding: 1px 7px 2px;
-  border-radius: 2px;
-  color: var(--paper);
-  background: #4a3a5e;
-  border: 1.5px solid var(--ink);
+  line-height: 1.2;
+  padding: 2px 8px 3px;
+  border-radius: 5px;
+  color: var(--key);
+  background: var(--stock-2);
+  border: 1.5px solid var(--key);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.12em;
 }
-.tag-rarity.r1 { background: var(--denim); }
-.tag-rarity.r2 { background: var(--sage); }
-.tag-rarity.r3 { background: var(--verm); }
-.tag-rarity.r4 { background: var(--gold-2); color: var(--ink) !important; }
-.tag-sell { background: #8a5a0a !important; }
-.tag-kind.k-fortune { background: #8a3a6a; }
-.tag-kind.k-star { background: #2a4a8a; }
-.tag-kind.k-mask { background: #5a2a8a; }
-.tag-kind.k-relic { background: #8a5a0c; }
-.tag-kind.k-pack { background: var(--denim); }
-.tag-kind.k-tag { background: var(--sage); }
-.tag-kind.k-host { background: #8a1e14; }
+.tt-tags > .tag-rarity, .tt-tags > .tag-kind { color: var(--stock); box-shadow: inset 0 0 0 1.5px var(--tg, transparent), inset 0 0 0 2.5px rgba(245, 232, 203, 0.45); background: var(--tg); }
+.tag-rarity.r1 { --tg: var(--plate-denim); }
+.tag-rarity.r2 { --tg: var(--plate-sage); }
+.tag-rarity.r3 { --tg: var(--plate-verm); }
+.tag-rarity.r4 { --tg: var(--plate-gold); color: var(--key) !important; }
+.tt-tags > .tag-sell { background: var(--plate-gold); color: var(--key); }
+.tag-kind.k-fortune { --tg: var(--plate-verm); }
+.tag-kind.k-star { --tg: #24365e; }
+.tag-kind.k-mask { --tg: var(--plate-plum); }
+.tag-kind.k-relic { --tg: var(--plate-leather); }
+.tag-kind.k-pack { --tg: var(--plate-denim); }
+.tag-kind.k-tag { --tg: var(--plate-sage); }
+.tag-kind.k-host { --tg: #8a1e14; }
 
-/* Popups: rubber stamps that land on the table ------------------------------ */
+/* Popups: printed chips that land on the table -------------------------------
+   Each is a solid colour plate with a key-ink edge, a cream inner rule and a
+   key lip underneath, like a token punched out of card stock. */
 
 .popup {
+  --pc: var(--key);
+  --pf: var(--stock);
   position: absolute;
   transform: translate(-50%, -100%);
+  padding: 3px 12px 5px;
   font-family: var(--f-display);
-  font-size: 26px;
+  font-size: 22px;
+  line-height: 1.1;
+  letter-spacing: 0.02em;
   white-space: nowrap;
   pointer-events: none;
-  color: var(--paper);
-  text-shadow: 2px 2px 0 var(--ink);
+  color: var(--pf);
+  background: var(--fibre), var(--pc);
+  border: 1.5px solid var(--key);
+  border-radius: 7px;
+  box-shadow:
+    inset 0 0 0 2px var(--pc),
+    inset 0 0 0 3px color-mix(in srgb, var(--pf) 50%, transparent),
+    0 2.5px 0 var(--key),
+    0 6px 12px rgba(10, 4, 0, 0.35);
   animation: popUp 1.25s cubic-bezier(0.2, 0.9, 0.3, 1.2) forwards;
   z-index: 2;
 }
 @keyframes popUp {
-  0% { opacity: 0; transform: translate(-50%, -80%) scale(1.6) rotate(-4deg); }
+  0% { opacity: 0; transform: translate(-50%, -80%) scale(1.5) rotate(-4deg); }
   12% { opacity: 1; transform: translate(-50%, -110%) scale(1) rotate(-2deg); }
   75% { opacity: 1; }
   100% { opacity: 0; transform: translate(-50%, -150%) rotate(-2deg); }
 }
-.pop-chips, .pop-mult, .pop-xmult, .pop-money {
-  padding: 1px 10px 3px;
-  border: 2px solid var(--ink-line);
-  border-radius: 3px;
-  font-size: 22px;
-  text-shadow: none;
-  box-shadow: var(--lift-1);
+.pop-chips { --pc: var(--plate-denim); }
+.pop-mult { --pc: var(--plate-verm); }
+.pop-xmult {
+  --pc: var(--plate-verm);
+  font-size: 24px;
+  padding: 4px 14px 6px;
+  box-shadow:
+    inset 0 0 0 2px var(--pc),
+    inset 0 0 0 3px rgba(245, 232, 203, 0.7),
+    inset 0 0 0 4.5px var(--pc),
+    inset 0 0 0 5.5px rgba(245, 232, 203, 0.7),
+    0 2.5px 0 var(--key),
+    0 6px 12px rgba(10, 4, 0, 0.35);
 }
-.pop-chips { background: var(--denim); }
-.pop-mult { background: var(--verm); }
-.pop-xmult { background: var(--verm); font-size: 26px; outline: 2px dashed var(--paper); outline-offset: -7px; }
-.pop-money { background: var(--gold); color: var(--ink); }
-.pop-info { color: var(--paper); font-size: 20px; }
-.pop-again { color: var(--gold); font-size: 20px; }
-.pop-bad { color: #ff8a74; font-size: 22px; }
-.pop-good { color: #b8e8a0; }
-.pop-gold { color: var(--gold); }
-.pop-big { font-size: 40px; }
+.pop-money, .pop-again, .pop-gold { --pc: var(--plate-gold); --pf: var(--key); }
+.pop-info { --pc: var(--key); font-size: 19px; }
+.pop-again { font-size: 19px; }
+.pop-bad { --pc: #8a1e14; font-size: 21px; }
+.pop-good { --pc: var(--plate-sage); }
+.pop-big { font-size: 36px; padding: 5px 22px 8px; border-radius: 10px; }
+
+/* Toasts: a ticket with a coloured rule and diamond --------------------------- */
 
 .toast {
+  --plate: var(--plate-leather);
   position: absolute;
   left: 50%;
   bottom: 170px;
   transform: translateX(-50%);
-  padding: 10px 22px 11px;
-  border-radius: 3px;
+  padding: 11px 26px 12px 44px;
+  border-radius: 10px;
   font-weight: 700;
-  font-size: 20px;
-  color: var(--ink);
-  background: var(--paper);
-  border: 2px solid var(--ink-line);
-  box-shadow: var(--lift-2);
+  font-size: 19px;
+  white-space: nowrap;
+  color: var(--key);
+  background: var(--speck), var(--fibre), var(--stock);
+  border: 1.5px solid var(--key);
+  box-shadow: inset 0 0 0 3.5px var(--stock), inset 0 0 0 5px var(--plate), var(--lift-2);
   animation: toastIn 0.2s cubic-bezier(0.2, 0.9, 0.3, 1.3);
   transition: opacity 0.3s, transform 0.3s;
 }
-.toast.bad { background: #f6d6c8; border-color: #8a1e14; color: #6a1408; }
-.toast.good { background: #dcebc8; }
+.toast::before {
+  content: '';
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  width: 9px;
+  height: 9px;
+  margin-top: -5px;
+  background: var(--plate);
+  border: 1.5px solid var(--key);
+  transform: rotate(45deg);
+}
+.toast.bad { --plate: var(--plate-verm); color: #6a1408; }
+.toast.good { --plate: var(--plate-sage); }
 .toast.out { opacity: 0; transform: translate(-50%, 10px); }
 @keyframes toastIn { from { opacity: 0; transform: translate(-50%, 16px); } }
 
-/* Modals: a dark wood board with a brass rule ------------------------------- */
+/* Modals: an ink board with the card's double rule ---------------------------- */
 
 .modal-back {
   position: absolute;
   inset: 0;
-  background: rgba(20, 8, 2, 0.7);
+  background: rgba(16, 6, 1, 0.72);
   display: grid;
   place-items: center;
   animation: fadeIn 0.15s;
@@ -315,41 +371,163 @@ body.no-grain #grain {
 @keyframes fadeIn { from { opacity: 0; } }
 @keyframes fadeOut { to { opacity: 0; } }
 .modal-box {
+  --rule: #c9a46a;
   position: relative;
   max-width: 1300px;
-  max-height: 840px;
+  max-height: 872px;
   overflow: auto;
-  padding: 28px 32px;
-  color: var(--paper);
-  background:
-    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.16) 0 2px, transparent 2px 46px),
-    repeating-linear-gradient(90deg, rgba(255, 220, 160, 0.03) 0 2px, transparent 2px 37px),
-    #4a2a12;
-  border: 3px solid var(--ink-line);
-  border-radius: 4px;
-  outline: 2px solid var(--gold-2);
-  outline-offset: -11px;
-  box-shadow: var(--lift-3);
-  animation: modalIn 0.25s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+  padding: 30px 42px 32px;
+  color: var(--stock);
+  background: var(--fibre), var(--board);
+  background-blend-mode: overlay, normal;
+  border: 1.5px solid var(--key);
+  border-radius: 16px;
+  box-shadow: inset 0 1px 0 rgba(255, 226, 180, 0.12), 0 0 0 1px rgba(201, 164, 106, 0.18), var(--lift-3);
+  animation: modalIn 0.25s cubic-bezier(0.2, 0.9, 0.3, 1.15);
+  scrollbar-width: thin;
+  scrollbar-color: var(--rule) transparent;
 }
+/* the printed double rule: a heavier outer line and a hairline inside it */
+.modal-box::before,
+.modal-box::after {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+  border: 1.5px solid var(--rule);
+}
+.modal-box::before { inset: 8px; border-radius: 10px; }
+.modal-box::after { inset: 12px; border-radius: 7px; border-width: 1px; opacity: 0.7; }
 .modal-back.wide .modal-box { width: 1240px; }
-@keyframes modalIn { from { opacity: 0; transform: translateY(24px) rotate(-0.6deg); } }
+@keyframes modalIn { from { opacity: 0; transform: translateY(20px) scale(0.98); } }
 
-.tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+/* Modal header: the title on a cream plate between engraved rules, with a
+   diamond at each end of the plate. <div class="m-title"><span class="m-plate"> */
+.m-title {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin: 0 0 18px;
+  color: var(--rule, #c9a46a);
+  text-align: center;
+}
+.m-title::before,
+.m-title::after {
+  content: '';
+  flex: 1;
+  height: 4px;
+  border-top: 1.5px solid currentColor;
+  border-bottom: 0.75px solid currentColor;
+  opacity: 0.85;
+}
+.m-plate {
+  position: relative;
+  flex: none;
+  padding: 7px 28px 9px;
+  font-family: var(--f-display);
+  font-size: 28px;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0.03em;
+  color: var(--key);
+  background: var(--speck), var(--fibre), var(--stock);
+  border: 1.5px solid var(--key);
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 3px var(--stock), inset 0 0 0 4px var(--plate-verm), 0 2px 0 var(--key), var(--lift-1);
+}
+.m-plate::before,
+.m-plate::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  margin-top: -3.5px;
+  background: currentColor;
+  color: var(--rule, #c9a46a);
+  transform: rotate(45deg);
+}
+.m-plate::before { left: -13px; }
+.m-plate::after { right: -13px; }
+
+/* Tabs: ink plates on the board; the open tab is printed on cream stock with a
+   vermilion bookmark ribbon. */
+.tabs { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
 .tab {
+  position: relative;
   font-family: var(--f-display);
   font-size: 16px;
-  color: var(--paper);
-  background: #5a3a20;
-  border: 2px solid var(--ink-line);
-  border-radius: 3px;
-  padding: 6px 14px 7px;
+  line-height: 1.1;
+  letter-spacing: 0.02em;
+  color: rgba(245, 232, 203, 0.82);
+  background: var(--fibre), var(--board-2);
+  background-blend-mode: overlay, normal;
+  border: 1.5px solid var(--key);
+  border-radius: 8px;
+  padding: 8px 16px 9px;
   cursor: pointer;
-  box-shadow: var(--lift-1);
+  box-shadow: inset 0 0 0 2.5px var(--board-2), inset 0 0 0 3.5px rgba(201, 164, 106, 0.32), 0 2px 0 var(--key);
+  transition: color 0.12s, transform 0.08s;
 }
-.tab small { opacity: 0.7; font-size: 12px; font-family: var(--f-body); }
-.tab.on { background: var(--verm); transform: translate(2px, 2px); box-shadow: var(--lift-1); }
-.tab:hover:not(.on) { background: #6a4626; }
+.tab small {
+  margin-left: 6px;
+  font-family: var(--f-body);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  opacity: 0.6;
+}
+.tab:hover:not(.on) { color: var(--stock); transform: translateY(-1px); }
+.tab.on {
+  color: var(--key);
+  background: var(--speck), var(--fibre), var(--stock);
+  box-shadow: inset 0 0 0 2.5px var(--stock), inset 0 0 0 3.5px var(--plate-verm), 0 2px 0 var(--key);
+  padding-right: 30px;
+}
+.tab.on::after {
+  /* bookmark ribbon */
+  content: '';
+  position: absolute;
+  top: -1.5px;
+  right: 9px;
+  width: 11px;
+  height: 17px;
+  background: var(--plate-verm);
+  border: 1.5px solid var(--key);
+  border-top: none;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 72%, 0 100%);
+}
+.tab.on::before {
+  /* key edge of the ribbon's notch */
+  content: '';
+  position: absolute;
+  top: -1.5px;
+  right: 9px;
+  width: 11px;
+  height: 17px;
+  background: var(--key);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 72%, 0 100%);
+  transform: translateY(1.5px);
+}
+
+/* Keycaps: <div class="key-hint"><span class="kh"><kbd>H</kbd>Hit</span>... */
+.key-hint { display: flex; justify-content: center; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; font-weight: 700; letter-spacing: 0.04em; }
+.key-hint .kh { display: inline-flex; align-items: center; gap: 6px; }
+.key-hint kbd {
+  display: inline-grid;
+  place-items: center;
+  min-width: 21px;
+  height: 21px;
+  padding: 0 5px;
+  font-family: var(--f-body);
+  font-size: 11.5px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--key);
+  background: var(--fibre), var(--stock);
+  border: 1.5px solid var(--key);
+  border-radius: 5px;
+  box-shadow: 0 2px 0 var(--key);
+}
 
 @keyframes flicker {
   0%, 100% { filter: brightness(1); }
@@ -459,7 +637,6 @@ body.no-grain #grain {
   color: #2a1408;
   background: var(--c);
   clip-path: polygon(50% 0, 61% 33%, 98% 35%, 68% 56%, 79% 92%, 50% 70%, 21% 92%, 32% 56%, 2% 35%, 39% 33%);
-  filter: drop-shadow(0 0 6px var(--c));
 }
 
 /* Phones held upright: ask to rotate ------------------------------------------- */
@@ -471,35 +648,47 @@ body.no-grain #grain {
   z-index: 200;
   place-items: center;
   padding: 24px;
-  background: rgba(20, 8, 2, 0.88);
+  background: rgba(16, 6, 1, 0.9);
 }
 @media (orientation: portrait) and (max-width: 900px) {
   body:not(.rotate-ok) #rotate { display: grid; }
 }
 .rotate-card {
-  max-width: 320px;
-  padding: 24px 22px 22px;
+  position: relative;
+  max-width: 330px;
+  padding: 26px 24px 22px;
   text-align: center;
-  color: var(--ink);
-  background: var(--halftone), var(--paper);
-  border: 3px solid var(--ink-line);
-  border-radius: 3px;
-  box-shadow: var(--lift-3);
-  transform: rotate(-1deg);
+  color: var(--key);
+  background: var(--speck), var(--fibre), var(--stock);
+  border: 1.5px solid var(--key);
+  border-radius: 14px;
+  box-shadow: inset 0 0 0 6px var(--stock), inset 0 0 0 7.5px var(--plate-verm), inset 0 0 0 9.5px var(--stock), inset 0 0 0 10.5px var(--plate-verm), var(--lift-3);
 }
-.rotate-phone { width: 110px; height: 110px; animation: tilt 2.4s ease-in-out infinite; }
+.rotate-phone { width: 104px; height: 104px; animation: tilt 2.4s ease-in-out infinite; }
 @keyframes tilt { 0%, 30% { transform: rotate(0); } 60%, 100% { transform: rotate(-90deg); } }
-.rotate-title { font-family: var(--f-display); font-size: 26px; line-height: 1.1; margin: 8px 0; }
-.rotate-text { font-size: 17px; font-weight: 600; line-height: 1.35; }
+.rotate-title {
+  margin: 6px 0 10px;
+  padding-bottom: 10px;
+  font-family: var(--f-display);
+  font-size: 25px;
+  line-height: 1.1;
+  background:
+    linear-gradient(var(--plate-verm), var(--plate-verm)) center bottom / 60% 1.5px no-repeat,
+    linear-gradient(var(--plate-verm), var(--plate-verm)) center bottom 3px / 60% 0.75px no-repeat;
+}
+.rotate-text { font-size: 17px; font-weight: 600; line-height: 1.38; }
 .rotate-skip {
   margin-top: 16px;
+  padding: 4px 2px;
   font-family: var(--f-body);
   font-weight: 700;
-  font-size: 15px;
-  color: var(--ink);
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--plate-verm);
   background: none;
   border: none;
-  text-decoration: underline;
+  border-bottom: 1.5px solid currentColor;
   cursor: pointer;
 }
 

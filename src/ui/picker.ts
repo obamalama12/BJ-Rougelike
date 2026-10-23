@@ -2,7 +2,7 @@
 
 import type { Run } from '../core/types';
 import { CONS, consText } from '../content/consumables';
-import { button, modal, tip } from './app';
+import { button, modal, modalTitle, tip } from './app';
 import { cardTooltip, playingCard } from './art';
 import { div, fmt, h } from './dom';
 import { rng } from '../game/engine';
@@ -43,7 +43,7 @@ export function pickTargets(run: Run, consId: string, [min, max]: [number, numbe
     const close = modal(
       div(
         'picker',
-        h('div', { class: 'picker-title' }, d?.name ?? ''),
+        modalTitle('picker-title', d?.name ?? ''),
         h('div', { class: 'picker-text', html: fmt(consText(consId, run)) }),
         div('picker-sub', 'Choose from a spread drawn from your deck'),
         grid,

@@ -4,7 +4,8 @@ import type { Card, Run, Suit } from '../../core/types';
 import { HAND_TYPES, handBase, SUITS, SUIT_INFO } from '../../core/cards';
 import { VOUCHER } from '../../content/vouchers';
 import { STAKES, SHOE } from '../../content/shoes';
-import { app, button, modal, tip } from '../app';
+import { app, button, modal, modalTitle, tip } from '../app';
+import { suitSvg } from '../suits';
 import { cardTooltip, playingCard, voucherCard, voucherTooltip, tagToken, tagTooltip } from '../art';
 import { div, fmt, h, clear, fmtNum } from '../dom';
 import { sfx } from '../../fx/audio';
@@ -30,23 +31,26 @@ export function openRunInfo(start: 'hands' | 'deck' | 'relics' = 'hands') {
     });
     tabs.appendChild(b);
   }
-  box.append(div('ri-head', div('ri-title', 'Run Info'), div('ri-meta', `${SHOE[run.shoeId]?.name} · ${STAKES[run.stake - 1]?.name} · Seed ${run.seed}`)), tabs, body);
+  box.append(div('ri-head', modalTitle('ri-title', 'Run Info'), div('ri-meta', `${SHOE[run.shoeId]?.name} · ${STAKES[run.stake - 1]?.name} · Seed ${run.seed}`)), tabs, body);
   const close = modal(box, { cls: 'wide' });
   box.appendChild(div('ri-foot', button('Back', 'primary', () => close())));
   show(start);
 }
 
 function handsTab(run: Run): HTMLElement {
-  const list = div('hand-list');
+  const list = div('hand-list rate-card sheet');
+  list.appendChild(
+    div('hand-row hand-head', div('hr-level', 'Level'), div('hr-name', 'Hand'), div('hr-calc', h('span', { class: 'hr-chips' }, 'Pot'), h('span', { class: 'hr-x' }), h('span', { class: 'hr-mult' }, 'Odds')), div('hr-plays', 'Played')),
+  );
   for (const ht of HAND_TYPES) {
     const lv = run.handLevels[ht.id];
     const b = handBase(ht.id, lv);
     const row = div(
       `hand-row${lv > 1 ? ' leveled' : ''}`,
-      div('hr-level', `Lv.${lv}`),
+      div('hr-level', h('span', { class: 'hr-lv' }, h('small', null, 'Lv'), String(lv))),
       div('hr-name', ht.name, div('hr-desc', ht.desc)),
       div('hr-calc', h('span', { class: 'hr-chips' }, fmtNum(b.chips)), h('span', { class: 'hr-x' }, '×'), h('span', { class: 'hr-mult' }, fmtNum(b.mult))),
-      div('hr-plays', `played ${run.handPlays[ht.id] ?? 0}×`),
+      div('hr-plays', `${run.handPlays[ht.id] ?? 0}`),
     );
     list.appendChild(row);
   }
@@ -68,7 +72,14 @@ function deckTab(run: Run): HTMLElement {
     const cards = bySuit(s);
     if (!cards.length) continue;
     const row = div('deck-row');
-    row.appendChild(div('deck-row-label', s === 'stone' ? 'Stone' : SUIT_INFO[s].plural, h('small', null, ` ${cards.length}`)));
+    row.appendChild(
+      div(
+        `deck-row-label dl-${s}`,
+        h('span', { class: 'dl-glyph', html: s === 'stone' ? '' : suitSvg(s) }),
+        h('span', { class: 'dl-name' }, s === 'stone' ? 'Stone' : SUIT_INFO[s].plural),
+        h('small', null, String(cards.length)),
+      ),
+    );
     const strip = div('deck-strip');
     cards.forEach((c: Card) => {
       const el = playingCard(c, run.shoeId);
@@ -85,7 +96,7 @@ function deckTab(run: Run): HTMLElement {
 
 function relicsTab(run: Run): HTMLElement {
   const wrap = div('relic-view');
-  wrap.appendChild(div('rv-label', 'Deeds'));
+  wrap.appendChild(div('rv-label', h('span', null, 'Deeds')));
   const vr = div('rv-row');
   if (!run.vouchers.length) vr.appendChild(div('rv-empty', 'No relics yet. Look for them in the shop.'));
   for (const v of run.vouchers) {
@@ -94,7 +105,7 @@ function relicsTab(run: Run): HTMLElement {
     vr.appendChild(el);
   }
   wrap.appendChild(vr);
-  wrap.appendChild(div('rv-label', 'Telegrams'));
+  wrap.appendChild(div('rv-label', h('span', null, 'Telegrams')));
   const tr = div('rv-row');
   if (!run.tags.length) tr.appendChild(div('rv-empty', 'No tokens held. Skip a table to earn one.'));
   for (const t of run.tags) {

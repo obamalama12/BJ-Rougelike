@@ -1,6 +1,6 @@
 // Options: speed, audio, visual effects.
 
-import { app, button, modal, save, toast } from '../app';
+import { app, button, modal, modalTitle, save, toast } from '../app';
 import { openHowToPlay, resetTips } from '../coach';
 import { div, h, clear } from '../dom';
 import { profile, saveProfile, saveRun } from '../profile';
@@ -41,39 +41,61 @@ export function openOptions() {
       return row;
     };
     const slider = (label: string, val: number, set: (v: number) => void) => {
-      const inp = h('input', { type: 'range', min: 0, max: 100, value: Math.round(val * 100), class: 'slider' }) as HTMLInputElement;
+      const inp = h('input', { type: 'range', min: 0, max: 100, value: Math.round(val * 100), class: 'slider', 'aria-label': label }) as HTMLInputElement;
+      const readout = div('opt-val', `${inp.value}`);
+      const paint = () => {
+        inp.style.setProperty('--v', `${inp.value}%`);
+        readout.textContent = inp.value;
+      };
+      paint();
       inp.addEventListener('input', () => {
         set(Number(inp.value) / 100);
+        paint();
         applySettings();
       });
       inp.addEventListener('change', () => {
         saveProfile();
         sfx('chips', 3);
       });
-      return div('opt-row', div('opt-label', label), inp);
+      return div('opt-row', div('opt-label', label), div('opt-slide', inp, readout));
     };
+    const section = (title: string, ...rows: HTMLElement[]) => div('opt-sec', div('opt-sec-title', h('span', null, title)), ...rows);
     box.append(
-      div('opt-title', 'Options'),
-      seg('Game speed', [[1, '1x'], [1.5, '1.5x'], [2, '2x'], [3, '3x'], [4, '4x']], s.speed, (v) => (s.speed = v)),
-      slider('Music', s.music, (v) => (s.music = v)),
-      slider('Sound effects', s.sfx, (v) => (s.sfx = v)),
-      seg('Background', [['high', 'High'], ['low', 'Low'], ['off', 'Off']], s.shader, (v) => (s.shader = v)),
-      seg('Particles', [[1, 'On'], [0, 'Off']], s.particles ? 1 : 0, (v) => (s.particles = !!v)),
-      seg('Screen shake', [[1, 'On'], [0, 'Off']], s.shake ? 1 : 0, (v) => (s.shake = !!v)),
-      seg('Paper grain', [[1, 'On'], [0, 'Off']], s.grain ? 1 : 0, (v) => (s.grain = !!v)),
-      seg('Motion', [[1, 'Full'], [0, 'Reduced']], s.motion ? 1 : 0, (v) => (s.motion = !!v)),
-      seg('Doc Hoot’s tips', [[1, 'On'], [0, 'Off']], s.tips !== false ? 1 : 0, (v) => (s.tips = !!v)),
+      modalTitle('opt-title', 'Options'),
       div(
-        'opt-row',
-        div('opt-label', 'Learning the ropes'),
+        'opt-cols',
         div(
-          'seg',
-          button('How to Play', 'small ghost', () => openHowToPlay()),
-          button('Show tips again', 'small ghost', () => {
-            resetTips();
-            toast('Doc Hoot will explain things again', 'good');
-            render();
-          }),
+          'opt-col',
+          section(
+            'Play',
+            seg('Game speed', [[1, '1x'], [1.5, '1.5x'], [2, '2x'], [3, '3x'], [4, '4x']], s.speed, (v) => (s.speed = v)),
+            seg('Doc Hoot’s tips', [[1, 'On'], [0, 'Off']], s.tips !== false ? 1 : 0, (v) => (s.tips = !!v)),
+            div(
+              'opt-row',
+              div('opt-label', 'Learning the ropes'),
+              div(
+                'opt-btns',
+                button('How to Play', 'small ghost', () => openHowToPlay()),
+                button('Show tips again', 'small ghost', () => {
+                  resetTips();
+                  toast('Doc Hoot will explain things again', 'good');
+                  render();
+                }),
+              ),
+            ),
+          ),
+          section('Sound', slider('Music', s.music, (v) => (s.music = v)), slider('Sound effects', s.sfx, (v) => (s.sfx = v))),
+        ),
+        div(
+          'opt-col',
+          section(
+            'Picture',
+            seg('Background', [['high', 'High'], ['low', 'Low'], ['off', 'Off']], s.shader, (v) => (s.shader = v)),
+            seg('Particles', [[1, 'On'], [0, 'Off']], s.particles ? 1 : 0, (v) => (s.particles = !!v)),
+            seg('Screen shake', [[1, 'On'], [0, 'Off']], s.shake ? 1 : 0, (v) => (s.shake = !!v)),
+            seg('Paper grain', [[1, 'On'], [0, 'Off']], s.grain ? 1 : 0, (v) => (s.grain = !!v)),
+            seg('Motion', [[1, 'Full'], [0, 'Reduced']], s.motion ? 1 : 0, (v) => (s.motion = !!v)),
+          ),
         ),
       ),
     );

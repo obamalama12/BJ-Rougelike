@@ -203,6 +203,7 @@ window.addEventListener('keydown', (e) => {
 
 export function modal(content: HTMLElement, opts: { onClose?: () => void; cls?: string; dismissable?: boolean } = {}) {
   const back = div(`modal-back ${opts.cls ?? ''}`);
+  back.setAttribute('role', 'dialog');
   const box = div('modal-box', content);
   back.appendChild(box);
   let closed = false;
@@ -224,6 +225,16 @@ export function modal(content: HTMLElement, opts: { onClose?: () => void; cls?: 
   app.modalLayer.appendChild(back);
   hideTip();
   return close;
+}
+
+/** A modal header: the title printed on a cream plate between engraved rules. */
+export function modalTitle(cls: string, text: string): HTMLElement {
+  return div(`${cls} m-title`, h('span', { class: 'm-plate' }, text));
+}
+
+/** A row of keycaps with labels, e.g. [['H', 'Hit'], ['Space', 'Deal']]. */
+export function keyHint(cls: string, keys: [string, string][]): HTMLElement {
+  return div(`${cls} key-hint`, ...keys.map(([k, label]) => h('span', { class: 'kh' }, h('kbd', null, k), label)));
 }
 
 export function closeAllModals() {

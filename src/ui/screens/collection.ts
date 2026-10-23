@@ -8,7 +8,7 @@ import { HOSTS } from '../../content/hosts';
 import { SHOES } from '../../content/shoes';
 import { INK_INFO, FINISH_INFO, SEAL_INFO } from '../../core/cards';
 import type { Card, InkId, SealId, FinishId } from '../../core/types';
-import { button, modal, tip } from '../app';
+import { button, modal, modalTitle, tip } from '../app';
 import {
   charmCard, charmTooltip, consCard, consTooltip, voucherCard, voucherTooltip, tagToken, tagTooltip,
   hostMedallion, hostTooltip, playingCard, cardBackHtml, cardTooltip,
@@ -76,8 +76,9 @@ export function openCollection() {
     } else if (tab === 'hosts') {
       for (const ho of HOSTS) {
         const el = seenCls(isSeen('host', ho.id), hostMedallion(ho.id, 'md'));
-        tip(el, () => hostTooltip(ho.id));
-        grid.appendChild(div('host-cell', el, div('host-name', ho.name), h('div', { class: 'host-text', html: fmt(ho.text) })));
+        const cell = div('host-cell', el, div('host-name', ho.name), h('div', { class: 'host-text', html: fmt(ho.text) }));
+        tip(cell, () => hostTooltip(ho.id));
+        grid.appendChild(cell);
       }
     } else if (tab === 'shoes') {
       for (const s of SHOES) {
@@ -118,14 +119,14 @@ export function openCollection() {
     ['tokens', 'Telegrams'], ['hosts', 'Outlaws'], ['shoes', 'Decks'], ['cards', 'Inks & Brands'],
   ];
   for (const [id, label] of labels) {
-    const b = h('button', { class: 'tab', type: 'button', dataset: { tab: id } }, label, h('small', null, ` ${counts[id][0]}/${counts[id][1]}`));
+    const b = h('button', { class: 'tab', type: 'button', dataset: { tab: id } }, label, h('small', null, `${counts[id][0]}/${counts[id][1]}`));
     b.addEventListener('click', () => {
       sfx('click');
       show(id);
     });
     tabs.appendChild(b);
   }
-  box.append(div('col-title', 'Collection'), tabs, body);
+  box.append(modalTitle('col-title', 'Collection'), tabs, body);
   const close = modal(box, { cls: 'wide' });
   box.appendChild(div('ri-foot', button('Back', 'primary', () => close())));
   show(current, page);
