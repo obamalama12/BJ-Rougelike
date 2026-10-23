@@ -29,7 +29,7 @@ import {
   startNight,
   createCharm,
 } from './engine';
-import { TABLE_INFO, finishNode, hurt, nextTown } from './trail';
+import { TABLE_INFO, OUTLAW_RETRY, finishNode, hurt, nextTown } from './trail';
 
 // ---------------------------------------------------------------------------
 // Outlaw rerolls (Fate Thread deed)
@@ -55,6 +55,14 @@ export function payRerollHost(run: Run) {
 // ---------------------------------------------------------------------------
 
 const KIND_KEY = { paper: 'saloon', silk: 'highstakes', bank: 'bank', host: 'outlaw' } as const;
+
+/** A deposit made at the Bank of Golden Egg City pays out after the next table, win or lose. */
+function bankPayout(run: Run, lines: { label: string; amount: number; tone?: string }[]) {
+  const d = run.flags.bankDeposit ?? 0;
+  if (!d) return;
+  run.flags.bankDeposit = 0;
+  lines.push({ label: 'Bank deposit with interest', amount: d, tone: 'gold' });
+}
 
 export function winTable(run: Run) {
   const t = run.table!;
@@ -95,6 +103,7 @@ export function winTable(run: Run) {
     if (run.shoeId === 'mirror') addTag(run, 'double');
   }
   for (const k of run.charms) k.disabled = false;
+  bankPayout(run, lines);
   const total = lines.reduce((a, l) => a + l.amount, 0);
   run.cashout = { lines, total, gritLost: t.gritLost };
   run.phase = 'cashout';
@@ -108,9 +117,14 @@ export function failTable(run: Run) {
   hurt(run, info.gritOnFail);
   const lost = before - run.grit;
   for (const k of run.charms) k.disabled = false;
+  const lines: { label: string; amount: number; tone?: string }[] = [
+      { label: `Fell short by ${Math.max(0, t.target - t.score).toLocaleString('en-US')}`, amount: 0, tone: 'mult' },
+      ...(t.kind === 'host' ? [{ label: `You’ve learned his tells: next try is ${Math.round((1 - OUTLAW_RETRY) * 100)}% easier`, amount: 0, tone: 'chips' }] : []),
+  ];
+  bankPayout(run, lines);
   run.cashout = {
-    lines: [{ label: `Fell short by ${Math.max(0, t.target - t.score).toLocaleString('en-US')}`, amount: 0, tone: 'mult' }],
-    total: 0,
+    lines,
+    total: lines.reduce((a, l) => a + l.amount, 0),
     failed: true,
     gritLost: lost + t.gritLost,
   };
@@ -129,6 +143,8 @@ export function cashOut(run: Run) {
     // A failed Showdown can be retried; any other stop is simply behind you.
     const n = run.trail.nodes.find((x) => x.id === run.trail.at);
     if (n?.kind === 'outlaw') {
+      // Each failed attempt teaches you his tells: the next showdown target is lower.
+      run.flags.outlawTries = (run.flags.outlawTries ?? 0) + 1;
       run.phase = 'trail';
       return;
     }

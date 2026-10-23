@@ -204,6 +204,12 @@ export function trailScreen(hud: Hud): HTMLElement {
   hud.renderTrays();
   hud.canUse = true;
   hud.onChange = () => {};
+  if (run.flags.townHeal) {
+    const n = run.flags.townHeal;
+    run.flags.townHeal = 0;
+    save();
+    setTimeout(() => toast(`Fresh horses in ${townName(run.night)}: +${n} Grit`, 'good'), 450);
+  }
   void coach('trail', { x: 800, y: 470 });
   void coach('grit', { x: 1090, y: 200, point: 'up' });
   return el;

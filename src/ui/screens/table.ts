@@ -939,7 +939,7 @@ export class TableScreen {
       app.render();
     });
     co.lines.forEach((l, i) => {
-      const row = div(`co-line tone-${l.tone ?? 'gold'}`, div('co-label', l.label), div('co-amt', `$${l.amount}`));
+      const row = div(`co-line tone-${l.tone ?? 'gold'}`, div('co-label', l.label), div('co-amt', l.amount ? `$${l.amount}` : ''));
       row.style.animationDelay = `${0.15 + i * 0.18}s`;
       list.appendChild(row);
       setTimeout(() => sfx('coin'), (150 + i * 180) / Math.max(1, profile.settings.speed));

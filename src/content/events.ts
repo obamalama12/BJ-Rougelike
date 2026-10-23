@@ -285,6 +285,181 @@ export const EVENTS: EventDef[] = [
       { label: 'Stay out of it', detail: 'Nothing happens', apply: () => 'You climb a rock and wait for the cows to pass.' },
     ],
   },
+  {
+    id: 'blacksmith',
+    title: 'The Blacksmith’s Forge',
+    icon: 'anvil',
+    text: 'A heron in a leather apron is hammering horseshoes. He says he can work on cards too, if they’re not too soft.',
+    choices: [
+      { label: 'Gold-plate a card', detail: 'A random card in your deck becomes {g:Gold Plated}', cost: 6, apply: (c) => { const k = randomCard(c); k.ink = 'gilded'; return `He dips your ${cardName(k)} in something hot. It comes out gold.`; } },
+      { label: 'Melt down two cards', detail: 'Destroy 2 random cards in your deck. Gain $6', can: (run) => run.deck.length > 20, apply: (c) => { const a = randomCard(c); c.destroyCard(a.id); const b = randomCard(c); c.destroyCard(b.id); c.money(6); return `Your ${cardName(a)} and ${cardName(b)} go into the coals. He pays $6 for the metal.`; } },
+      { label: 'Shoe your horse', detail: 'Heal 2 Grit', cost: 2, apply: (c) => { gainGrit(c, 2); return 'Four new shoes. The horse seems happier than you. +2 Grit.'; } },
+    ],
+  },
+  {
+    id: 'cardmaker',
+    title: 'The Card Printer',
+    icon: 'stamp',
+    character: 'shopkeeper',
+    text: 'In the back of the newspaper office, a duck is printing playing cards on the same press as the Gazette.',
+    choices: [
+      { label: 'Order a fresh Ace', detail: 'Add a {g:Red Hot} Ace to your deck', cost: 5, apply: (c) => { const k = c.addCard({ rank: 14, suit: c.rng.pick(SUITS), ink: 'crimson' }); return `Still warm from the press: a ${cardName(k)}.`; } },
+      { label: 'Order three tens', detail: 'Add three 10s to your deck', cost: 4, apply: (c) => { for (let i = 0; i < 3; i++) c.addCard({ rank: 10, suit: c.rng.pick(SUITS) }); return 'Three crisp tens. They smell like ink and the weather report.'; } },
+      { label: 'Ask for a misprint', detail: 'Add a random {g:Wild} card to your deck', apply: (c) => { const k = c.addCard({ rank: c.rng.pick(RANKS), suit: c.rng.pick(SUITS), ink: 'spirit' }); return `He hands you a smudged ${cardName(k)}. It counts as every suit.`; } },
+    ],
+  },
+  {
+    id: 'poker_night',
+    title: 'Poker Night at the Livery',
+    icon: 'cards',
+    character: 'kitsunebi',
+    text: 'A penguin in a waistcoat is running a game behind the stables. He hasn’t changed expression in an hour.',
+    choices: [
+      { label: 'Bet $10', detail: 'Half the time: win $25. Otherwise: lose it', cost: 10, apply: (c) => { if (c.rng.next() < 0.5) { c.money(25); return 'Your two pair holds up. He nods once and pays $25.'; } return 'He shows four of a kind without blinking. Your $10 is his.'; } },
+      { label: 'Study his tells', detail: 'Level up {h:outdraw}', apply: (c) => { c.levelUp('outdraw', 1); return 'He has no tells. You learn something anyway. Quick Draw levels up.'; } },
+      { label: 'Walk on by', detail: 'Nothing happens', apply: () => 'You leave him to it.' },
+    ],
+  },
+  {
+    id: 'wanted_board',
+    title: 'The Wanted Board',
+    icon: 'wanted',
+    character: 'hinoenma',
+    text: 'The sheriff, an owl with a tin star, is pinning up posters outside the jail. One of them has your face on it, slightly wrong.',
+    choices: [
+      { label: 'Tear your poster down', detail: 'Heal 2 Grit. The Outlaw’s target this town goes up 10%', apply: (c) => { gainGrit(c, 2); c.run.flags.outlawTries = (c.run.flags.outlawTries ?? 0) - 0.6; /* 0.85^-0.6 is about 1.1 */ return 'You feel better. The sheriff saw you do it. +2 Grit.'; } },
+      { label: 'Claim a small bounty', detail: 'Gain $10', apply: (c) => { c.money(10); return 'You turn in a pickpocket pigeon. +$10.'; } },
+      { label: 'Correct the drawing', detail: 'Gain a Telegram', apply: (c) => { c.addTag(c.rng.pick(['uncommon', 'coupon', 'economy', 'charm_tag', 'fortune_pack'])); return 'The sheriff likes your edits and wires a Telegram on your behalf.'; } },
+    ],
+  },
+  {
+    id: 'rattlesnake',
+    title: 'Snake in the Boot',
+    icon: 'snake',
+    text: 'Something is rattling in your left boot. You’re fairly sure it isn’t your foot.',
+    choices: [
+      { label: 'Shake it out', detail: '-1 Grit', apply: (c) => { loseGrit(c, 1); return 'It bites on the way out. -1 Grit.'; } },
+      { label: 'Sell it to the Doc', detail: 'Two times in three: gain $9. Otherwise: -3 Grit', apply: (c) => { if (c.rng.next() < 0.67) { c.money(9); return 'Doc Hoot pays $9 for the venom.'; } loseGrit(c, 3); return 'It gets you twice before you reach the Doc. -3 Grit.'; } },
+      { label: 'Keep the boot on', detail: 'Lose a random card. Heal 1 Grit', apply: (c) => { const k = randomCard(c); c.destroyCard(k.id); gainGrit(c, 1); return `The snake eats your ${cardName(k)} and falls asleep. Oddly calming. +1 Grit.`; } },
+    ],
+  },
+  {
+    id: 'bank_teller',
+    title: 'Bank of Golden Egg City',
+    icon: 'piggybank',
+    character: 'banker',
+    minTown: 2,
+    text: 'A branch office the size of an outhouse. The pelican behind the window offers an account with "very competitive" interest.',
+    choices: [
+      { label: 'Deposit everything', detail: 'Lose all your Bucks now. Get back 1.5 times as much after the next table', can: (run) => run.money >= 6, apply: (c) => { const m = c.run.money; c.money(-m); c.run.flags.bankDeposit = (c.run.flags.bankDeposit ?? 0) + Math.floor(m * 1.5); return `He takes your $${m} and writes you a receipt for $${Math.floor(m * 1.5)}, payable after your next table.`; } },
+      { label: 'Take out a loan', detail: 'Gain $15. -2 max Grit', apply: (c) => { c.money(15); c.run.maxGrit = Math.max(3, c.run.maxGrit - 2); c.run.grit = Math.min(c.run.grit, c.run.maxGrit); return 'Fifteen dollars and a payment schedule you don’t read. -2 max Grit.'; } },
+      { label: 'Just use the shade', detail: 'Heal 1 Grit', apply: (c) => { gainGrit(c, 1); return 'You stand under the awning until he asks you to leave. +1 Grit.'; } },
+    ],
+  },
+  {
+    id: 'hermit',
+    title: 'The Hermit of Buzzard Peak',
+    icon: 'tent',
+    character: 'enenra',
+    minTown: 2,
+    text: 'A vulture lives in a cave halfway up the mesa. He says he used to deal cards in Tombstone Pond.',
+    choices: [
+      { label: 'Ask for his secret', detail: 'Your most played hand type levels up twice. -2 Grit', apply: (c) => { const ht = mostPlayed(c.run); c.levelUp(ht, 2); loseGrit(c, 2); return `The climb nearly kills you. His secret is about ${HAND_TYPES.find((h) => h.id === ht)?.name}. It’s a good one.`; } },
+      { label: 'Trade him a Doodad', detail: 'Lose a random Doodad. Gain a Doodad one rarity higher', can: (run) => run.charms.length > 0, apply: (c) => { const k = c.rng.pick(c.run.charms); const r = Math.min(4, (CHARM[k.id]?.rarity ?? 1) + 1) as 1 | 2 | 3 | 4; c.destroyCharm(k.uid); c.createCharm({ rarity: r, force: true }); return `He takes your ${CHARM[k.id]?.name} and gives you something from the back of the cave.`; } },
+      { label: 'Leave him be', detail: 'Nothing happens', apply: () => 'He waves a bone at you as you go.' },
+    ],
+  },
+  {
+    id: 'rain_dance',
+    title: 'First Rain in a Year',
+    icon: 'cloud',
+    text: 'The sky opens. Every duck in town runs outside and stands in it with their mouth open.',
+    choices: [
+      { label: 'Join in', detail: 'Heal 3 Grit', apply: (c) => { gainGrit(c, 3); return 'You stand in the rain for twenty minutes. +3 Grit.'; } },
+      { label: 'Sell umbrellas', detail: 'Gain $1 for each card left in your deck over 40 (at least $4)', apply: (c) => { const n = Math.max(4, c.run.deck.length - 40); c.money(n); return `Nobody wants an umbrella. A goose buys all of them anyway. +$${n}.`; } },
+    ],
+  },
+  {
+    id: 'tumbleweed_derby',
+    title: 'Tumbleweed Derby',
+    icon: 'tumbleweed',
+    text: 'The whole town has bet on which tumbleweed reaches the saloon first. A chicken is taking bets on a chalkboard.',
+    choices: [
+      { label: 'Bet on the big one', detail: 'One time in three: gain $15', cost: 4, apply: (c) => { if (c.rng.next() < 0.34) { c.money(15); return 'The big one wins by a twig. +$15.'; } return 'The big one gets stuck on a cactus.'; } },
+      { label: 'Bet on the small one', detail: 'One time in eight: gain $40', cost: 4, apply: (c) => { if (c.rng.next() < 0.125) { c.money(40); return 'The small one rolls under the saloon doors first. The chicken faints. +$40.'; } return 'The small one blows the wrong way entirely.'; } },
+      { label: 'Just watch', detail: 'Nothing happens', apply: () => 'It takes forty minutes. Nobody is sure who won.' },
+    ],
+  },
+  {
+    id: 'saloon_piano',
+    title: 'The Saloon Piano',
+    icon: 'piano',
+    character: 'dealer_lola',
+    text: 'The piano player quit this morning. The swan who runs the place looks at you.',
+    choices: [
+      { label: 'Play a ballad', detail: 'Level up {h:push} and {h:underdog}', apply: (c) => { c.levelUp('push', 1); c.levelUp('underdog', 1); return 'Slow and sad. Two cowboys cry into their beer. Standoff and Underduck level up.'; } },
+      { label: 'Play something fast', detail: 'Gain $7', apply: (c) => { c.money(7); return 'Somebody starts a dance. Somebody else starts a fight. You get $7 in tips.'; } },
+      { label: 'Say you can’t play', detail: 'Heal 1 Grit', apply: (c) => { gainGrit(c, 1); return 'She gives you a free sarsaparilla for your honesty. +1 Grit.'; } },
+    ],
+  },
+  {
+    id: 'lost_mine',
+    title: 'The Lost Mine',
+    icon: 'pickaxe',
+    minTown: 3,
+    text: 'A boarded-up mine shaft with a hand-painted sign: "GOLD (PROBABLY)". The boards are already pried loose.',
+    choices: [
+      { label: 'Go in deep', detail: 'Gain $25 and a Gold Plated card. -4 Grit', apply: (c) => { c.money(25); c.addCard({ rank: c.rng.pick(RANKS), suit: c.rng.pick(SUITS), ink: 'gilded' }); loseGrit(c, 4); return 'There was gold. There was also a cave-in. +$25 and a gold card. -4 Grit.'; } },
+      { label: 'Poke around the entrance', detail: 'Gain $8', apply: (c) => { c.money(8); return 'You find a few nuggets the last fellow dropped. +$8.'; } },
+      { label: 'Read the rest of the sign', detail: 'Nothing happens', apply: () => 'The back says "ALSO BEARS". You leave.' },
+    ],
+  },
+  {
+    id: 'traveling_judge',
+    title: 'Circuit Court',
+    icon: 'book',
+    character: 'ittan',
+    minTown: 2,
+    text: 'A heron in a powdered wig is holding court in the general store. He says you’re next.',
+    choices: [
+      { label: 'Plead guilty', detail: 'Pay $8. Heal 3 Grit', cost: 8, apply: (c) => { gainGrit(c, 3); return 'He fines you $8 and lets you go. The relief is enormous. +3 Grit.'; } },
+      { label: 'Plead not guilty', detail: 'Half the time: gain $12. Otherwise: -3 Grit', apply: (c) => { if (c.rng.next() < 0.5) { c.money(12); return 'Acquitted, with costs paid to you. +$12.'; } loseGrit(c, 3); return 'He finds you guilty of "general shiftiness". -3 Grit.'; } },
+      { label: 'Bribe the bailiff', detail: 'Gain a Tall Tale', cost: 5, apply: (c) => { c.createCons('star'); return 'The bailiff hands you a story he says the judge doesn’t want told.'; } },
+    ],
+  },
+  {
+    id: 'stray_dog',
+    title: 'A Stray Coyote Pup',
+    icon: 'coyote',
+    text: 'A coyote pup has been following you for a mile. It’s carrying something in its mouth.',
+    choices: [
+      { label: 'Feed it', detail: 'Pay $3. Gain a random Tonic', cost: 3, apply: (c) => { c.createCons('fortune'); return 'It drops what it was carrying at your feet. A Tonic, slightly chewed.'; } },
+      { label: 'Take what it’s carrying', detail: 'Gain $5. -1 Grit', apply: (c) => { c.money(5); loseGrit(c, 1); return 'Five dollars and a bite on the wing. -1 Grit.'; } },
+      { label: 'Shoo it away', detail: 'Nothing happens', apply: () => 'It follows you for another mile, then gives up.' },
+    ],
+  },
+  {
+    id: 'telegraph_office',
+    title: 'The Telegraph Office',
+    icon: 'telegram',
+    character: 'aosagibi',
+    text: 'A magpie runs the telegraph. She reads every message out loud as she taps it.',
+    choices: [
+      { label: 'Send for supplies', detail: 'Gain 2 Telegrams', cost: 6, apply: (c) => { for (let i = 0; i < 2; i++) c.addTag(c.rng.pick(['uncommon', 'coupon', 'economy', 'charm_tag', 'fortune_pack', 'star_pack'])); return 'She reads your order out loud to the whole room. Two Telegrams are on the way.'; } },
+      { label: 'Read the wire aloud for her', detail: 'Gain $3', apply: (c) => { c.money(3); return 'Her voice is gone. She pays you $3 to read the rest.'; } },
+    ],
+  },
 ];
+
+const SUITS = ['moon', 'flame', 'leaf', 'bell'] as const;
+const RANKS = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14] as const;
+const SUIT_NAME: Record<string, string> = { moon: 'Horseshoes', flame: 'Dynamite', leaf: 'Cacti', bell: 'Stars' };
+const RANK_NAME: Record<number, string> = { 11: 'Jack', 12: 'Queen', 13: 'King', 14: 'Ace' };
+function randomCard(c: Ctx) {
+  return c.rng.pick(c.run.deck);
+}
+function cardName(k: { rank: number; suit: string }) {
+  return `${RANK_NAME[k.rank] ?? k.rank} of ${SUIT_NAME[k.suit] ?? k.suit}`;
+}
 
 export const EVENT: Record<string, EventDef> = Object.fromEntries(EVENTS.map((e) => [e.id, e]));

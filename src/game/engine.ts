@@ -199,7 +199,7 @@ export function currentHost(run: Run) {
   return HOST[t.hostId] ?? null;
 }
 
-const NIGHT_BASE = [100, 400, 1100, 2500, 5000, 9500, 16000];
+const NIGHT_BASE = [160, 420, 950, 2000, 3900, 7200, 12500];
 
 export function nightBase(run: Run, night = run.night): number {
   let base: number;

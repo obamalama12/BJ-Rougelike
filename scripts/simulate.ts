@@ -116,8 +116,14 @@ function packBot(run: Run) {
   }
 }
 
+export interface TableLog { night: number; kind: string; target: number; score: number; hands: number; won: boolean; grit: number; gritAfter: number; money: number; charms: number; best: number }
+export interface StopLog { night: number; kind: string; grit: number; money: number }
+
 export function simulate(seed: string, shoe = 'paper', stake = 1) {
   const run = newRun(seed, shoe, stake);
+  const tables: TableLog[] = [];
+  const stops: StopLog[] = [];
+  (run as any).__log = { tables, stops };
   let guard = 0;
   while (guard++ < 4000) {
     if (run.phase === 'trail') {
@@ -129,17 +135,28 @@ export function simulate(seed: string, shoe = 'paper', stake = 1) {
         (run.money >= 12 && opts.find((n) => n.kind === 'store')) ||
         opts.find((n) => isTableNode(n)) ||
         opts[0];
+      stops.push({ night: run.night, kind: pick.kind, grit: run.grit, money: run.money });
       travel(run, pick.id);
     } else if (run.phase === 'table') {
       let r: string = 'ready';
+      const grit0 = run.grit;
+      let hands = 0;
+      let best = 0;
       while (r === 'ready') {
         // Wager boldly while healthy.
-        run.table!.wager = run.grit >= 7 ? 2 : 1;
+        run.table!.wager = process.env.WAGER ? Number(process.env.WAGER) : run.grit >= 7 ? 2 : 1;
+        const before = run.table!.score;
         r = playHand(run);
+        hands++;
+        if (run.table) best = Math.max(best, run.table.score - before);
       }
+      const t = run.table!;
+      const log: TableLog = { night: run.night, kind: t.kind, target: t.target, score: t.score, hands, won: r === 'won', grit: grit0, gritAfter: run.grit, money: run.money, charms: run.charms.length, best };
+      tables.push(log);
       if (r === 'dead') return { night: run.night, won: false, run };
       if (r === 'won') winTable(run);
       else failTable(run);
+      log.gritAfter = run.grit;
     } else if (run.phase === 'cashout') {
       cashOut(run);
     } else if (run.phase === 'doc') {

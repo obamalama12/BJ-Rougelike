@@ -83,8 +83,11 @@ export function generateTrail(run: Run) {
   for (const n of nodes) {
     if (n.kind === 'bank') n.hostId = r.pick(regular).id;
     if (n.kind === 'event') {
-      const pool = EVENTS.filter((e) => (e.minTown ?? 1) <= town && !nodes.some((o) => o.eventId === e.id));
-      n.eventId = r.pick(pool.length ? pool : EVENTS).id;
+      // Prefer events this run hasn't met yet, then any not already on this map.
+      const seen: string[] = run.flags.eventsSeen ?? [];
+      const ok = EVENTS.filter((e) => (e.minTown ?? 1) <= town && !nodes.some((o) => o.eventId === e.id));
+      const fresh = ok.filter((e) => !seen.includes(e.id));
+      n.eventId = r.pick(fresh.length ? fresh : ok.length ? ok : EVENTS).id;
     }
     if (n.kind === 'outlaw') n.hostId = run.nightHost;
   }
@@ -103,12 +106,20 @@ export function reachable(run: Run): TrailNode[] {
   return at.next.map((id) => nodeById(run, id)!).filter(Boolean);
 }
 
+/** Each failed showdown lowers the Outlaw's next target to this fraction. */
+export const OUTLAW_RETRY = 0.85;
+/** Grit restored on riding into a new town. */
+export const TOWN_HEAL = 2;
+
 export function nodeTarget(run: Run, n: TrailNode): number {
   const kind = n.kind === 'outlaw' ? 'outlaw' : (n.kind as 'saloon' | 'highstakes' | 'bank');
-  const base = nightBase(run) * (1 + 0.12 * n.col);
+  // Tables grow a little further down the trail. The Outlaw's own multiplier already makes it the
+  // town's hardest table, so it skips the column bonus (stacking both made showdowns a wall).
+  const base = nightBase(run) * (n.kind === 'outlaw' ? 1 : 1 + 0.12 * n.col);
   let scale = TABLE_INFO[kind].scale;
   if (n.kind === 'outlaw') scale = HOST[n.hostId ?? run.nightHost]?.scale ?? 2;
   if (n.kind === 'outlaw' && run.flags.wantedPoster) scale *= 1.25;
+  if (n.kind === 'outlaw') scale *= Math.pow(OUTLAW_RETRY, run.flags.outlawTries ?? 0);
   return round(base * scale);
 }
 
@@ -162,6 +173,7 @@ export function travel(run: Run, id: number) {
       break;
     case 'event':
       run.event = { id: n.eventId ?? EVENTS[0].id };
+      run.flags.eventsSeen = [...(run.flags.eventsSeen ?? []), run.event.id];
       run.phase = 'event';
       break;
   }
@@ -185,6 +197,9 @@ export function finishNode(run: Run) {
 
 export function nextTown(run: Run) {
   run.night += 1;
+  const heal0 = run.grit;
+  heal(run, TOWN_HEAL);
+  run.flags.townHeal = run.grit - heal0;
   startTownState(run);
 }
 
@@ -200,6 +215,7 @@ export function startTownState(run: Run) {
   run.hostsSeen.push(run.nightHost);
   run.flags.hostRerolls = 0;
   run.flags.wantedPoster = false;
+  run.flags.outlawTries = 0;
   const avail = availableVouchers(run);
   run.flags.nightVoucher = avail.length ? r.pick(avail) : null;
   run.flags.nightVoucherSold = false;
