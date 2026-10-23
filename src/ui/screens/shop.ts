@@ -39,7 +39,11 @@ export function shopScreen(hud: Hud): HTMLElement {
     const quip = QUIPS[(run.night * 3 + run.tableIdx + s.rerollsDone) % QUIPS.length];
     const head = div(
       'shop-head',
-      div('merchant', h('div', { class: 'merchant-face', html: portraitOf('shopkeeper', 'smug') }), div('merchant-bubble', quip)),
+      div(
+        'merchant',
+        h('div', { class: 'merchant-face', html: portraitOf('shopkeeper', 'smug') }),
+        div('merchant-bubble', h('span', { class: 'mb-kicker' }, 'Old Mort · General Store'), h('span', { class: 'mb-quip' }, `\u201c${quip}\u201d`)),
+      ),
       div(
         'shop-buttons',
         button('Back on the Trail', 'primary big', () => {
@@ -63,18 +67,18 @@ export function shopScreen(hud: Hud): HTMLElement {
     const items = div('shop-items');
     for (const it of s.items) items.appendChild(itemSlot(run, it, hud, render));
     const lower = div('shop-lower');
-    const vouch = div('shop-vouchers', div('shelf-label', 'Deed'));
+    const vouch = div('shop-vouchers sheet dark', div('shelf-label', 'Deeds'));
     const vids: [string | null, boolean][] = [[s.voucher, false]];
     if (run.flags.bonusVoucher) vids.push([run.flags.bonusVoucher, true]);
     for (const [vid, bonus] of vids) {
       if (!vid) {
-        vouch.appendChild(div('shop-slot empty', div('sold-out', 'Sold out')));
+        vouch.appendChild(div('shop-slot empty', div('sold-out', h('span', null, 'Sold'))));
         continue;
       }
       const card = voucherCard(vid);
       tip(card, () => voucherTooltip(vid));
       const price = voucherPrice(run, vid);
-      const slot = div('shop-slot', div('price-tag', `$${price}`), card);
+      const slot = div('shop-slot', div('slot-stage', card, priceTag(run, price)));
       slot.appendChild(
         button('Sign Deed', 'buy tiny', () => {
           const r = buyVoucher(run, bonus);
@@ -90,15 +94,15 @@ export function shopScreen(hud: Hud): HTMLElement {
       );
       vouch.appendChild(slot);
     }
-    const packs = div('shop-packs', div('shelf-label', 'Crates'));
+    const packs = div('shop-packs sheet dark', div('shelf-label', 'Crates'));
     for (const p of s.packs) {
       if (p.sold) {
-        packs.appendChild(div('shop-slot empty', div('sold-out', 'Opened')));
+        packs.appendChild(div('shop-slot empty', div('sold-out', h('span', null, 'Opened'))));
         continue;
       }
       const card = packCard(p.packId);
       tip(card, () => packTooltip(p.packId));
-      const slot = div('shop-slot', div('price-tag', p.price ? `$${p.price}` : 'Free'), card);
+      const slot = div('shop-slot', div('slot-stage', card, priceTag(run, p.price)));
       slot.appendChild(
         button('Open', 'buy tiny', () => {
           const r = buyPack(run, p.uid);
@@ -111,7 +115,7 @@ export function shopScreen(hud: Hud): HTMLElement {
       packs.appendChild(slot);
     }
     lower.append(vouch, packs);
-    el.append(head, div('shelf shelf-items', div('shelf-label', 'Goods'), items), lower);
+    el.append(head, div('shelf shelf-items sheet dark', div('shelf-label', 'Goods'), items), lower);
   };
   render();
   hud.update();
@@ -122,8 +126,13 @@ export function shopScreen(hud: Hud): HTMLElement {
   return el;
 }
 
+/** A price sticker pinned to the card's corner; red when you can't cover it. */
+function priceTag(run: Run, price: number): HTMLElement {
+  return div(`price-tag${price && !canAfford(run, price) ? ' short' : ''}${price ? '' : ' free'}`, price ? `$${price}` : 'Free');
+}
+
 function itemSlot(run: Run, it: ShopItem, hud: Hud, rerender: () => void): HTMLElement {
-  if (it.sold) return div('shop-slot empty', div('sold-out', 'Sold'));
+  if (it.sold) return div('shop-slot empty', div('sold-out', h('span', null, 'Sold')));
   let card: HTMLElement;
   if (it.kind === 'charm') {
     card = charmCard(it.id, it.finish);
@@ -136,7 +145,7 @@ function itemSlot(run: Run, it: ShopItem, hud: Hud, rerender: () => void): HTMLE
     tip(card, () => cardTooltip(it.card));
   }
   card.classList.add('shop-card');
-  const slot = div('shop-slot', div('price-tag', it.price ? `$${it.price}` : 'Free'), card);
+  const slot = div('shop-slot', div('slot-stage', card, priceTag(run, it.price)));
   const btns = div('slot-btns');
   btns.appendChild(
     button(it.kind === 'cons' ? 'Buy' : 'Buy', 'buy tiny', () => {

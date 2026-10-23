@@ -1,114 +1,345 @@
-/* Trail map. */
-
-/* --- Trail map ---------------------------------------------------------- */
+/* Trail map: a printed route map on card stock.
+   The sheet carries the card's double rule plus a graduated neat line; stops are
+   stamped tokens (chips for card tables, diamonds for services, a small card for
+   happenings, a scalloped seal for the Outlaw) joined by cased roads. */
 
 .trail-screen { position: absolute; left: 300px; top: 100px; width: 1000px; height: 640px; }
-.trail-map { position: absolute; inset: 0; }
-.map-paper {
+.trail-map { position: absolute; inset: 0; animation: trailIn 0.35s ease-out both; }
+@keyframes trailIn { from { opacity: 0; translate: 0 10px; } }
+
+/* --- The sheet ------------------------------------------------------------- */
+.map-paper.sheet {
+  --plate: var(--plate-leather);
   position: absolute;
   inset: 0;
-  background:
-    radial-gradient(ellipse at 30% 20%, rgba(255, 255, 255, 0.35), transparent 50%),
-    radial-gradient(ellipse at 75% 80%, rgba(120, 70, 20, 0.25), transparent 55%),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.03 .05' numOctaves='3' seed='3'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .32 0 0 0 0 .12 0 0 0 .28 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23p)'/%3E%3C/svg%3E"),
-    linear-gradient(170deg, #f2dcae, #d8b47a);
-  clip-path: polygon(0 3%, 4% 0, 30% 1.5%, 55% 0, 80% 2%, 100% 0, 99% 25%, 100% 55%, 98.5% 80%, 100% 100%, 70% 98%, 40% 100%, 12% 98.5%, 0 100%, 1.5% 70%, 0 40%);
-  filter: drop-shadow(0 5px 22px rgba(10, 4, 0, 0.5));
+  box-shadow: var(--lift-3);
 }
-.map-paper::after {
-  /* compass rose */
+/* Graduated neat line: alternating key/stock bars between two hairlines */
+.map-neat {
+  position: absolute;
+  inset: 18px;
+  border: 1px solid var(--key);
+  border-radius: 3px;
+  pointer-events: none;
+  --bar: color-mix(in srgb, var(--key) 82%, transparent);
+  background:
+    repeating-linear-gradient(90deg, var(--bar) 0 30px, transparent 30px 60px) top left / 100% 4px no-repeat,
+    repeating-linear-gradient(90deg, var(--bar) 0 30px, transparent 30px 60px) bottom left / 100% 4px no-repeat,
+    repeating-linear-gradient(180deg, var(--bar) 0 30px, transparent 30px 60px) top left / 4px 100% no-repeat,
+    repeating-linear-gradient(180deg, var(--bar) 0 30px, transparent 30px 60px) top right / 4px 100% no-repeat;
+}
+.map-neat::after {
   content: '';
   position: absolute;
-  right: 26px;
-  bottom: 22px;
-  width: 120px;
-  height: 120px;
-  opacity: 0.55;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Cg fill='none' stroke='%233a1c08' stroke-width='2'%3E%3Ccircle cx='60' cy='62' r='40'/%3E%3Ccircle cx='60' cy='62' r='34' stroke-dasharray='2 4'/%3E%3C/g%3E%3Cg stroke='%233a1c08' stroke-width='2' stroke-linejoin='round'%3E%3Cpath d='M60 14 L68 62 L60 110 L52 62Z' fill='%23f6ead0'/%3E%3Cpath d='M12 62 L60 54 L108 62 L60 70Z' fill='%23f6ead0'/%3E%3Cpath d='M60 14 L68 62 L60 62Z M60 110 L52 62 L60 62Z M12 62 L60 70 L60 62Z M108 62 L60 54 L60 62Z' fill='%233a1c08'/%3E%3Cpath d='M60 14 L52 62 L60 62Z' fill='%23c8402a'/%3E%3C/g%3E%3Ctext x='60' y='11' font-family='Georgia%2Cserif' font-weight='bold' font-size='13' text-anchor='middle' fill='%233a1c08'%3EN%3C/text%3E%3C/svg%3E") center / contain no-repeat;
-  transform: rotate(-8deg);
+  inset: 4px;
+  border: 1px solid var(--key);
+  border-radius: 1px;
 }
-.map-title { position: absolute; left: 28px; top: 18px; color: var(--parch-ink); display: flex; flex-direction: column; }
-.map-title span { font-family: var(--f-display); font-size: 34px; }
-.map-title small { font-weight: 800; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.7; }
-.trail-lines { position: absolute; inset: 0; width: 100%; height: 100%; }
-.road { fill: none; stroke: rgba(58, 28, 8, 0.35); stroke-width: 4; stroke-dasharray: 2 10; stroke-linecap: round; }
-.road.walked { stroke: rgba(138, 26, 10, 0.75); stroke-dasharray: none; stroke-width: 5; }
-.road.live { stroke: #8a1a0a; stroke-width: 5; stroke-dasharray: 2 10; animation: march 0.8s linear infinite; }
-@keyframes march { to { stroke-dashoffset: -24; } }
-.trail-node {
+
+/* Title cartouche */
+.map-title {
   position: absolute;
-  transform: translate(-50%, -50%);
-  width: 92px;
+  left: 34px;
+  top: 30px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 7px 18px 8px;
+  color: var(--key);
+  background: var(--speck), var(--fibre), var(--stock);
+  border: 1.5px solid var(--key);
+  border-radius: 8px;
+  box-shadow: 0 1px 0 rgba(42, 20, 8, 0.25);
+}
+.map-title::before {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border: 1px solid var(--plate-verm);
+  border-radius: 5px;
+  pointer-events: none;
+}
+.mt-kicker {
+  font-family: var(--f-body);
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--plate-verm);
+}
+.mt-name { font-family: var(--f-display); font-size: 28px; line-height: 1.05; margin-top: 1px; }
+.map-title small { font-family: var(--f-body); font-style: italic; font-weight: 600; font-size: 12.5px; color: var(--key-2); margin-top: 1px; }
+
+/* Scale of miles */
+.map-scale { position: absolute; left: 40px; bottom: 34px; width: 128px; color: var(--key); pointer-events: none; }
+.ms-bar { display: flex; height: 6px; border: 1px solid var(--key); }
+.ms-bar i { flex: 1; background: var(--stock); }
+.ms-bar i:nth-child(odd) { background: var(--key); }
+.ms-nums { display: flex; justify-content: space-between; margin-top: 3px; font-family: var(--f-body); font-weight: 700; font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; }
+.ms-nums span:nth-child(2) { margin-left: 18px; }
+
+/* Compass rose */
+.map-compass { position: absolute; right: 44px; bottom: 34px; width: 96px; height: 108px; pointer-events: none; overflow: visible; }
+.map-compass .c-bezel { fill: var(--stock); stroke: var(--key); stroke-width: 1.5; }
+.map-compass .c-inner { fill: none; stroke: var(--plate-leather); stroke-width: 1; }
+.map-compass .c-ticks line { stroke: var(--key); stroke-width: 1; }
+.map-compass .c-dark { fill: var(--key); stroke: var(--key); stroke-width: 0.8; stroke-linejoin: round; }
+.map-compass .c-light { fill: var(--stock); stroke: var(--key); stroke-width: 0.8; stroke-linejoin: round; }
+.map-compass .c-north { fill: var(--plate-verm); stroke: var(--key); stroke-width: 0.8; stroke-linejoin: round; }
+.map-compass .c-hub { fill: var(--stock); stroke: var(--key); stroke-width: 1.2; }
+.map-compass .c-n { font-family: var(--f-display); font-size: 11px; fill: var(--key); text-anchor: middle; }
+
+/* Imprint in the bottom margin */
+.map-imprint {
+  position: absolute;
+  left: 50%;
+  bottom: 13px;
+  transform: translateX(-50%);
+  padding: 0 10px;
+  background: var(--stock);
+  font-family: var(--f-body);
+  font-weight: 700;
+  font-size: 9px;
+  line-height: 13px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--key-2);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* --- Roads ------------------------------------------------------------------ */
+.trail-lines { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.road-bed, .road, .road-dash { fill: none; stroke-linecap: round; }
+.road-bed { stroke: var(--key); stroke-width: 7; }
+.road { stroke: var(--stock); stroke-width: 3.4; }
+.road.walked { stroke: var(--plate-verm); }
+.road-dash { stroke: var(--plate-verm); stroke-width: 3.4; stroke-linecap: butt; stroke-dasharray: 8 8; animation: march 0.9s linear infinite; }
+.road-g.ahead { opacity: 0.42; }
+@keyframes march { to { stroke-dashoffset: -16; } }
+.reduce-motion .road-dash { animation: none; }
+.trailhead .th-ring { fill: var(--stock); stroke: var(--key); stroke-width: 2; }
+.trailhead .th-dot { fill: var(--plate-verm); }
+.map-range { opacity: 0.62; }
+.map-range .mesa { fill: var(--stock-2); stroke: var(--key); stroke-width: 1.2; stroke-linejoin: round; }
+.map-range .shade { fill: url(#mapHatch); }
+.map-range .strata { fill: none; stroke: var(--key); stroke-width: 0.8; stroke-dasharray: 3 4; opacity: 0.6; }
+.map-range .ground { fill: none; stroke: var(--key); stroke-width: 1.2; }
+.hatch-line { stroke: var(--key); stroke-width: 1; }
+
+/* --- Stops -------------------------------------------------------------------- */
+.trail-node {
+  --plate: var(--plate-leather);
+  position: absolute;
+  z-index: 3;
+  transform: translate(-50%, -35px);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  padding: 0;
   background: none;
   border: none;
   cursor: default;
   font-family: var(--f-body);
-  color: var(--parch-ink);
-  animation: nodeIn 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.4) both;
+  color: var(--key);
+  animation: trailNodeIn 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.25) both;
   animation-delay: var(--d);
 }
-@keyframes nodeIn { from { opacity: 0; transform: translate(-50%, -30%) scale(0.5); } }
+@keyframes trailNodeIn { from { opacity: 0; translate: 0 12px; } }
+.k-saloon { --plate: var(--plate-leather); }
+.k-highstakes { --plate: var(--plate-denim); }
+.k-bank { --plate: var(--plate-gold); }
+.k-store { --plate: var(--plate-sage); }
+.k-doc { --plate: var(--plate-denim); }
+.k-camp { --plate: var(--plate-verm); }
+.k-event { --plate: var(--plate-plum); }
+.k-outlaw { --plate: var(--plate-verm); transform: translate(-50%, -70px); z-index: 4; }
+
 .tn-icon {
+  position: relative;
   width: 70px;
   height: 70px;
-  border-radius: 50%;
   display: grid;
   place-items: center;
-  background: var(--halftone), var(--nc, #f0dcb0);
-  border: 2px solid var(--ink-line);
-  box-shadow: var(--lift-2);
-  transition: transform 0.15s, box-shadow 0.15s;
+  transition: translate 0.15s;
 }
-.tn-icon .icon { width: 50px; height: 50px; color: var(--parch-ink); --i1: #c2502a; --i4: #e0a83a; }
-.k-saloon { --nc: #f2c88a; }
-.k-highstakes { --nc: #9ccfb4; }
-.k-bank { --nc: #f2c14e; }
-.k-store { --nc: #b8d88a; }
-.k-doc { --nc: #b4cce8; }
-.k-camp { --nc: #f2a868; }
-.k-event { --nc: #ccb4e0; }
-.tn-face {
-  width: 112px;
-  height: 112px;
-  border-radius: 50%;
-  overflow: hidden;
-  border: 4px solid #6a1408;
-  background: var(--halftone), #e8a070;
-  box-shadow: 0 0 0 4px var(--parch-ink), var(--lift-2);
+/* The stamped shape; selection ring and lift live in its shadow */
+.tn-icon::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  background: #f8eed6;
+  border: 3px solid var(--key);
+  --ring: 0 0 0 0 transparent, 0 0 0 0 transparent;
+  box-shadow: inset 0 0 0 3px #f8eed6, inset 0 0 0 4.5px var(--plate), var(--ring), var(--lift-1);
+  transition: box-shadow 0.15s;
 }
-.tn-face .portrait { width: 100%; height: 100%; }
+.tn-chip::before { width: 64px; height: 64px; margin: -32px; border-radius: 50%; }
+.tn-diamond::before { width: 50px; height: 50px; margin: -25px; border-radius: 7px; transform: rotate(45deg); }
+.tn-card::before { width: 52px; height: 68px; margin: -34px -26px; border-radius: 8px; border-width: 2.5px; }
+.tn-chip .tn-ht { border-radius: 50%; }
+.tn-ht {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 46px;
+  height: 46px;
+  margin: -23px;
+  background: radial-gradient(circle, color-mix(in srgb, var(--plate) 72%, #241208) 0 1px, transparent 1.4px) 0 0 / 4px 4px;
+  -webkit-mask-image: radial-gradient(circle, #000 0 30%, rgba(0, 0, 0, 0.5) 50%, transparent 68%);
+  mask-image: radial-gradient(circle, #000 0 30%, rgba(0, 0, 0, 0.5) 50%, transparent 68%);
+}
+.tn-icon .icon { position: relative; width: 40px; height: 40px; color: var(--key); --i1: var(--plate); --i4: #e0a83a; }
+.tn-card .icon { width: 36px; height: 36px; }
+
+/* Name plate with the target on a cream index tab */
 .tn-label {
+  display: inline-flex;
+  align-items: stretch;
+  margin-top: 3px;
+  white-space: nowrap;
+  color: var(--stock);
+  background: var(--key);
+  border: 1.5px solid var(--key);
+  border-radius: 5px;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(10, 4, 0, 0.3);
+}
+.tn-name {
+  display: grid;
+  place-items: center;
+  padding: 3px 7px 3px 8px;
+  font-family: var(--f-body);
+  font-weight: 700;
+  font-size: 10.5px;
+  line-height: 1.1;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.tn-target {
+  display: grid;
+  place-items: center;
+  padding: 1px 6px 0;
   font-family: var(--f-display);
   font-size: 13px;
-  line-height: 1.1;
-  text-align: center;
-  white-space: nowrap;
-  background: rgba(246, 231, 196, 0.9);
-  padding: 1px 6px;
-  border-radius: 4px;
+  line-height: 1;
+  color: #8a2414;
+  background: var(--stock);
+  border-left: 1.5px solid var(--key);
 }
-.tn-target { font-weight: 800; font-size: 12px; color: #8a1a0a; }
-.trail-node.done { opacity: 0.5; filter: sepia(0.6); }
-.trail-node:not(.open):not(.done):not(.here) { opacity: 0.72; }
+
+/* The Outlaw's seal */
+.tn-seal { position: relative; width: 140px; height: 140px; transition: translate 0.15s; }
+.tn-seal-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 2px 2px rgba(10, 4, 0, 0.3)) drop-shadow(0 6px 10px rgba(10, 4, 0, 0.25)); }
+.tn-seal-svg .seal-edge { fill: var(--plate-verm); stroke: var(--key); stroke-width: 1.5; stroke-linejoin: round; }
+.tn-seal-svg .seal-ring { fill: var(--stock); stroke: var(--key); stroke-width: 2; }
+.tn-seal-svg .seal-rule { fill: none; stroke: var(--plate-verm); stroke-width: 1.5; }
+.tn-face {
+  position: absolute;
+  inset: 22px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid var(--key);
+  background: radial-gradient(circle, rgba(200, 64, 42, 0.45) 0 1.1px, transparent 1.5px) 0 0 / 5px 5px, #f3d9b0;
+}
+.tn-face .portrait { width: 100%; height: 100%; }
+.tn-label.boss {
+  flex-direction: column;
+  align-items: center;
+  margin-top: -12px;
+  padding: 3px 14px 5px;
+  position: relative;
+  z-index: 1;
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 2px var(--key), inset 0 0 0 3px #c9a46a, var(--lift-1);
+}
+.tn-kicker { font-family: var(--f-body); font-weight: 700; font-size: 9px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--plate-gold); line-height: 1.2; }
+.tn-label.boss .tn-name { font-family: var(--f-display); font-size: 15px; letter-spacing: 0.02em; text-transform: none; font-weight: 400; padding: 0; }
+
+/* --- States -------------------------------------------------------------------- */
+/* Available: the card-selection ring (gold, keyed), a slow bob */
 .trail-node.open { cursor: pointer; }
-.trail-node.open .tn-icon, .trail-node.open .tn-face { animation: beckon 1.2s ease-in-out infinite alternate; }
-@keyframes beckon { to { transform: translateY(-5px); } }
-.trail-node.open .tn-label { background: var(--parch-ink); color: var(--paper); }
-.trail-node.open:hover .tn-icon, .trail-node.open:hover .tn-face { transform: scale(1.1); }
+.trail-node.open .tn-icon::before { --ring: 0 0 0 3px var(--gold, #f2c14e), 0 0 0 4.5px var(--key); }
+.trail-node.open .tn-icon, .trail-node.open .tn-seal { animation: beckon 1.4s ease-in-out infinite alternate; }
+.trail-node.open .tn-face { box-shadow: 0 0 0 3px var(--gold, #f2c14e), 0 0 0 4.5px var(--key); }
+.trail-node.open .tn-label:not(.boss) { background: var(--plate-verm); }
+@keyframes beckon { to { translate: 0 -4px; } }
+.reduce-motion .trail-node.open .tn-icon, .reduce-motion .trail-node.open .tn-seal { animation: none; }
+.trail-node.open:hover .tn-icon, .trail-node.open:hover .tn-seal { animation-play-state: paused; translate: 0 -6px; }
+.trail-node.open:hover .tn-icon::before { box-shadow: inset 0 0 0 3px #fff6e0, inset 0 0 0 4.5px var(--plate), var(--ring), var(--lift-2); background: #fff6e0; }
+
+/* Locked: printed but not yet inked in */
+.trail-node.locked .tn-icon::before { background: var(--stock); border-color: color-mix(in srgb, var(--key) 70%, var(--stock)); box-shadow: inset 0 0 0 3px var(--stock), inset 0 0 0 4.5px color-mix(in srgb, var(--plate) 45%, var(--stock)); }
+.trail-node.locked .tn-icon .icon { opacity: 0.85; filter: saturate(0.55); }
+.trail-node.locked .tn-ht { opacity: 0.5; }
+.trail-node.passed { opacity: 0.45; }
+.trail-node.locked .tn-label:not(.boss) { color: var(--key-2); background: var(--stock); border-color: color-mix(in srgb, var(--key) 55%, var(--stock)); box-shadow: none; }
+.trail-node.locked .tn-target { border-left-color: color-mix(in srgb, var(--key) 55%, var(--stock)); background: var(--stock-2); }
+
+/* Done: faded, cancelled with a red check stamp */
+.trail-node.done .tn-icon::before { background: #eadbb6; box-shadow: inset 0 0 0 3px #eadbb6, inset 0 0 0 4.5px color-mix(in srgb, var(--plate) 45%, #eadbb6), var(--lift-1); }
+.trail-node.done .tn-icon .icon { opacity: 0.4; filter: grayscale(1); }
+.trail-node.done .tn-ht { opacity: 0; }
+.trail-node.done .tn-label { color: var(--stock-2); background: var(--key-2); border-color: var(--key-2); }
+.trail-node.done .tn-target { color: var(--key-2); background: var(--stock-2); }
+.tn-check {
+  position: absolute;
+  right: -3px;
+  top: -3px;
+  width: 24px;
+  height: 24px;
+  z-index: 2;
+  border-radius: 50%;
+  background: var(--plate-verm);
+  border: 1.5px solid var(--key);
+  box-shadow: inset 0 0 0 1.5px var(--plate-verm), inset 0 0 0 2.5px rgba(245, 232, 203, 0.7);
+}
+.tn-check::after {
+  content: '';
+  position: absolute;
+  left: 7.5px;
+  top: 4px;
+  width: 5px;
+  height: 10px;
+  border: solid var(--stock);
+  border-width: 0 2.5px 2.5px 0;
+  transform: rotate(40deg);
+}
+.tn-card .tn-check { right: 2px; top: -4px; }
+
+/* --- The player's pin ------------------------------------------------------------- */
 .trail-token {
   position: absolute;
-  width: 74px;
-  height: 74px;
+  width: 54px;
+  height: 54px;
   transform: translate(-50%, -50%);
   pointer-events: none;
-  z-index: 5;
+  z-index: 6;
   animation: tokenBob 1.6s ease-in-out infinite alternate;
 }
-@keyframes tokenBob { to { transform: translate(-50%, calc(-50% - 6px)); } }
-.tt-portrait { width: 100%; height: 100%; border-radius: 50%; overflow: hidden; border: 2px solid var(--ink-line); outline: 3px solid var(--gold); background: var(--paper); box-shadow: var(--lift-2); }
+.trail-token::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  margin: 3px 0 0 -8px;
+  border: 8px solid transparent;
+  border-bottom: 0;
+  border-top: 13px solid var(--key);
+}
+@keyframes tokenBob { to { translate: 0 -5px; } }
+.reduce-motion .trail-token { animation: none; }
+.tt-portrait {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  overflow: hidden;
+  background: radial-gradient(circle, rgba(47, 93, 138, 0.4) 0 1px, transparent 1.4px) 0 0 / 4px 4px, #f3e3bf;
+  border: 2.5px solid var(--key);
+  box-shadow: 0 0 0 3px var(--stock), 0 0 0 4.5px var(--key), var(--lift-2);
+}
 .tt-portrait .portrait { width: 100%; height: 100%; }
-.trail-extra { position: absolute; right: 18px; top: 18px; }
+
+.trail-extra { position: absolute; right: 36px; top: 32px; z-index: 7; }

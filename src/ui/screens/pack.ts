@@ -22,7 +22,8 @@ export function packScreen(hud: Hud): HTMLElement {
     const p = run.pack;
     if (!p) return;
     const def = PACK[p.packId];
-    el.appendChild(div('pack-title', def.name, h('span', { class: 'pack-picks' }, ` · choose ${p.picksLeft}`)));
+    const board = div(`pack-board sheet dark crate-${def.kind}`, div('shelf-label pack-title', def.name), div('pack-picks', `Choose ${p.picksLeft} of ${p.options.length}`));
+    el.appendChild(board);
     const opts = div(`pack-options n${p.options.length}`);
     p.options.forEach((o, i) => {
       let card: HTMLElement;
@@ -38,7 +39,7 @@ export function packScreen(hud: Hud): HTMLElement {
       }
       card.classList.add('pack-card');
       card.style.setProperty('--d', `${i * 0.08}s`);
-      const slot = div(`pack-slot${o.taken ? ' taken' : ''}`, card);
+      const slot = div(`pack-slot${o.taken ? ' taken' : ''}`, div('pack-stage', h('span', { class: 'pack-spot' }), card));
       if (!o.taken) {
         const needs = o.kind === 'cons' ? CONS[o.id]?.targets : null;
         slot.appendChild(
@@ -61,9 +62,9 @@ export function packScreen(hud: Hud): HTMLElement {
       }
       opts.appendChild(slot);
     });
-    el.appendChild(opts);
+    board.appendChild(opts);
     if (p.spread.length) {
-      const spread = div('pack-spread');
+      const spread = div('pack-spread sheet');
       spread.appendChild(div('spread-label', 'Your spread: select targets, then use a card above'));
       const row = div('spread-row');
       for (const id of p.spread) {

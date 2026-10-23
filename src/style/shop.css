@@ -1,165 +1,297 @@
-/* General Store and Crates. */
+/* General Store and Crates.
+   The store is a set of ink boards (.sheet.dark) with cream rules. Goods stand on
+   a polished wood ledge; each carries a round price sticker printed like a
+   medallion. Section names sit on cream tabs set into the top rule. */
 
 /* Shop --------------------------------------------------------------------- */
 
 .shop-screen {
   position: absolute;
-  left: 346px;
-  right: 16px;
-  top: 222px;
-  bottom: 16px;
+  left: 300px;
+  right: 300px;
+  top: 100px;
+  bottom: 166px;
   display: grid;
-  grid-template-rows: auto auto 1fr;
-  gap: 12px;
+  grid-template-rows: auto auto auto;
+  align-content: start;
+  gap: 22px;
 }
 .shop-head {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 20px;
+  padding: 0 4px;
 }
-.merchant { display: flex; align-items: center; gap: 14px; }
+.merchant { display: flex; align-items: center; gap: 18px; min-width: 0; }
 .merchant-face {
-  width: 90px;
-  height: 90px;
+  flex: none;
+  width: 92px;
+  height: 92px;
   border-radius: 50%;
-  background: var(--halftone), #e8d3a6;
-  border: 3px solid var(--ink-line);
-  box-shadow: 0 0 0 3px var(--gold), var(--lift-2);
-  display: grid;
-  place-items: center;
-  animation: sway 3s ease-in-out infinite;
+  overflow: hidden;
+  background: radial-gradient(circle, rgba(85, 122, 70, 0.45) 0 1.1px, transparent 1.5px) 0 0 / 5px 5px, #f3e3bf;
+  border: 2.5px solid var(--key);
+  box-shadow: 0 0 0 3px var(--stock), 0 0 0 4.5px var(--plate-sage), 0 0 0 6px var(--key), var(--lift-2);
 }
-.merchant-face .icon { width: 70px; height: 70px; --i1: #a8692a; --i3: #3a2014; }
+.merchant-face .portrait { width: 100%; height: 100%; }
 .merchant-bubble {
   position: relative;
-  max-width: 460px;
-  background: var(--paper);
-  color: var(--ink);
-  font-weight: 700;
-  font-size: 18px;
-  padding: 11px 18px 12px;
-  border: 2px solid var(--ink-line);
-  border-radius: 14px 14px 14px 2px;
-  box-shadow: var(--lift-2);
-  animation: bubbleIn 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.4);
+  max-width: 440px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 9px 18px 11px;
+  color: var(--key);
+  background: var(--speck), var(--fibre), var(--stock);
+  border: 1.5px solid var(--key);
+  border-radius: 10px;
+  box-shadow: var(--lift-1);
+  animation: bubbleIn 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.3) both;
 }
-.merchant-bubble::before {
+.merchant-bubble::after {
+  /* printed inner rule */
   content: '';
   position: absolute;
-  left: -12px;
-  top: 50%;
-  margin-top: -10px;
-  border: 10px solid transparent;
-  border-right-color: var(--ink);
-  border-left: 0;
+  inset: 3px;
+  border: 1px solid var(--plate-verm);
+  border-radius: 7px;
+  pointer-events: none;
 }
-@keyframes bubbleIn { from { opacity: 0; transform: scale(0.6); } }
-.shop-buttons { display: flex; gap: 14px; align-items: center; }
-.shelf {
+.merchant-bubble::before {
+  /* tail: a keyed corner pointing at the shopkeeper */
+  content: '';
+  position: absolute;
+  left: -8px;
+  top: 50%;
+  width: 13px;
+  height: 13px;
+  margin-top: -7px;
+  background: var(--stock);
+  border-left: 1.5px solid var(--key);
+  border-bottom: 1.5px solid var(--key);
+  transform: rotate(45deg);
+}
+.mb-kicker { font-family: var(--f-body); font-weight: 700; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--plate-verm); }
+.mb-quip { font-family: var(--f-body); font-weight: 600; font-size: 17px; line-height: 1.25; }
+@keyframes bubbleIn { from { opacity: 0; transform: translateX(-10px); } }
+.shop-buttons { display: flex; gap: 14px; align-items: center; flex: none; }
+
+/* Boards */
+.shelf.sheet,
+.shop-vouchers.sheet,
+.shop-packs.sheet,
+.pack-board.sheet {
+  --stage: 160px;
   position: relative;
+  padding: 26px 22px 16px;
+  /* faint printed lattice, like the ink card back */
   background:
-    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.18) 0 2px, transparent 2px 44px),
-    #4a2a12;
-  border: 3px solid var(--ink-line);
-  border-radius: 4px;
-  padding: 28px 20px 18px;
-  box-shadow: var(--shadow);
+    repeating-linear-gradient(45deg, rgba(201, 164, 106, 0.075) 0 1px, transparent 1px 16px),
+    repeating-linear-gradient(-45deg, rgba(201, 164, 106, 0.075) 0 1px, transparent 1px 16px),
+    var(--board);
+  background-blend-mode: normal;
+}
+/* the wood ledge the goods stand on */
+.shelf.sheet::after,
+.shop-vouchers.sheet::after,
+.shop-packs.sheet::after,
+.pack-board.sheet::after {
+  content: '';
+  position: absolute;
+  left: 13px;
+  right: 13px;
+  top: calc(var(--ledge-top, 26px) + var(--stage) - 6px);
+  height: 14px;
+  border: 1.5px solid var(--key);
+  border-radius: 3px;
+  background:
+    linear-gradient(180deg, rgba(255, 226, 180, 0.5) 0 1px, rgba(255, 226, 180, 0.18) 1px 4px, rgba(0, 0, 0, 0.35) 4px 5px, rgba(0, 0, 0, 0) 5px 70%, rgba(0, 0, 0, 0.3)),
+    var(--grain),
+    linear-gradient(180deg, #a8602e, var(--wood-b));
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
 }
 .shelf-label {
   position: absolute;
-  top: -14px;
-  left: 20px;
+  top: -13px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+  padding: 2px 26px 3px;
   font-family: var(--f-display);
-  font-size: 18px;
-  background: var(--verm);
-  color: var(--paper);
-  padding: 1px 14px 3px;
-  border: 2px solid var(--ink-line);
-  border-radius: 2px;
-  box-shadow: var(--lift-1);
-  transform: rotate(-2deg);
+  font-size: 17px;
+  line-height: 1.2;
+  white-space: nowrap;
+  color: var(--key);
+  background: var(--speck), var(--fibre), var(--stock);
+  border: 1.5px solid var(--key);
+  border-radius: 6px;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
 }
-.shop-items { display: flex; justify-content: center; gap: 34px; min-height: 196px; align-items: center; }
+.shelf-label::before,
+.shelf-label::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 5px;
+  height: 5px;
+  margin-top: -3px;
+  background: var(--plate-verm);
+  transform: rotate(45deg);
+}
+.shelf-label::before { left: 10px; }
+.shelf-label::after { right: 10px; }
+
+.shop-items { position: relative; z-index: 1; display: flex; justify-content: center; align-items: start; gap: 40px; }
 .shop-lower { display: grid; grid-template-columns: auto 1fr; gap: 16px; }
-.shop-vouchers, .shop-packs {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 30px;
-  background:
-    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.18) 0 2px, transparent 2px 44px),
-    #5a2a18;
-  border: 3px solid var(--ink-line);
-  border-radius: 4px;
-  padding: 28px 24px 26px;
-  box-shadow: var(--shadow);
-}
+.shop-vouchers.sheet, .shop-packs.sheet { --stage: 150px; display: flex; justify-content: center; align-items: start; gap: 34px; }
+.shop-vouchers.sheet { padding-left: 30px; padding-right: 30px; }
+.shop-vouchers > .shop-slot, .shop-packs > .shop-slot { position: relative; z-index: 1; }
+
 .shop-slot {
   position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
+  display: grid;
+  grid-template-rows: var(--stage) auto;
+  justify-items: center;
+  row-gap: 12px;
   animation: panelIn 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.3) both;
 }
-.shop-slot.empty { width: 104px; height: 150px; justify-content: center; }
-.sold-out {
-  font-family: var(--f-display);
-  font-size: 20px;
-  color: rgba(246, 234, 208, 0.35);
-  border: 3px dashed rgba(246, 234, 208, 0.2);
-  border-radius: 3px;
-  padding: 50px 10px;
-  width: 100%;
-  text-align: center;
-}
-.price-tag {
-  font-family: var(--f-display);
-  font-size: 20px;
-  color: var(--ink);
-  background: var(--gold);
-  padding: 0 14px 2px 18px;
-  border: 2px solid var(--ink);
-  border-radius: 2px;
-  box-shadow: var(--lift-1);
-  clip-path: polygon(10px 0, 100% 0, 100% 100%, 10px 100%, 0 50%);
-}
+.slot-stage { position: relative; align-self: end; margin-bottom: 4px; }
 .slot-btns { display: flex; gap: 6px; }
 
-/* Packs -------------------------------------------------------------------- */
+/* Round price sticker on the card's corner */
+.price-tag {
+  position: absolute;
+  left: -15px;
+  top: -13px;
+  z-index: 9;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-family: var(--f-display);
+  font-size: 16px;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--key);
+  background: #f8eed6;
+  border: 1.5px solid var(--key);
+  box-shadow: inset 0 0 0 2.5px #f8eed6, inset 0 0 0 3.5px var(--plate-gold), 0 2px 3px rgba(10, 4, 0, 0.4);
+  pointer-events: none;
+}
+.price-tag.short { color: var(--plate-verm); box-shadow: inset 0 0 0 2.5px #f8eed6, inset 0 0 0 3.5px var(--plate-verm), 0 2px 3px rgba(10, 4, 0, 0.4); }
+.price-tag.free { font-size: 12px; color: var(--plate-sage); box-shadow: inset 0 0 0 2.5px #f8eed6, inset 0 0 0 3.5px var(--plate-sage), 0 2px 3px rgba(10, 4, 0, 0.4); }
+
+/* An emptied spot on the shelf: a ruled outline with a rubber stamp */
+.shop-slot.empty { animation: none; }
+.sold-out {
+  align-self: end;
+  margin-bottom: 4px;
+  width: 104px;
+  height: 144px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  border: 1px solid rgba(201, 164, 106, 0.45);
+  background: repeating-linear-gradient(-45deg, rgba(201, 164, 106, 0.1) 0 1px, transparent 1px 7px);
+}
+.sold-out span {
+  padding: 1px 10px 3px;
+  font-family: var(--f-display);
+  font-size: 18px;
+  letter-spacing: 0.06em;
+  color: #d65a40;
+  border: 2px solid #d65a40;
+  border-radius: 5px;
+  box-shadow: inset 0 0 0 2px var(--board), inset 0 0 0 3px #d65a40;
+  transform: rotate(-12deg);
+  opacity: 0.9;
+}
+
+/* Crates ------------------------------------------------------------------- */
 
 .pack-screen {
   position: absolute;
-  left: 346px;
-  right: 16px;
-  top: 222px;
-  bottom: 16px;
+  left: 300px;
+  right: 300px;
+  top: 100px;
+  bottom: 166px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  justify-content: center;
+  gap: 22px;
+  padding-bottom: 10px;
 }
-.pack-title { font-family: var(--f-display); font-size: 34px; color: var(--gold); text-shadow: 3px 3px 0 var(--ink); }
-.pack-picks { font-size: 24px; color: #fff3d0; }
-.pack-options { display: flex; gap: 30px; justify-content: center; align-items: flex-end; min-height: 230px; }
-.pack-slot { display: flex; flex-direction: column; align-items: center; gap: 12px; }
-.pack-slot.taken { opacity: 0.25; pointer-events: none; }
+.pack-board.sheet {
+  --stage: 186px;
+  --ledge-top: 58px;
+  --hue: var(--plate-gold);
+  min-width: 560px;
+  padding: 22px 40px 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: panelIn 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+.crate-charm { --hue: #d9792c; }
+.crate-fortune { --hue: #c8402a; }
+.crate-star { --hue: #2f5d8a; }
+.crate-mask { --hue: #6f4f9a; }
+.crate-card { --hue: #557a46; }
+.shelf-label.pack-title { font-size: 20px; padding: 3px 30px 4px; }
+.pack-picks {
+  height: 20px;
+  margin-bottom: 16px;
+  font-family: var(--f-body);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #e8cf9a;
+}
+.pack-options { position: relative; z-index: 1; display: flex; gap: 36px; justify-content: center; align-items: start; }
+.pack-slot { display: grid; grid-template-rows: var(--stage) auto; justify-items: center; row-gap: 12px; }
+.pack-stage { position: relative; align-self: end; margin-bottom: 4px; }
+.pack-spot {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: 210px;
+  height: 210px;
+  margin: -105px;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--hue) 75%, #f5e8cb) 0 1.3px, transparent 1.8px) 0 0 / 6px 6px;
+  -webkit-mask-image: radial-gradient(circle, #000 0 30%, rgba(0, 0, 0, 0.5) 48%, transparent 68%);
+  mask-image: radial-gradient(circle, #000 0 30%, rgba(0, 0, 0, 0.5) 48%, transparent 68%);
+  opacity: 0.8;
+  pointer-events: none;
+}
+.pack-slot.taken { opacity: 0.3; pointer-events: none; }
+.pack-slot.taken .pack-spot { display: none; }
 .pack-card { animation: packCardIn 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.3) both; animation-delay: var(--d); }
 .pack-card.card.charm, .pack-card.card.pcard { --cw: 128px; --ch: 178px; }
 .pack-card.card.charm .ch-art { width: 96px; height: 96px; margin: -48px 0 0 -48px; }
 .pack-card.card.charm .ch-art .icon { width: 72px; height: 72px; }
 .pack-card.card.cons { --cw: 110px; --ch: 154px; }
-@keyframes packCardIn { from { opacity: 0; transform: translateY(80px) rotate(10deg) scale(0.6); } }
-.pack-spread { text-align: center; }
-.spread-label { font-weight: 800; opacity: 0.7; margin-bottom: 10px; }
-.spread-row { display: flex; gap: 10px; justify-content: center; }
-.pack-foot { margin-top: auto; }
+@keyframes packCardIn { from { opacity: 0; transform: translateY(60px) rotate(8deg) scale(0.7); } }
 
-/* Placement inside the play area */
-.shop-screen, .pack-screen { left: 300px; right: 300px; top: 100px; bottom: 166px; }
-.shop-head .merchant-face { width: 104px; height: 104px; overflow: hidden; background: radial-gradient(circle at 50% 40%, #fff6e0, #e9cf98); }
-.shop-head .merchant-face .portrait { width: 100%; height: 100%; }
-.shop-items { min-height: 170px; }
-.shop-lower .shop-slot .card { --cw: 96px; --ch: 134px; }
+/* Your spread for Tonics that target cards */
+.pack-spread.sheet {
+  --plate: var(--plate-denim);
+  padding: 14px 22px 18px;
+  text-align: center;
+}
+.pack-spread .spread-label {
+  margin-bottom: 10px;
+  font-family: var(--f-body);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--plate-denim);
+}
+.spread-row { display: flex; gap: 8px; justify-content: center; }
+.pack-spread .card { --cw: 96px; --ch: 134px; }
+.pack-foot { flex: none; }

@@ -22,9 +22,27 @@ function frame(hud: Hud, cls: string) {
   return div(`stop-screen ${cls}`);
 }
 
-function art(character: string | undefined, icon: string) {
-  if (character && CHARACTERS[character]) return h('div', { class: 'stop-art portrait-art', html: portraitOf(character, 'neutral') });
-  return h('div', { class: 'stop-art icon-art', html: iconSvg(icon) });
+function art(character: string | undefined, icon: string, cls = '') {
+  const inner = character && CHARACTERS[character]
+    ? h('div', { class: 'stop-art portrait-art', html: portraitOf(character, 'neutral') })
+    : h('div', { class: `stop-art icon-art ${cls}`, html: iconSvg(icon) });
+  return div('bill-art', h('span', { class: 'bill-spot' }), inner);
+}
+
+/** A handbill: card stock, a printed double rule in the stop's plate, a kicker between rules. */
+function bill(kind: 'event' | 'doc' | 'camp', kicker: string, extra = '') {
+  return div(`stop-card sheet bill-${kind}${extra}`, div('divider bill-kicker', kicker));
+}
+
+/** The engraved rule between the story and the choices. */
+const billRule = () => div('divider bill-rule', h('span', { class: 'bill-diamond' }));
+
+const KEYS = 'ABCDEFGH';
+/** One designed choice row: index tab, label and detail, and an optional price tab. */
+function choiceRow(i: number, label: string, detail: string, ok: boolean, cost?: number) {
+  const b = h('button', { class: 'choice', type: 'button', disabled: !ok });
+  b.innerHTML = `<span class="choice-key">${KEYS[i] ?? i + 1}</span><span class="choice-main"><span class="choice-label">${label}</span><span class="choice-detail">${fmt(detail)}</span></span>${cost ? `<span class="choice-cost">$${cost}</span>` : ''}`;
+  return b;
 }
 
 // ---------------------------------------------------------------------------
@@ -40,8 +58,8 @@ export function eventScreen(hud: Hud): HTMLElement {
     clear(el);
     const ev = run.event!;
     const def = EVENT[ev.id];
-    const card = div('stop-card');
-    card.append(art(def.character, def.icon), div('stop-title', def.title), div('stop-text', def.text));
+    const card = bill('event', 'Strange Happenings');
+    card.append(art(def.character, def.icon), div('stop-title', def.title), div('stop-text', def.text), billRule());
     if (ev.duel) {
       card.appendChild(div('stop-result', ev.result ?? ''));
       card.appendChild(button('Step into the street', 'primary big', () => void runDuel(run, hud, render)));
@@ -59,8 +77,7 @@ export function eventScreen(hud: Hud): HTMLElement {
       const list = div('stop-choices');
       def.choices.forEach((ch, i) => {
         const ok = (!ch.cost || run.money >= ch.cost) && (!ch.can || ch.can(run));
-        const b = h('button', { class: 'choice', type: 'button', disabled: !ok });
-        b.innerHTML = `<span class="choice-label">${ch.label}${ch.cost ? ` <span class="t-money">$${ch.cost}</span>` : ''}</span><span class="choice-detail">${fmt(ch.detail)}</span>`;
+        const b = choiceRow(i, ch.label, ch.detail, ok, ch.cost);
         b.addEventListener('click', () => {
           if (!chooseEvent(run, i)) return toast('You can’t do that right now', 'bad');
           sfx('select');
@@ -82,6 +99,27 @@ export function eventScreen(hud: Hud): HTMLElement {
   return el;
 }
 
+/** Main Street at sundown, printed in flat plates: far mesas, false-front buildings, the street. */
+const DUEL_LAND = (() => {
+  const win = (x: number, y: number, w = 22, h = 30) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="2" class="dl-win"/>`;
+  const left = `<path class="dl-bldg" d="M0 300 H120 V270 H200 V300 H232 V640 H0Z"/>
+    <path class="dl-bldg2" d="M232 372 H300 V352 H360 V372 H392 V600 L232 640Z"/>
+    <path class="dl-trim" d="M0 392 H232 M232 430 H392"/>
+    ${win(40, 420)}${win(96, 420)}${win(152, 420)}${win(266, 452, 18, 26)}${win(326, 452, 18, 26)}
+    <path class="dl-post" d="M222 392 V640 M384 430 V604"/>`;
+  return `<svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+    <path class="dl-far" d="M0 520 V478 H70 L96 452 H228 L262 486 H380 L400 470 H470 L500 520Z M1100 520 L1130 482 H1206 L1222 462 H1360 L1388 492 H1480 L1500 474 H1600 V520Z"/>
+    <path class="dl-ground" d="M0 520 H1600 V900 H0Z"/>
+    <path class="dl-band" d="M0 585 H1600 V660 H0Z"/>
+    <path class="dl-band2" d="M0 660 H1600 V900 H0Z"/>
+    <path class="dl-street" d="M760 520 H840 L1330 900 H270Z"/>
+    <path class="dl-rut" d="M786 520 L560 900 M814 520 L1040 900"/>
+    <path class="dl-horizon" d="M0 520 H1600"/>
+    <g>${left}</g>
+    <g transform="translate(1600 0) scale(-1 1)">${left}</g>
+  </svg>`;
+})();
+
 /** High noon: wait for the bell, then click as fast as you can. */
 async function runDuel(run: Run, hud: Hud, rerender: () => void) {
   if (app.busy) return;
@@ -90,7 +128,16 @@ async function runDuel(run: Run, hud: Hud, rerender: () => void) {
   const sign = div('duel-sign', 'Steady');
   const left = h('div', { class: 'duel-bird left', html: portraitOf('player', 'neutral') });
   const right = h('div', { class: 'duel-bird right', html: portraitOf('jorogumo', 'smug') });
-  overlay.append(div('duel-sun'), left, right, sign, div('duel-hint', 'When the sign says DRAW, click or press Space. Shoot early and you lose.'));
+  overlay.append(
+    div('duel-sky'),
+    div('duel-sun'),
+    h('div', { class: 'duel-land', html: DUEL_LAND }),
+    div('duel-fig left', left, div('duel-plate', CHARACTERS.player?.name ?? 'You')),
+    div('duel-fig right', right, div('duel-plate', CHARACTERS.jorogumo?.name ?? 'The Stranger')),
+    div('duel-bar top', h('span', { class: 'duel-title' }, 'High Noon · Main Street')),
+    div('duel-bar bottom', div('duel-hint', 'When the sign says DRAW, click or press Space. Shoot early and you lose.')),
+    sign,
+  );
   app.screen.appendChild(overlay);
   audio.setMood('host');
   let state: 'wait' | 'draw' | 'done' = 'wait';
@@ -173,16 +220,16 @@ export function docScreen(hud: Hud): HTMLElement {
   const render = () => {
     clear(el);
     const used = run.flags.docUsed ?? {};
-    const card = div('stop-card');
+    const card = bill('doc', 'Physician · Surgeon · Notary');
     card.append(
       art('doc', 'tonic'),
       div('stop-title', 'Doc Hoot’s Office'),
-      div('stop-text', `"Sit. Don’t touch the leeches." Your Grit: ${run.grit}/${gritCap(run)}`),
+      div('stop-text', '“Sit. Don’t touch the leeches.”', h('span', { class: 'stop-grit' }, `Grit ${run.grit}/${gritCap(run)}`)),
+      billRule(),
     );
     const list = div('stop-choices');
-    const choice = (label: string, detail: string, ok: boolean, fn: () => void) => {
-      const b = h('button', { class: 'choice', type: 'button', disabled: !ok });
-      b.innerHTML = `<span class="choice-label">${label}</span><span class="choice-detail">${fmt(detail)}</span>`;
+    const choice = (label: string, detail: string, ok: boolean, fn: () => void, cost?: number) => {
+      const b = choiceRow(list.childElementCount, label, detail, ok, cost);
       b.addEventListener('click', fn);
       list.appendChild(b);
     };
@@ -193,16 +240,16 @@ export function docScreen(hud: Hud): HTMLElement {
       hud.update();
       render();
     });
-    choice(`The full treatment <span class="t-money">$${DOC_PRICES.full}</span>`, 'Heal all your Grit', !used.full && run.money >= DOC_PRICES.full && run.grit < gritCap(run), () => {
+    choice('The full treatment', 'Heal all your Grit', !used.full && run.money >= DOC_PRICES.full && run.grit < gritCap(run), () => {
       docFull(run);
       sfx('levelup');
       save();
       hud.update();
       render();
-    });
-    choice(`Remove a card <span class="t-money">$${DOC_PRICES.remove}</span>`, 'Pick a card from a spread of your deck to remove for good', !used.remove && run.money >= DOC_PRICES.remove && run.deck.length > 10, () => {
+    }, DOC_PRICES.full);
+    choice('Remove a card', 'Pick a card from a spread of your deck to remove for good', !used.remove && run.money >= DOC_PRICES.remove && run.deck.length > 10, () => {
       pickRemoval(run, el, hud, render);
-    });
+    }, DOC_PRICES.remove);
     card.appendChild(list);
     card.appendChild(button('Leave', 'primary big', () => {
       finishNode(run);
@@ -218,8 +265,8 @@ export function docScreen(hud: Hud): HTMLElement {
 
 function pickRemoval(run: Run, el: HTMLElement, hud: Hud, rerender: () => void) {
   const ids = rng(run).shuffle(run.deck.map((c) => c.id)).slice(0, 8);
-  const panel = div('stop-spread');
-  panel.appendChild(div('spread-label', 'Pick a card to remove'));
+  const panel = div('stop-spread sheet');
+  panel.append(div('divider bill-kicker', `Doc Hoot · Removal $${DOC_PRICES.remove}`), div('spread-label', 'Pick a card to remove'), div('spread-sub', 'It leaves your deck for good.'));
   const row = div('spread-row');
   for (const id of ids) {
     const c = run.deck.find((k) => k.id === id)!;
@@ -252,8 +299,8 @@ export function campScreen(hud: Hud): HTMLElement {
   const el = frame(hud, 'camp-screen');
   const render = (yarn = false) => {
     clear(el);
-    const card = div(`stop-card${yarn ? ' yarning' : ''}`);
-    card.append(h('div', { class: 'stop-art icon-art campfire', html: iconSvg('campfire') }), div('stop-title', 'Campfire'), div('stop-text', 'A can of beans on the coals. There’s time for one thing before you fall asleep.'));
+    const card = bill('camp', 'Campfire', yarn ? ' yarning' : '');
+    card.append(art(undefined, 'campfire', 'campfire'), div('stop-title', 'Campfire'), div('stop-text', 'A can of beans on the coals. There’s time for one thing before you fall asleep.'), billRule());
     const done = () => {
       save();
       finishNode(run);
@@ -265,7 +312,7 @@ export function campScreen(hud: Hud): HTMLElement {
         const lv = run.handLevels[ht.id];
         const b = handBase(ht.id, lv);
         const btn = h('button', { class: 'yarn', type: 'button' });
-        btn.innerHTML = `<span class="yarn-name">${ht.name}</span><span class="yarn-lv">Lv.${lv} → ${lv + 1}</span><span class="yarn-calc">${fmtNum(b.chips)} × ${fmtNum(b.mult)}</span>`;
+        btn.innerHTML = `<span class="yarn-name">${ht.name}</span><span class="yarn-lv">Lv ${lv}<i>→</i>${lv + 1}</span><span class="yarn-calc"><b class="yc-chips">${fmtNum(b.chips)}</b><i>×</i><b class="yc-mult">${fmtNum(b.mult)}</b></span>`;
         btn.addEventListener('click', () => {
           campYarn(run, ht.id as HandTypeId);
           sfx('levelup');
@@ -277,8 +324,7 @@ export function campScreen(hud: Hud): HTMLElement {
     } else {
       const list = div('stop-choices');
       const choice = (label: string, detail: string, ok: boolean, fn: () => void) => {
-        const b = h('button', { class: 'choice', type: 'button', disabled: !ok });
-        b.innerHTML = `<span class="choice-label">${label}</span><span class="choice-detail">${fmt(detail)}</span>`;
+        const b = choiceRow(list.childElementCount, label, detail, ok);
         b.addEventListener('click', fn);
         list.appendChild(b);
       };
