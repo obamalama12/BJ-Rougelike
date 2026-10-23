@@ -264,11 +264,11 @@ export class TableScreen {
     const b = div(`total-badge${active ? ' active' : ''}`);
     b.style.left = `${cx}px`;
     b.style.top = `${PLAYER_Y + CH / 2 + 22}px`;
-    let txt = hidden ? '??' : `${tot.soft && tot.total < rules.bustLimit ? 'Soft ' : ''}${tot.total}`;
+    const soft = !hidden && tot.soft && tot.total < rules.bustLimit;
     if (outcome === 'bust') b.classList.add('bust');
     else if (!hidden && tot.total === 21) b.classList.add('gold');
-    if (outcome && outcome !== 'fold') txt += ` · ${OUTCOME_LABEL[outcome]}`;
-    b.textContent = txt;
+    // Printed as a split tab: [Soft] total [outcome]
+    b.innerHTML = `${soft ? '<span class="tb-tag">Soft</span>' : ''}<span class="tb-val">${hidden ? '??' : tot.total}</span>${outcome && outcome !== 'fold' ? `<span class="tb-out o-${outcome}">${OUTCOME_LABEL[outcome]}</span>` : ''}`;
     if (doubled) b.appendChild(div('badge-x2', `X${rules.doubleX}`));
     return b;
   }
@@ -294,7 +294,7 @@ export class TableScreen {
     const lv = run.handLevels[ht];
     const b = handBase(ht, lv);
     const label = `If it wins: ${HAND_TYPE[ht].name}`;
-    if (this.hud.refs.handName.textContent !== label) this.hud.setHand(ht, lv, label);
+    if (this.hud.refs.handName.dataset.label !== label) this.hud.setHand(ht, lv, label);
     this.hud.setCalc(b.chips, b.mult);
   }
 
@@ -314,7 +314,7 @@ export class TableScreen {
     b.style.left = `${FELT_CX}px`;
     b.style.top = `${DEALER_Y - CH / 2 - 26}px`;
     b.className = `total-badge dealer-badge${tot.bust ? ' bust' : ''}`;
-    b.textContent = `Dealer ${visible.length ? tot.total : ''}${hidden ? (visible.length ? ' + ?' : '?') : ''}`;
+    b.innerHTML = `<span class="tb-tag">Dealer</span><span class="tb-val">${visible.length ? tot.total : ''}${hidden ? (visible.length ? ' + ?' : '?') : ''}</span>`;
   }
 
   // -------------------------------------------------------------------------

@@ -85,7 +85,7 @@ export class Hud {
     r.grit = div('wall-grit');
     r.money = div('wall-money-val');
     r.tags = div('wall-tags');
-    const money = div('wall-money', h('div', { class: 'wall-money-bag', html: iconSvg('moneybag') }), r.money);
+    const money = div('wall-money', div('wall-money-plate', h('div', { class: 'wall-money-bag', html: iconSvg('moneybag') }), r.money));
     tip(money, () => '<div class="tt-title">Bucks</div><div class="tt-body">Spend them at the General Store. You earn interest on every $5 you hold when you win a table.</div>', 'bottom');
     tip(r.grit, () => `<div class="tt-title">Grit ${this.run.grit}/${gritCap(this.run)}</div><div class="tt-body">Your health for the whole run. Risky wagers cost Grit when you lose a hand, and falling short of a target costs more. At 0 Grit the run is over.</div>`, 'bottom');
     const btns = div(
@@ -99,7 +99,7 @@ export class Hud {
 
   private buildPot(): HTMLElement {
     const r = this.refs;
-    r.handName = div('pot-hand', ' ');
+    r.handName = div('pot-hand');
     r.handLevel = div('pot-level');
     r.chips = div('pot-chips-val', '0');
     r.mult = div('pot-odds-val', '0');
@@ -127,7 +127,7 @@ export class Hud {
   update() {
     const run = this.run;
     const r = this.refs;
-    r.town.innerHTML = `<span class="wall-town-num">Town ${run.night}<small>/${run.endless ? '∞' : NIGHTS}</small></span><span class="wall-town-name">${esc(townName(run.night))}</span>`;
+    r.town.innerHTML = `<span class="wall-town-medal">${run.night}</span><span class="wall-town-text"><span class="wall-town-name">${esc(townName(run.night))}</span><span class="wall-town-num">Town ${run.night} <small>of ${run.endless ? '∞' : NIGHTS}</small></span></span>`;
     // Trail progress pips: one per column.
     clear(r.trailPips);
     const at = run.trail.nodes.find((n) => n.id === run.trail.at);
@@ -217,9 +217,16 @@ export class Hud {
       const x = 50 + Math.cos(a) * 28;
       const y = 50 + Math.sin(a) * 28;
       const full = i < hands;
-      return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="10" class="${full ? 'bullet' : 'empty'}"/>${full ? `<circle cx="${(x - 3).toFixed(1)}" cy="${(y - 3).toFixed(1)}" r="3" class="glint"/>` : ''}`;
+      const fa = a + Math.PI / chambers;
+      const fx = 50 + Math.cos(fa) * 44;
+      const fy = 50 + Math.sin(fa) * 44;
+      const flute = `<ellipse cx="${fx.toFixed(1)}" cy="${fy.toFixed(1)}" rx="5" ry="2.6" transform="rotate(${((fa * 180) / Math.PI).toFixed(1)} ${fx.toFixed(1)} ${fy.toFixed(1)})" class="flute"/>`;
+      const cell = full
+        ? `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="10" class="bullet"/><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4" class="primer"/>`
+        : `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="10" class="empty"/><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="7" class="empty-lip"/>`;
+      return flute + cell;
     }).join('');
-    this.gun.innerHTML = `<div class="gun-cyl"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" class="cyl"/><circle cx="50" cy="50" r="8" class="hub"/>${bullets}</svg></div>
+    this.gun.innerHTML = `<div class="gun-cyl"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" class="cyl"/><circle cx="50" cy="50" r="40.5" class="cyl-ring"/><path d="M18 34A36 36 0 0 1 40 14" class="cyl-shine"/><circle cx="50" cy="50" r="9" class="hub"/><circle cx="50" cy="50" r="3" class="hub-pin"/>${bullets}</svg></div>
       <div class="gun-stats"><div class="gun-stat"><span class="gun-num chips">${hands}</span><span class="gun-lbl">Hands</span></div>
       <div class="gun-stat"><span class="gun-num mult">${t.foldsLeft}</span><span class="gun-lbl">Folds</span></div></div>`;
     if (!this.gun.dataset.tip) {
@@ -268,7 +275,11 @@ export class Hud {
 
   setHand(ht: HandTypeId | null, level?: number, label?: string) {
     const r = this.refs;
-    r.handName.textContent = label ?? (ht ? HAND_TYPE[ht].name : ' ');
+    const text = label ?? (ht ? HAND_TYPE[ht].name : '');
+    r.handName.dataset.label = text;
+    // "If it wins: Quick Draw" prints the condition as a small caption before the name plate.
+    const cut = text.indexOf(': ');
+    r.handName.innerHTML = cut > 0 ? `<span class="pot-pre">${esc(text.slice(0, cut))}</span><span class="pot-name">${esc(text.slice(cut + 2))}</span>` : text ? `<span class="pot-name">${esc(text)}</span>` : '';
     r.handLevel.textContent = ht && level ? `Lv.${level}` : '';
     r.handName.classList.remove('pop');
     void r.handName.offsetWidth;
@@ -295,11 +306,12 @@ export class Hud {
     const want = `${n}`;
     if (el.dataset.n === want) return;
     el.dataset.n = want;
-    const colors = ['#e8402c', '#3d8bd6', '#2fbf7c', '#f0b429', '#f7ecd2'];
+    // One denomination per stack, printed in the plate colours.
+    const colors = ['#c8402a', '#2f5d8a', '#557a46', '#2a1408'];
     const stacks = [0, 0, 0, 0];
     for (let i = 0; i < n; i++) stacks[i % 4]++;
     el.innerHTML = stacks
-      .map((cnt, s) => `<div class="stack s${s}">${Array.from({ length: cnt }, (_, j) => `<span class="chip" style="--c:${colors[(s + j) % colors.length]};--j:${j}"></span>`).join('')}</div>`)
+      .map((cnt, s) => (cnt ? `<div class="stack s${s}" style="--c:${colors[s]}">${Array.from({ length: cnt }, (_, j) => `<span class="chip" style="--j:${j}"></span>`).join('')}</div>` : ''))
       .join('');
   }
 
@@ -349,7 +361,7 @@ export class Hud {
       tip(empty, () => '<div class="tt-title">Empty loop</div><div class="tt-body">Room for one more Doodad. Buy them at the General Store or win one at the Bank.</div>', 'top');
       this.charmRow.appendChild(empty);
     }
-    this.charmCount.textContent = `Doodads ${run.charms.length}/${slots}`;
+    this.charmCount.innerHTML = `Doodads<b>${run.charms.length}/${slots}</b>`;
     run.consumables.forEach((k) => {
       const slot = div('cons-slot');
       const card = consCard(k.kind, k.id, k.finish);
