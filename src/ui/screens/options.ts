@@ -18,6 +18,7 @@ export function applySettings() {
 
 export function openOptions() {
   const box = div('options');
+  let armed = false;
   const render = () => {
     clear(box);
     const s = profile.settings;
@@ -64,8 +65,13 @@ export function openOptions() {
     const foot = div('opt-foot');
     if (app.run) {
       foot.appendChild(
-        button('Abandon Run', 'danger', () => {
-          if (!confirm('Abandon this run? It will count as a loss.')) return;
+        button(armed ? 'Click again to abandon' : 'Abandon Run', 'danger', () => {
+          // Two-step confirm: native confirm() dialogs are not available everywhere.
+          if (!armed) {
+            armed = true;
+            render();
+            return;
+          }
           app.run = null;
           saveRun(null);
           close();

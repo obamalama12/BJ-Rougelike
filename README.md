@@ -14,6 +14,7 @@ the trail goes on forever (Endless).
 npm install
 npm run dev      # open the printed URL
 npm run build    # static build in dist/ (works from any folder or sub-path)
+npm run build:single  # one self-contained HTML file in dist-single/
 ```
 
 ### How a table works
