@@ -1,10 +1,14 @@
-// Animated WebGL background: domain-warped ink nebula with woodblock banding,
-// a cloud-veiled moon and drifting stars. Palettes cross-fade per scene.
+// Animated WebGL background: a painted desert sunset. Smooth sky, a bloomed sun with soft rays,
+// wispy clouds lit from below, and four mesa ridges fading into haze. Palettes cross-fade per scene.
 
 const VERT = `attribute vec2 a; void main(){ gl_Position = vec4(a, 0.0, 1.0); }`;
 
 const FRAG = (octaves: number) => `
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+precision highp float;
+#else
 precision mediump float;
+#endif
 uniform vec2 uRes;
 uniform float uTime;
 uniform vec3 uA, uB, uC, uD;
@@ -26,79 +30,102 @@ float fbm(vec2 p){
   for (int i = 0; i < ${octaves}; i++){ v += a*noise(p); p = m*p; a *= 0.5; }
   return v;
 }
-// Mesa skyline: flat-topped buttes with steep sides.
-float mesa(float x, float seed, float base, float amp){
-  float n = noise1(x*2.2 + seed);
-  float plateau = smoothstep(0.42, 0.58, n);
-  float bumps = noise1(x*9.0 + seed*3.0) * 0.015;
-  return base + amp * plateau + bumps;
+
+// Ridge height: flat-topped buttes with a second tier and eroded edges.
+float ridge(float x, float seed, float base, float amp, float freq){
+  float n = noise1(x*freq + seed);
+  // Steep cliffs, flat tops, a smaller second step, and only a little erosion on the edges.
+  float plateau = smoothstep(0.47, 0.53, n);
+  float tier = smoothstep(0.5, 0.54, noise1(x*freq*2.4 + seed*1.7)) * 0.28;
+  float rough = (noise1(x*freq*16.0 + seed*3.0) - 0.5) * 0.006 * (0.3 + plateau);
+  return base + amp*(plateau + tier*plateau) + rough;
+}
+
+vec3 layer(vec3 col, vec2 p, float top, vec3 base, vec3 rim, float aa, float seed){
+  float cov = smoothstep(top + aa, top - aa, p.y);
+  float depth = max(0.0, top - p.y);
+  // Darker toward the base, faint horizontal strata, a lit rim along the top edge.
+  float strata = noise(vec2(p.x*3.0 + seed, p.y*55.0));
+  vec3 c = base * (1.0 - 0.22*smoothstep(0.0, 0.3, depth));
+  c *= 0.93 + 0.1*strata;
+  c += rim * smoothstep(0.008, 0.0, depth);
+  return mix(col, c, cov);
 }
 
 void main(){
   vec2 uv = gl_FragCoord.xy / uRes;
   vec2 p = (gl_FragCoord.xy - 0.5*uRes) / uRes.y;
   float t = uTime;
-
-  // Banded sunset sky (woodcut-style posterised gradient)
-  float h = uv.y;
-  float bands = 9.0;
-  float hb = floor(h*bands)/bands;
-  float hq = mix(hb, h, 0.25);
-  vec3 sky = mix(uC, uB, smoothstep(0.25, 0.65, hq));
-  sky = mix(sky, uA, smoothstep(0.6, 1.0, hq));
-
-  // Drifting striped clouds
-  vec2 cp = vec2(p.x*1.4 + t*0.012*uSpin, p.y*5.0);
-  float c = fbm(cp + vec2(0.0, 3.0));
-  float cloud = smoothstep(0.55, 0.62, c) * smoothstep(0.35, 0.6, uv.y);
-  float cloudBand = step(0.5, fract(c*8.0));
-  sky = mix(sky, mix(uC, vec3(1.0, 0.85, 0.7), 0.4 + 0.2*cloudBand), cloud*0.55);
-
-  // Sun sitting on the horizon, with retro slice bands
-  vec2 sp = p - vec2(0.42, -0.12);
+  float aa = 1.6 / uRes.y;
+  vec2 sunP = vec2(0.42, -0.02);
+  vec2 sp = p - sunP;
   float sd = length(sp);
-  float sun = smoothstep(0.24, 0.235, sd);
-  float slices = step(0.0, sin((p.y + 0.3) * 70.0 - t*0.8)) + step(0.06, p.y + 0.12);
-  sun *= clamp(slices, 0.0, 1.0);
-  vec3 sunCol = mix(vec3(1.0, 0.86, 0.45), vec3(1.0, 0.45, 0.25), smoothstep(0.1, -0.12, sp.y));
-  sky = mix(sky, sunCol, sun * uMoon);
-  sky += vec3(1.0, 0.55, 0.25) * exp(-sd*4.5) * 0.35 * uMoon;
 
-  // Stars in the upper sky
-  vec2 sg = gl_FragCoord.xy / 3.0;
+  // Sky: smooth gradient with a warm glow around the sun.
+  float h = uv.y;
+  vec3 sky = mix(uC, uB, smoothstep(0.28, 0.72, h));
+  sky = mix(sky, uA, smoothstep(0.6, 1.08, h));
+  sky += uC * exp(-sd*2.6) * 0.38 * uMoon;
+  sky = mix(sky, vec3(1.0, 0.86, 0.6), exp(-sd*11.0) * 0.4 * uMoon);
+
+  // Stars: soft points that fade out toward the horizon.
+  float px = max(1.0, uRes.y / 700.0);
+  vec2 sg = gl_FragCoord.xy / (3.0*px);
+  vec2 f = fract(sg) - 0.5;
   float st = hash(floor(sg));
-  float tw = 0.5 + 0.5*sin(t*1.5 + st*40.0);
-  sky += vec3(1.0, 0.9, 0.75) * step(0.9975, st) * tw * smoothstep(0.6, 0.95, uv.y) * 0.9;
+  float star = step(0.9968, st) * smoothstep(0.45, 0.0, length(f));
+  sky += vec3(1.0, 0.93, 0.82) * star * (0.55 + 0.45*sin(t*1.2 + st*60.0)) * smoothstep(0.62, 1.0, h) * 0.85;
+
+  // Wispy clouds, warmer and brighter underneath, drifting slowly.
+  vec2 cp = vec2(p.x*1.05 + t*0.005*uSpin, p.y*3.4 - 0.5);
+  float warp = fbm(cp*1.8 + vec2(t*0.004, 0.0));
+  float c = fbm(cp*1.25 + vec2(warp*0.7, warp*0.25));
+  float cmask = smoothstep(0.5, 0.78, c) * smoothstep(0.34, 0.58, h) * (1.0 - smoothstep(0.9, 1.02, h));
+  float under = smoothstep(0.62, 0.38, h);
+  vec3 cloudCol = mix(mix(uB, uA, 0.35), mix(uC, vec3(1.0, 0.86, 0.72), 0.45), under);
+  cloudCol += uC * exp(-sd*2.6) * 0.45 * uMoon;
+  sky = mix(sky, cloudCol, cmask * 0.7);
+
+  // The sun, sitting low, with a soft limb and long rays.
+  float sun = smoothstep(0.13 + aa, 0.13 - aa, sd);
+  vec3 sunCol = mix(vec3(1.0, 0.93, 0.66), vec3(1.0, 0.56, 0.3), smoothstep(0.1, -0.12, sp.y));
+  sky = mix(sky, sunCol, sun * uMoon);
+  float ang = atan(sp.y, sp.x);
+  float rays = noise1(ang*7.0 + t*0.04) * noise1(ang*19.0 - t*0.025);
+  sky += mix(uC, vec3(1.0, 0.85, 0.6), 0.4) * rays * exp(-sd*2.2) * 0.22 * uMoon;
 
   vec3 col = sky;
-  // Three layers of mesas, far to near
+  vec3 haze = mix(uC, sky, 0.55);
+  vec3 rim = mix(uC, vec3(1.0, 0.82, 0.55), 0.4) * 0.55 * uMoon;
+
+  // Four ridges, far to near: more haze far away, darker and warmer up close.
   float x = p.x;
-  float m1 = mesa(x*0.8 + 3.0, 1.0, -0.1, 0.16);
-  float m2 = mesa(x*1.1 - 7.0, 5.0, -0.22, 0.13);
-  float m3 = mesa(x*1.5 + 11.0, 9.0, -0.36, 0.1);
-  vec3 far = mix(uD, sky, 0.55);
-  vec3 mid = mix(uD, sky, 0.3);
-  vec3 near = uD * 0.7;
-  col = mix(col, far, step(p.y, m1));
-  col = mix(col, mid, step(p.y, m2));
-  col = mix(col, near, step(p.y, m3));
-  // rim light on the near mesa tops
-  col += uC * 0.25 * smoothstep(0.012, 0.0, abs(p.y - m3)) * step(p.y, m3 + 0.01);
-  // Desert floor stripes
-  float ground = step(p.y, -0.42);
-  float rows = step(0.5, fract((p.y + 0.42) * 30.0 / max(0.05, -p.y + 0.2)));
-  col = mix(col, uD * (0.45 + 0.08*rows), ground);
+  col = layer(col, p, ridge(x, 1.0, -0.07, 0.15, 1.3), mix(uD, haze, 0.74), rim*0.25, aa, 1.0);
+  col = mix(col, haze, 0.1 * smoothstep(-0.05, -0.2, p.y));
+  col = layer(col, p, ridge(x, 5.0, -0.17, 0.14, 1.7), mix(uD, haze, 0.5), rim*0.4, aa, 5.0);
+  col = mix(col, haze, 0.08 * smoothstep(-0.15, -0.3, p.y));
+  col = layer(col, p, ridge(x, 9.0, -0.28, 0.12, 2.2), mix(uD, haze, 0.22), rim*0.6, aa, 9.0);
+  col = layer(col, p, ridge(x, 13.0, -0.4, 0.07, 3.0), uD*0.62, rim*0.8, aa, 13.0);
 
-  // Blowing dust
-  float dust = fbm(vec2(p.x*3.0 - t*0.15*uSpin, p.y*6.0));
-  col += uC * smoothstep(0.6, 0.85, dust) * 0.08 * smoothstep(0.1, -0.5, p.y);
+  // Desert floor: dark, with soft dune shading.
+  float gTop = -0.43 + (noise1(x*2.0 + 4.0) - 0.5) * 0.02;
+  float gCov = smoothstep(gTop + aa, gTop - aa, p.y);
+  float dune = fbm(vec2(x*2.5, p.y*9.0));
+  vec3 ground = uD * (0.5 + 0.12*dune) * (1.0 - 0.35*smoothstep(gTop, -0.5, p.y));
+  col = mix(col, ground, gCov);
 
-  // pulse when scoring
-  col *= 1.0 + uPulse*0.3;
-  col += uC * uPulse * 0.08;
+  // Drifting dust low in the air.
+  float dust = fbm(vec2(p.x*2.2 - t*0.05*uSpin, p.y*5.0 + t*0.02));
+  col += mix(uC, vec3(1.0, 0.85, 0.65), 0.3) * smoothstep(0.55, 0.85, dust) * 0.06 * smoothstep(0.0, -0.45, p.y);
 
-  float vig = smoothstep(1.25, 0.35, length((uv - 0.5) * vec2(1.25, 1.0)));
-  col *= mix(0.5, 1.0, vig);
+  // Scoring pulse
+  col *= 1.0 + uPulse*0.22;
+  col += uC * uPulse * 0.05;
+
+  // Soft vignette and a little dithering so gradients never band.
+  float vig = smoothstep(1.35, 0.3, length((uv - 0.5) * vec2(1.2, 1.0)));
+  col *= mix(0.55, 1.0, vig);
+  col += (hash(gl_FragCoord.xy + fract(t)*97.0) - 0.5) / 160.0;
   gl_FragColor = vec4(col, 1.0);
 }
 `;
@@ -186,7 +213,9 @@ class Background {
 
   resize() {
     if (!this.canvas) return;
-    const scale = this.quality === 'high' ? 0.6 : 0.35;
+    // Edges are antialiased in the shader, so a smooth upscale from slightly below native looks clean.
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+    const scale = this.quality === 'high' ? 0.9 * dpr : 0.55;
     const w = Math.max(1, Math.floor(window.innerWidth * scale));
     const hh = Math.max(1, Math.floor(window.innerHeight * scale));
     this.canvas.width = w;

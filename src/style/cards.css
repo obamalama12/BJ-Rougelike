@@ -34,7 +34,7 @@
 .reduce-motion .card-inner { animation: none; }
 .card:hover .card-inner {
   transition: transform 0.12s ease-out, filter 0.2s;
-  filter: drop-shadow(3px 7px 0 rgba(20, 8, 2, 0.35));
+  filter: drop-shadow(0 3px 3px rgba(10, 4, 0, 0.35)) drop-shadow(0 10px 14px rgba(10, 4, 0, 0.3));
 }
 .card.down .card-inner { transform: rotateX(var(--rx)) rotateY(calc(180deg + var(--ry))); }
 .face {
@@ -44,7 +44,7 @@
   overflow: hidden;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
-  box-shadow: 3px 4px 0 rgba(20, 8, 2, 0.5);
+  box-shadow: 0 1px 2px rgba(10, 4, 0, 0.35), 0 6px 14px rgba(10, 4, 0, 0.3);
 }
 .face.back { transform: rotateY(180deg); }
 .shine {
@@ -262,7 +262,7 @@
   rotate: -14deg;
   background: var(--seal);
   border-radius: 50%;
-  box-shadow: 0 0 0 1cqw var(--key), 0 0 0 2.2cqw var(--stock, #f5e8cb), 0.8cqw 1.2cqw 0 2.2cqw rgba(20, 8, 2, 0.35);
+  box-shadow: 0 0 0 1cqw var(--key), 0 0 0 2.2cqw var(--stock, #f5e8cb), 0 1.5cqw 3cqw 2.2cqw rgba(10, 4, 0, 0.3);
   clip-path: none;
 }
 .wax-seal::before {
@@ -492,7 +492,7 @@
 
 /* States */
 .card.picked .card-inner { transform: translateY(-16px) rotateX(var(--rx)) rotateY(var(--ry)); }
-.card.picked .face.front { box-shadow: 0 0 0 3px #f2c14e, 0 0 0 5px #2a1408, 5px 9px 0 rgba(20, 8, 2, 0.45); }
+.card.picked .face.front { box-shadow: 0 0 0 3px #f2c14e, 0 0 0 5px #2a1408, 0 10px 22px rgba(10, 4, 0, 0.45); }
 .card.debuffed .face.front::after {
   content: '';
   position: absolute;
@@ -519,7 +519,7 @@
    corner index is boosted because the strip overlaps cards from the right. */
 .card.mini { --cw: 56px; --ch: 78px; }
 .card.mini .card-inner { animation: none; }
-.card.mini .face { border-radius: 6px; box-shadow: 2px 2px 0 rgba(20, 8, 2, 0.5); }
+.card.mini .face { border-radius: 6px; box-shadow: 0 2px 5px rgba(10, 4, 0, 0.4); }
 .card.mini .pc-body { border-radius: 6px; border-width: 1px; }
 .card.mini .pc-rank { font-size: 31cqw; }
 .card.mini .pc-corner { width: 29cqw; left: 1.5cqw; top: 1.5cqw; padding: 1cqw 0 1.4cqw; }
@@ -594,7 +594,7 @@
   border-radius: 50%;
   background: #f8eed6;
   border: 3px solid var(--key);
-  box-shadow: inset 0 0 0 3px #f8eed6, inset 0 0 0 4.5px var(--frame), 3px 3px 0 var(--key);
+  box-shadow: inset 0 0 0 3px #f8eed6, inset 0 0 0 4.5px var(--frame), 0 2px 5px rgba(10, 4, 0, 0.35);
   display: grid;
   place-items: center;
 }
@@ -684,7 +684,7 @@
   place-items: center;
   background: #f8eed6;
   border: 2.5px solid var(--key);
-  box-shadow: 3px 3px 0 var(--key);
+  box-shadow: 0 2px 5px rgba(10, 4, 0, 0.35);
   z-index: 1;
 }
 .cs-art .icon { width: 44px; height: 44px; --i1: var(--hue); }
@@ -707,7 +707,7 @@
   color: var(--key);
 }
 .cs-fortune .cs-kind { background: #c8402a; color: #f8eed6; }
-.cs-fortune .cs-art { box-shadow: inset 0 0 0 2.5px #f8eed6, inset 0 0 0 4px #c8402a, 3px 3px 0 var(--key); }
+.cs-fortune .cs-art { box-shadow: inset 0 0 0 2.5px #f8eed6, inset 0 0 0 4px #c8402a, 0 2px 5px rgba(10, 4, 0, 0.35); }
 .cs-fortune .cs-name { color: #8a2414; bottom: 9cqw; left: 8cqw; right: 8cqw; }
 .fs-stamp { display: none; }
 .fs-lines {
@@ -876,7 +876,7 @@
   border: 2.5px solid var(--key);
   display: grid;
   place-items: center;
-  box-shadow: inset 0 0 0 3px #f8eed6, inset 0 0 0 4.5px var(--hue), 3px 3px 0 var(--key);
+  box-shadow: inset 0 0 0 3px #f8eed6, inset 0 0 0 4.5px var(--hue), 0 2px 5px rgba(10, 4, 0, 0.35);
 }
 .pk-art .icon { width: 44px; height: 44px; --i1: var(--hue); }
 .pk-name {
