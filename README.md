@@ -18,16 +18,18 @@ npm run build:single  # one self-contained HTML file in dist-single/
 
 ### How it plays
 
-- **Grit** is your health for the whole run (10 to start). The run ends at 0 Grit.
+- **Grit** is your health for the whole run (10 to start). The run ends at 0 Grit. Riding into
+  a new town restores 2.
 - **The trail.** Pick your next stop each step:
   - **Saloon Game** and **High Stakes** tables. High Stakes has a bigger target and a
     bigger payout.
   - **Bank Job**: a harder table with an Outlaw's curse and a rare Doodad as the prize.
   - **General Store** (the shop), **Doc Hoot** (heal, or remove cards from your deck),
     **Campfire** (rest, level up a hand type, or polish a Doodad).
-  - **Strange Happenings**: 20 encounters with choices, including a quick-draw duel.
+  - **Strange Happenings**: 34 encounters with choices, including a quick-draw duel. You won't
+    meet the same one twice in a run until you've seen them all.
   - The **Outlaw** at the end of the town. If you lose, you can try again as long as you
-    have Grit left.
+    have Grit left, and each retry's target is 15% lower.
 - **A table** is blackjack against a dealer. You have a number of **Hands** and **Folds**.
   Reach the target score before you run out of hands, or you lose Grit.
 - **Wagers.** Before each deal, pick Penny (X1, safe), Dollar (X2, lose 1 Grit if you lose

@@ -305,10 +305,12 @@
 .poster-curse .t-money { color: #8a5a0a; }
 /* Ledger rows: label .... value */
 .poster-row { width: 100%; display: flex; justify-content: space-between; align-items: baseline; gap: 6px; line-height: 1; margin-top: 2px; }
-.poster-row::before { content: ''; order: 1; flex: 1; min-width: 10px; border-bottom: 1.5px dotted rgba(42, 20, 8, 0.35); transform: translateY(-3px); }
-.poster-label { order: 0; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--key-2); white-space: nowrap; }
+.poster-row::before { content: ''; order: 1; flex: 1; min-width: 4px; border-bottom: 1.5px dotted rgba(42, 20, 8, 0.35); transform: translateY(-3px); }
+.poster-label { order: 0; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--key-2); white-space: nowrap; }
 .poster-target-val, .poster-score-val { order: 2; font-family: var(--f-display); line-height: 1; }
-.poster-target-val { font-size: 26px; color: var(--plate-deep); }
+.poster-target-val { font-size: 24px; color: var(--plate-deep); white-space: nowrap; }
+.poster-target-val.long { font-size: 20px; }
+.poster-target-val.xlong { font-size: 16px; }
 .poster.outlaw .poster-target-val { color: #8a1e10; }
 .poster-score-val { font-size: 22px; color: var(--key); }
 .poster-bar {

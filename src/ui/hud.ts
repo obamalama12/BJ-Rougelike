@@ -195,6 +195,8 @@ export class Hud {
     }
     const target = t?.target ?? (outlawNode ? nodeTarget(run, outlawNode) : 0);
     this.refs.target.textContent = fmtNum(target);
+    this.refs.target.classList.toggle('long', this.refs.target.textContent.length > 5);
+    this.refs.target.classList.toggle('xlong', this.refs.target.textContent.length > 7);
     if (t) {
       const rules = getRules(run);
       this.refs.rules.textContent = `Dealer draws to ${rules.dealerStand}${rules.dealerHitSoft17 ? ' (hits soft 17)' : ''} \u00b7 Over ${rules.bustLimit} busts \u00b7 ${rules.charlieSize} cards without busting wins`;
