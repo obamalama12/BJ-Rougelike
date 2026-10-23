@@ -11,10 +11,11 @@ import {
 } from '../../game/table';
 import { drainFx, getRules, currentHost, NIGHTS } from '../../game/engine';
 import { cashOut, failTable, winTable } from '../../game/shop';
-import { setWager } from '../../game/table';
+import { setWager, placeSideBet, hotStreakX, SIDE_BETS } from '../../game/table';
+import type { SideBetId } from '../../core/types';
 import { dealerId, line, nameOf, outlawIntro, portraitOf, type Mood } from '../characters';
 import type { Expression } from '../portraits';
-import { app, burstAt, button, center, jiggle, modal, popup, save, screenShake, tip, wait, hideTip } from '../app';
+import { app, burstAt, button, center, jiggle, modal, popup, save, screenShake, tip, toast, wait, hideTip } from '../app';
 import { cardTooltip, hostMedallion, hostTooltip, playingCard, cardBackHtml } from '../art';
 import { div, fmtNum, h, clear, fmt } from '../dom';
 import { Hud } from '../hud';
@@ -58,6 +59,8 @@ export class TableScreen {
   dealerFace: HTMLElement;
   bubble: HTMLElement;
   wagerEl: HTMLElement;
+  sideEl: HTMLElement;
+  hotEl: HTMLElement;
   private dealerChar = 'dealer_bart';
   private moodTimer = 0;
   cards = new Map<number, HTMLElement>();
@@ -79,10 +82,13 @@ export class TableScreen {
     this.banner = div('outcome-banner');
     this.actions = div('action-bar');
     this.wagerEl = div('wager');
+    this.sideEl = div('side-bets');
+    this.hotEl = div('hot-streak');
+    tip(this.hotEl, () => '<div class="tt-title">Hot Streak</div><div class="tt-body">Win hands in a row for bonus Odds: ×1.25 on the 2nd win, up to ×2. It carries between tables. A loss or bust puts it out; folds and ties don’t.</div>', 'right');
     this.dealerFace = div('dealer-face');
     this.bubble = div('bubble');
     this.dealerEl = div('dealer', this.dealerFace, div('dealer-name'), this.bubble);
-    this.el.append(this.dealerEl, this.felt, this.shoeEl, div('discard-spot'), this.hud.pot, this.dealerBadge, this.handBadges, this.cardLayer, this.banner, this.wagerEl, this.actions);
+    this.el.append(this.dealerEl, this.felt, this.shoeEl, div('discard-spot'), this.hud.pot, this.dealerBadge, this.handBadges, this.cardLayer, this.banner, this.wagerEl, this.sideEl, this.hotEl, this.actions);
     tip(this.shoeEl, () => this.shoeTip(), 'left');
     this.keyHandler = (e) => this.onKey(e);
     window.addEventListener('keydown', this.keyHandler);
@@ -326,6 +332,8 @@ export class TableScreen {
     const t = run.table!;
     clear(this.actions);
     this.renderWager();
+    this.renderSideBets();
+    this.renderHot();
     if (t.phase === 'ready') {
       const deal = button('Deal', 'primary big deal-btn', () => void this.deal(), { sub: 'Space' });
       this.actions.append(deal);
@@ -357,6 +365,42 @@ export class TableScreen {
   }
 
   /** Penny / Dollar / Bankroll wager picker, shown between hands. */
+  /** Optional $2 side bets, placed before the deal. */
+  private renderSideBets() {
+    const run = this.run;
+    const t = run.table!;
+    const el = this.sideEl;
+    clear(el);
+    const ready = t.phase === 'ready';
+    el.classList.toggle('locked', !ready);
+    el.appendChild(div('side-title', 'Side Bet', h('small', null, ` $${SIDE_BETS.pair.cost}`)));
+    for (const id of Object.keys(SIDE_BETS) as SideBetId[]) {
+      const d = SIDE_BETS[id];
+      const on = t.sideBet === id;
+      const b = h('button', { class: `side-opt${on ? ' on' : ''}`, type: 'button', disabled: !ready || (!on && run.money < d.cost) });
+      b.innerHTML = `<span class="side-name">${d.name}</span><span class="side-pay">pays $${d.pays}</span>`;
+      tip(b, () => `<div class="tt-title">${d.name}</div><div class="tt-body">Costs $${d.cost}. Pays $${d.pays} if: ${d.text.toLowerCase()}.<br><span class="t-dim">Click again to take it back.</span></div>`, 'right');
+      b.addEventListener('click', () => {
+        if (!ready || app.busy) return;
+        if (!placeSideBet(run, on ? null : id)) return toast('Not enough Bucks', 'bad');
+        sfx(on ? 'select' : 'coin');
+        save();
+        this.hud.update();
+        this.renderSideBets();
+      });
+      el.appendChild(b);
+    }
+  }
+
+  /** The Hot Streak badge: grows with each win in a row. */
+  private renderHot() {
+    const n = this.run.flags.hot ?? 0;
+    const x = hotStreakX(this.run);
+    const el = this.hotEl;
+    el.className = `hot-streak${n >= 1 ? ' show' : ''}${x >= 1.75 ? ' blazing' : ''}`;
+    el.innerHTML = n >= 1 ? `<span class="hs-flame"></span><span class="hs-text"><b>${x > 1 ? `×${x}` : 'Warming up'}</b><small>${n} win${n > 1 ? 's' : ''} in a row</small></span>` : '';
+  }
+
   private renderWager() {
     const run = this.run;
     const t = run.table!;

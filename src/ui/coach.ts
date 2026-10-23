@@ -20,7 +20,7 @@ const NOTES: Record<string, string> = {
   trail: 'This is the trail. Click a stop that is lit up to ride there. Card tables pay out Bucks. The Outlaw at the far end guards the road to the next town.',
   grit: 'Those horseshoes are your {g:Grit}. Fall short at a table and you lose some. At zero the run is over. The Doc and the campfire patch you back up.',
   table: 'Reach the score on the poster before you run out of hands. Each bullet in the revolver down there is one hand of blackjack.',
-  wager: 'Pick a wager before you deal. {g:Dollar} doubles the score and {g:Bankroll} triples it, but losing the hand costs 1 or 2 {g:Grit}.',
+  wager: 'Pick a wager before you deal. {g:Dollar} doubles the score and {g:Bankroll} triples it, but losing the hand costs 1 or 2 {g:Grit}. The tickets on the felt are $2 {g:side bets} that pay Bucks. Win hands in a row to build a {g:Hot Streak}.',
   hand: 'Get closer to 21 than the dealer without going over. {g:Hit} takes a card, {g:Stand} ends your turn. {g:Double} takes one card and doubles the score but uses an extra hand. {g:Fold} throws a bad hand away for free, a few times per table.',
   score: 'A winning hand scores {c:Pot} × {m:Odds}. The kind of win sets the starting numbers, every card adds its value to the {c:Pot}, and Doodads pile on more.',
   store: 'Doodads ride in your bandolier along the bottom and work every hand on their own. Tonics and the like go in the satchel; click one to use it.',

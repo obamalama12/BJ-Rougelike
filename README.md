@@ -35,6 +35,10 @@ npm run build:single  # one self-contained HTML file in dist-single/
     have Grit left, and each retry's target is 15% lower.
 - **A table** is blackjack against a dealer. You have a number of **Hands** and **Folds**.
   Reach the target score before you run out of hands, or you lose Grit.
+- **Hot Streak.** Win hands in a row for bonus Odds: x1.25 on the second win, up to x2. It
+  carries between tables; a loss or bust puts it out, folds and ties don't.
+- **Side bets.** Before each deal you can put $2 on Pair Up (pays $14), Suited ($6) or Dealer
+  Busts ($6).
 - **Wagers.** Before each deal, pick Penny (X1, safe), Dollar (X2, lose 1 Grit if you lose
   the hand) or Bankroll (X3, lose 2 Grit if you lose the hand).
 - **Scoring.** A hand that wins or ties scores **Pot** X **Odds**. The hand type sets the

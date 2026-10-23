@@ -58,6 +58,9 @@ export interface TagInst {
 }
 
 /** paper = Saloon game, silk = High Stakes, bank = Bank Job (elite), host = Outlaw showdown. */
+/** Optional side bets on a hand: paid in Bucks, decided by the deal or the dealer. */
+export type SideBetId = 'pair' | 'suited' | 'bust';
+
 export type TableKind = 'paper' | 'silk' | 'bank' | 'gang' | 'host';
 
 export interface PlayerHand {
@@ -103,6 +106,8 @@ export interface TableState {
   crumbled: number[];
   /** Win streak inside the table. */
   streak: number;
+  /** Side bet placed on the current hand, if any. */
+  sideBet?: SideBetId | null;
   /** Most recent hand's final score (for display). */
   lastScore: number;
   /** Cards drawn this table. */

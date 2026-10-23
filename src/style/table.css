@@ -743,3 +743,80 @@
   color: var(--stock);
   background: var(--key);
 }
+
+/* --- Side bets: a small rack of tickets in the felt's lower-left corner -------------------- */
+.side-bets {
+  position: absolute;
+  left: 346px;
+  top: 604px;
+  width: 196px;
+  z-index: 24;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.side-title {
+  font-family: var(--f-body);
+  font-weight: 700;
+  font-size: 10.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(246, 234, 208, 0.75);
+  padding-left: 2px;
+}
+.side-title small { letter-spacing: 0.06em; color: var(--brass, #e0a83a); }
+.side-opt {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  padding: 4px 10px 5px;
+  font-family: var(--f-body);
+  color: var(--key);
+  background: var(--fibre), var(--stock);
+  border: 1.5px solid var(--key);
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 2px var(--stock), inset 0 0 0 3px rgba(42, 20, 8, 0.25), var(--lift-1);
+  cursor: pointer;
+  transition: transform 0.08s, background 0.12s;
+}
+.side-opt:hover:not(:disabled) { transform: translateX(3px); }
+.side-name { font-family: var(--f-display); font-size: 14px; }
+.side-pay { font-weight: 700; font-size: 12px; color: var(--plate-sage); }
+.side-opt.on { background: var(--fibre), #f3dfa0; box-shadow: inset 0 0 0 2px #f3dfa0, inset 0 0 0 3px var(--plate-gold), 0 0 0 2px var(--plate-gold), var(--lift-1); transform: translateX(6px); }
+.side-opt.on .side-name::before { content: '● '; color: var(--plate-verm); font-size: 10px; vertical-align: 2px; }
+.side-opt:disabled { cursor: default; }
+.side-bets.locked .side-opt:not(.on) { opacity: 0.38; }
+
+/* --- Hot Streak badge -------------------------------------------------------------------------- */
+.hot-streak {
+  position: absolute;
+  left: 346px;
+  top: 470px;
+  z-index: 24;
+  display: none;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 14px 6px 8px;
+  color: var(--stock);
+  background: var(--key);
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1.5px var(--plate-verm), inset 0 0 0 3px var(--key), inset 0 0 0 4px rgba(242, 193, 78, 0.6), var(--lift-1);
+  cursor: help;
+}
+.hot-streak.show { display: flex; animation: hotIn 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.5); }
+@keyframes hotIn { from { transform: scale(0.6); opacity: 0; } }
+.hs-flame {
+  width: 22px;
+  height: 28px;
+  background: radial-gradient(ellipse at 50% 80%, #fff3c0 0 18%, #f2c14e 30%, #e2603f 55%, transparent 72%);
+  clip-path: path('M11 0 C14 7 21 10 21 18 C21 24 16 28 11 28 C6 28 1 24 1 18 C1 13 5 11 6 6 C8 10 9 11 10 11 C10 7 10 4 11 0Z');
+  animation: hsFlicker 0.5s ease-in-out infinite alternate;
+}
+@keyframes hsFlicker { from { transform: scale(1, 0.92) rotate(-3deg); } to { transform: scale(0.95, 1.06) rotate(3deg); } }
+.hs-text { display: flex; flex-direction: column; line-height: 1.05; }
+.hs-text b { font-family: var(--f-display); font-weight: 400; font-size: 19px; color: #ffcf7a; }
+.hs-text small { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; color: rgba(246, 234, 208, 0.75); }
+.hot-streak.blazing { box-shadow: inset 0 0 0 1.5px #ff8a3d, inset 0 0 0 3px var(--key), inset 0 0 0 4px #ffcf7a, 0 0 18px rgba(255, 120, 40, 0.55), var(--lift-1); }
+.hot-streak.blazing .hs-flame { width: 26px; height: 32px; }
+.reduce-motion .hs-flame { animation: none; }

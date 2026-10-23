@@ -1,6 +1,6 @@
 // The blackjack table: dealing, player actions, the dealer, and scoring.
 
-import type { Card, HandTypeId, Outcome, PlayerHand, Run, ScoreEvent, TableKind, TableState } from '../core/types';
+import type { Card, HandTypeId, Outcome, PlayerHand, Run, ScoreEvent, SideBetId, TableKind, TableState } from '../core/types';
 import { cardChips, classifyHand, handBase, handTotal, isFace, isTenValue } from '../core/cards';
 import { CHARM } from '../content/charms';
 import { HOST } from '../content/hosts';
@@ -191,6 +191,7 @@ export interface DealResult {
 /** After the initial four cards: dealer peek and naturals. */
 export function afterDeal(run: Run): DealResult {
   const t = run.table!;
+  settleDealtSideBet(run);
   const rules = getRules(run);
   const h = t.hands[0];
   const pc = cardsOf(run, h.cards);
@@ -493,6 +494,7 @@ export function settleOutcomes(run: Run) {
   const rules = getRules(run);
   revealDealer(run);
   const dt = handTotal(cardsOf(run, t.dealer), rules, 21, true);
+  if (t.sideBet === 'bust') paySideBet(run, dt.bust);
   for (const h of t.hands) {
     revealHand(run, h);
     if (h.outcome) continue;
@@ -580,6 +582,7 @@ export function scoreHand(run: Run, hi: number): ScoreResult {
     if (handType !== 'push') {
       run.stats.handsWon++;
       t.streak++;
+      run.flags.hot = (run.flags.hot ?? 0) + 1;
     }
     const lvl = run.handLevels[handType];
     let { chips, mult } = handBase(handType, lvl);
@@ -676,6 +679,11 @@ export function scoreHand(run: Run, hi: number): ScoreResult {
       sink.events.push({ t: 'msg', text: t.wager === 2 ? 'Dollar wager!' : 'Bankroll wager!', color: '#ffd23f', src: { kind: 'hand' } });
       c.xmult(t.wager);
     }
+    const hx = hotStreakX(run);
+    if (hx > 1) {
+      sink.events.push({ t: 'msg', text: `Hot Streak ×${hx}!`, color: '#ff8a3d', src: { kind: 'hand' } });
+      c.xmult(hx);
+    }
     if (run.shoeId === 'balance') {
       const avg = (sink.chips + sink.mult) / 2;
       sink.chips = avg;
@@ -704,6 +712,8 @@ export function scoreHand(run: Run, hi: number): ScoreResult {
     }
   } else if (!scoring) {
     t.streak = 0;
+    // A loss or bust puts the fire out. Folds and ties leave it burning.
+    if (outcome === 'lose' || outcome === 'bust') run.flags.hot = 0;
     // Risky wagers cost Grit when the hand is lost.
     if ((outcome === 'lose' || outcome === 'bust') && t.wager > 1) {
       const n = t.wager - 1;
@@ -799,6 +809,7 @@ export function endRound(run: Run, results: ScoreResult[]): 'ready' | 'won' | 'l
 /** Discard the folded hand and dealer cards. */
 export function endFold(run: Run) {
   const t = run.table!;
+  if (t.sideBet) paySideBet(run, false);
   for (const h of t.hands) t.discard.push(...h.cards);
   t.discard.push(...t.dealer);
   t.hands = [];
@@ -813,6 +824,61 @@ export function isHidden(run: Run, id: number): boolean {
 }
 
 export { fire };
+
+// ---------------------------------------------------------------------------
+// Hot Streak and side bets
+// ---------------------------------------------------------------------------
+
+/** Odds multiplier for winning hands in a row (across tables): x1.25 from the 2nd win, up to x2. */
+export function hotStreakX(run: Run): number {
+  const n = run.flags.hot ?? 0;
+  return n >= 2 ? Math.min(2, 1 + 0.25 * (n - 1)) : 1;
+}
+
+export const SIDE_BETS: Record<SideBetId, { name: string; cost: number; pays: number; text: string }> = {
+  pair: { name: 'Pair Up', cost: 2, pays: 14, text: 'Your first two cards are the same rank' },
+  suited: { name: 'Suited', cost: 2, pays: 6, text: 'Your first two cards are the same suit' },
+  bust: { name: 'Dealer Busts', cost: 2, pays: 6, text: 'The dealer goes over' },
+};
+
+export function placeSideBet(run: Run, id: SideBetId | null): boolean {
+  const t = run.table;
+  if (!t || t.phase !== 'ready') return false;
+  if (t.sideBet) run.money += SIDE_BETS[t.sideBet].cost;
+  t.sideBet = null;
+  if (!id) return true;
+  if (run.money < SIDE_BETS[id].cost) return false;
+  run.money -= SIDE_BETS[id].cost;
+  t.sideBet = id;
+  return true;
+}
+
+function paySideBet(run: Run, won: boolean) {
+  const t = run.table!;
+  const id = t.sideBet;
+  if (!id) return;
+  t.sideBet = null;
+  const def = SIDE_BETS[id];
+  if (won) {
+    run.money += def.pays;
+    run.stats.moneyEarned += def.pays;
+    fxQueue.push({ t: 'money', v: def.pays, src: { kind: 'hand' } });
+    fxQueue.push({ t: 'msg', text: `${def.name} pays!`, color: '#7fe07a', src: { kind: 'hand' } });
+  } else {
+    fxQueue.push({ t: 'msg', text: `${def.name} lost`, color: '#c9b89a', src: { kind: 'hand' } });
+  }
+}
+
+/** Pair Up and Suited are decided by the first two cards. */
+function settleDealtSideBet(run: Run) {
+  const t = run.table!;
+  if (t.sideBet !== 'pair' && t.sideBet !== 'suited') return;
+  const [a, b] = cardsOf(run, t.hands[0]?.cards.slice(0, 2) ?? []);
+  if (!a || !b) return;
+  const wild = (k: typeof a) => k.ink === 'spirit';
+  const won = t.sideBet === 'pair' ? a.rank === b.rank : a.suit === b.suit || wild(a) || wild(b);
+  paySideBet(run, won);
+}
 
 /** Choose the wager for the next hand: 1 = Penny (safe), 2 = Dollar, 3 = Bankroll. */
 export function setWager(run: Run, w: number) {
