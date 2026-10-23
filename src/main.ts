@@ -2,6 +2,7 @@ import '@fontsource/rye/latin-400.css';
 import '@fontsource/zilla-slab/latin-500.css';
 import '@fontsource/zilla-slab/latin-600.css';
 import '@fontsource/zilla-slab/latin-700.css';
+import { clearCoach } from './ui/coach';
 import './style/main.css';
 import './style/system.css';
 import './style/cards.css';
@@ -42,6 +43,7 @@ let lastPhase = '';
 
 function render() {
   hideTip();
+  clearCoach();
   table?.destroy();
   table = null;
   const run = app.run;

@@ -27,53 +27,70 @@ const NOTES: Record<string, string> = {
   outlaw: 'Every Outlaw bends one rule. The curse is printed on the Wanted poster. Read it before you play.',
 };
 
-let open: Promise<void> = Promise.resolve();
+/** Notes waiting to be shown, and the close function of the one on screen. */
+let queue: { id: string; pos: CoachPos }[] = [];
+let closeCurrent: (() => void) | null = null;
 
 export function tipsOn(): boolean {
   return profile.settings.tips !== false;
 }
 
 /** Show a note once per profile. Notes queue up if several fire together. */
-export function coach(id: keyof typeof NOTES, pos: CoachPos): Promise<void> {
-  if (!tipsOn() || profile.tips[id]) return Promise.resolve();
-  profile.tips[id] = true;
-  saveProfile();
-  open = open.then(() => show(NOTES[id], pos));
-  return open;
+export function coach(id: keyof typeof NOTES, pos: CoachPos) {
+  if (!tipsOn() || profile.tips[id] || queue.some((q) => q.id === id)) return;
+  queue.push({ id, pos });
+  if (!closeCurrent) next();
 }
 
-function show(text: string, pos: CoachPos): Promise<void> {
-  return new Promise((resolve) => {
-    const note = div(`coach point-${pos.point ?? 'none'}`);
-    note.style.left = `${pos.x}px`;
-    note.style.top = `${pos.y}px`;
-    if (pos.w) note.style.width = `${pos.w}px`;
-    const done = () => {
-      note.classList.add('out');
+/** Called when the screen changes: close the open note and forget queued ones, which fire again where they belong. */
+export function clearCoach() {
+  queue = [];
+  closeCurrent?.();
+}
+
+function next() {
+  const item = queue.shift();
+  if (!item || !tipsOn()) return;
+  // A note only counts as seen once it is actually shown.
+  profile.tips[item.id] = true;
+  saveProfile();
+  show(NOTES[item.id], item.pos);
+}
+
+function show(text: string, pos: CoachPos) {
+  const note = div(`coach point-${pos.point ?? 'none'}`);
+  note.style.left = `${pos.x}px`;
+  note.style.top = `${pos.y}px`;
+  if (pos.w) note.style.width = `${pos.w}px`;
+  const done = () => {
+    if (closeCurrent !== done) return;
+    closeCurrent = null;
+    note.classList.add('out');
+    setTimeout(() => note.remove(), 180);
+    window.removeEventListener('keydown', onKey, true);
+    next();
+  };
+  const onKey = (e: KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') {
+      e.preventDefault();
+      e.stopImmediatePropagation();
       sfx('select');
-      setTimeout(() => note.remove(), 180);
-      window.removeEventListener('keydown', onKey, true);
-      resolve();
-    };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') {
-        e.preventDefault();
-        e.stopImmediatePropagation();
-        done();
-      }
-    };
-    note.append(
-      h('div', { class: 'coach-face', html: portraitOf('doc', 'neutral') }),
-      div('coach-body', div('coach-who', h('span', null, 'Doc Hoot'), h('small', null, 'Frontier Physician')), h('div', { class: 'coach-text', html: fmt(text) }), div('coach-foot', button('Got it', 'small primary', done), button('No more tips', 'tiny ghost', () => {
-        profile.settings.tips = false;
-        saveProfile();
-        done();
-      }))),
-    );
-    app.modalLayer.appendChild(note);
-    window.addEventListener('keydown', onKey, true);
-    sfx('deal');
-  });
+      done();
+    }
+  };
+  note.append(
+    h('div', { class: 'coach-face', html: portraitOf('doc', 'neutral') }),
+    div('coach-body', div('coach-who', h('span', null, 'Doc Hoot'), h('small', null, 'Frontier Physician')), h('div', { class: 'coach-text', html: fmt(text) }), div('coach-foot', button('Got it', 'small primary', done), button('No more tips', 'tiny ghost', () => {
+      profile.settings.tips = false;
+      saveProfile();
+      queue = [];
+      done();
+    }))),
+  );
+  app.modalLayer.appendChild(note);
+  window.addEventListener('keydown', onKey, true);
+  closeCurrent = done;
+  sfx('deal');
 }
 
 export function resetTips() {
