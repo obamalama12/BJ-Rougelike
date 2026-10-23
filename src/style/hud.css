@@ -683,3 +683,4 @@
 .cons-slot .card.cons { --cw: 84px; --ch: 118px; }
 .cons-slot.selected { transform: translateY(-8px); z-index: 5; }
 .cons-actions { position: absolute; bottom: -16px; display: flex; gap: 4px; z-index: 6; }
+.wall-pips .pip.gang { border-color: var(--plate-gold); border-width: 2px; }

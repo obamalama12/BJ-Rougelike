@@ -3,7 +3,7 @@
 import { coach } from '../coach';
 import type { Run, TrailNode, NodeKind } from '../../core/types';
 import { HOST } from '../../content/hosts';
-import { NODE_INFO, nodeTarget, reachable, travel, isTableNode } from '../../game/trail';
+import { COLS, NODE_INFO, nodeTarget, reachable, travel, isTableNode } from '../../game/trail';
 import { canRerollHost, payRerollHost, maybeOpenTagPack } from '../../game/shop';
 import { NIGHTS } from '../../game/engine';
 import { app, button, save, tip, toast } from '../app';
@@ -16,6 +16,8 @@ import { portraitOf, townName } from '../characters';
 
 // Map area inside the stage (between the poster column and the satchel).
 const MAP = { x: 300, y: 104, w: 1000, h: 640 };
+/** The trail itself is wider than the map window and scrolls sideways inside it. */
+const WORLD_W = 140 + (COLS - 1) * 150 + 150;
 // Where the player stands before the first stop.
 const TRAILHEAD = { x: 62, y: 342 };
 
@@ -110,12 +112,12 @@ export function trailScreen(hud: Hud): HTMLElement {
   const map = div('trail-map');
   map.innerHTML = `<div class="map-paper sheet"></div><div class="map-neat"></div>
     <div class="map-title"><span class="mt-kicker">Route Map · Town ${run.night} of ${NIGHTS}</span><span class="mt-name">${townName(run.night)}</span><small>Choose your route to the Outlaw</small></div>
-    <div class="map-scale"><div class="ms-bar"><i></i><i></i><i></i><i></i></div><div class="ms-nums"><span>0</span><span>5</span><span>10 Miles</span></div></div>
     ${COMPASS}
     <div class="map-imprint">Buck Ducks Survey Office · Sheet ${run.night}</div>`;
   const svg = document.createElementNS(SVG_NS, 'svg');
   svg.setAttribute('class', 'trail-lines');
-  svg.setAttribute('viewBox', `0 0 ${MAP.w} ${MAP.h}`);
+  svg.setAttribute('viewBox', `0 0 ${WORLD_W} ${MAP.h}`);
+  svg.style.width = `${WORLD_W}px`;
   svg.innerHTML = RANGE;
   const can = new Set(reachable(run).map((n) => n.id));
   const at = run.trail.nodes.find((n) => n.id === run.trail.at);
@@ -142,7 +144,12 @@ export function trailScreen(hud: Hud): HTMLElement {
   head.setAttribute('class', 'trailhead');
   head.innerHTML = `<circle cx="${TRAILHEAD.x}" cy="${TRAILHEAD.y}" r="9" class="th-ring"/><circle cx="${TRAILHEAD.x}" cy="${TRAILHEAD.y}" r="4" class="th-dot"/>`;
   svg.appendChild(head);
-  map.appendChild(svg);
+  const scroller = div('map-scroll');
+  const world = div('map-world');
+  world.style.width = `${WORLD_W}px`;
+  scroller.appendChild(world);
+  map.appendChild(scroller);
+  world.appendChild(svg);
 
   for (const n of run.trail.nodes) {
     const p = nodePos(n);
@@ -180,7 +187,7 @@ export function trailScreen(hud: Hud): HTMLElement {
       save();
       app.render();
     });
-    map.appendChild(node);
+    world.appendChild(node);
   }
   // The player's token: a pin standing on the current stop.
   const tokenPos = at ? nodePos(at) : TRAILHEAD;
@@ -188,8 +195,14 @@ export function trailScreen(hud: Hud): HTMLElement {
   const token = div('trail-token', h('div', { class: 'tt-portrait', html: portraitOf('player', 'smug') }));
   token.style.left = `${tokenPos.x}px`;
   token.style.top = `${tokenPos.y - lift}px`;
-  map.appendChild(token);
+  world.appendChild(token);
   el.appendChild(map);
+  setupScroll(scroller, tokenPos.x);
+  if (WORLD_W > MAP.w) {
+    const hint = div('map-hint', 'Drag or scroll to see the whole trail');
+    map.appendChild(hint);
+    scroller.addEventListener('scroll', () => hint.classList.add('gone'), { once: true });
+  }
   // Fate Thread: reroll the Outlaw
   if (run.vouchers.includes('fate_thread')) {
     el.appendChild(
@@ -233,4 +246,47 @@ function nodeTip(run: Run, n: TrailNode): string {
     extra += `<br><br><b>${host?.name}</b>: ${fmt(host?.text ?? '')}`;
   }
   return `<div class="tt-title">${n.kind === 'outlaw' || n.kind === 'gang' ? HOST[n.hostId ?? '']?.name ?? info.name : info.name}</div><div class="tt-body">${info.blurb}${extra}</div>`;
+}
+
+/** Sideways scrolling: start with the player in view, let the wheel and a drag pan the trail. */
+function setupScroll(sc: HTMLElement, focusX: number) {
+  const place = () => {
+    sc.scrollLeft = Math.max(0, focusX - 260);
+    sc.classList.toggle('at-start', sc.scrollLeft < 4);
+    sc.classList.toggle('at-end', sc.scrollLeft > sc.scrollWidth - sc.clientWidth - 4);
+  };
+  requestAnimationFrame(place);
+  sc.addEventListener('scroll', () => {
+    sc.classList.toggle('at-start', sc.scrollLeft < 4);
+    sc.classList.toggle('at-end', sc.scrollLeft > sc.scrollWidth - sc.clientWidth - 4);
+  });
+  sc.addEventListener('wheel', (e) => {
+    if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+    e.preventDefault();
+    sc.scrollLeft += e.deltaY;
+  }, { passive: false });
+  // Drag on empty map to pan. Clicks on stops still work: small movements don't count as drags.
+  let down: { x: number; left: number } | null = null;
+  let dragged = false;
+  sc.addEventListener('pointerdown', (e) => {
+    if ((e.target as HTMLElement).closest('.trail-node')) return;
+    down = { x: e.clientX, left: sc.scrollLeft };
+    dragged = false;
+    sc.setPointerCapture(e.pointerId);
+  });
+  sc.addEventListener('pointermove', (e) => {
+    if (!down) return;
+    const dx = (e.clientX - down.x) / app.scale;
+    if (Math.abs(dx) > 4) dragged = true;
+    if (dragged) {
+      sc.scrollLeft = down.left - dx;
+      sc.classList.add('dragging');
+    }
+  });
+  const up = () => {
+    down = null;
+    sc.classList.remove('dragging');
+  };
+  sc.addEventListener('pointerup', up);
+  sc.addEventListener('pointercancel', up);
 }

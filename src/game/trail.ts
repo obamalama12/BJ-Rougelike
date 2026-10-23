@@ -8,7 +8,9 @@ import { NIGHTS, ctx, discover, fire, has, nightBase, rerollHost, rng, available
 import { startTable } from './table';
 import { openShop } from './shop';
 
-export const COLS = 6;
+export const COLS = 9;
+/** Columns made entirely of the Outlaw's gang: every route meets each of them. */
+export const GANG_COLS = [3, 6];
 
 /** Difficulty and payout of each kind of table. */
 export const TABLE_INFO: Record<'saloon' | 'highstakes' | 'bank' | 'gang' | 'outlaw', { kind: TableKind; scale: number; reward: number; gritOnFail: number; name: string }> = {
@@ -41,9 +43,11 @@ export function generateTrail(run: Run) {
   const pools: NodeKind[][] = [
     ['saloon', 'saloon', 'event'],
     ['saloon', 'highstakes', 'event', 'camp', 'store'],
-    // Halfway through every town the whole column is the Outlaw's gang: every route meets one.
-    ['gang'],
     ['saloon', 'highstakes', 'event', 'doc', ...(town >= 2 ? (['bank'] as NodeKind[]) : [])],
+    ['gang'],
+    ['store', 'camp', 'event', 'doc', 'saloon'],
+    ['saloon', 'highstakes', 'event', ...(town >= 2 ? (['bank'] as NodeKind[]) : (['highstakes'] as NodeKind[]))],
+    ['gang'],
     ['store', 'camp', 'doc'],
     ['outlaw'],
   ];
@@ -121,7 +125,7 @@ export function nodeTarget(run: Run, n: TrailNode): number {
   const kind = n.kind as 'saloon' | 'highstakes' | 'bank' | 'gang' | 'outlaw';
   // Tables grow a little further down the trail. The Outlaw's own multiplier already makes it the
   // town's hardest table, so it skips the column bonus (stacking both made showdowns a wall).
-  const base = nightBase(run) * (n.kind === 'outlaw' ? 1 : 1 + 0.12 * n.col);
+  const base = nightBase(run) * (n.kind === 'outlaw' ? 1 : 1 + (0.5 * n.col) / (COLS - 2));
   let scale = TABLE_INFO[kind].scale;
   if (n.kind === 'outlaw') scale = HOST[n.hostId ?? run.nightHost]?.scale ?? 2;
   if (n.kind === 'outlaw' && run.flags.wantedPoster) scale *= 1.25;

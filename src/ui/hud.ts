@@ -135,7 +135,8 @@ export class Hud {
     for (let c = 0; c < cols; c++) {
       const done = at ? c < at.col || (c === at.col && !!at.done) : false;
       const cur = at?.col === c && !at.done;
-      r.trailPips.appendChild(div(`pip${done ? ' done' : ''}${cur ? ' cur' : ''}${c === cols - 1 ? ' boss' : ''}`));
+      const gang = run.trail.nodes.some((n) => n.col === c && n.kind === 'gang');
+      r.trailPips.appendChild(div(`pip${done ? ' done' : ''}${cur ? ' cur' : ''}${c === cols - 1 ? ' boss' : ''}${gang ? ' gang' : ''}`));
     }
     // Grit: horseshoes
     const cap = gritCap(run);

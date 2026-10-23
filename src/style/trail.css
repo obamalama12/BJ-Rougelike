@@ -72,7 +72,7 @@
 .map-title small { font-family: var(--f-body); font-style: italic; font-weight: 600; font-size: 12.5px; color: var(--key-2); margin-top: 1px; }
 
 /* Scale of miles */
-.map-scale { position: absolute; left: 40px; bottom: 34px; width: 128px; color: var(--key); pointer-events: none; }
+.map-scale { position: absolute; right: 150px; top: 40px; width: 128px; color: var(--key); pointer-events: none; }
 .ms-bar { display: flex; height: 6px; border: 1px solid var(--key); }
 .ms-bar i { flex: 1; background: var(--stock); }
 .ms-bar i:nth-child(odd) { background: var(--key); }
@@ -80,7 +80,7 @@
 .ms-nums span:nth-child(2) { margin-left: 18px; }
 
 /* Compass rose */
-.map-compass { position: absolute; right: 44px; bottom: 34px; width: 96px; height: 108px; pointer-events: none; overflow: visible; }
+.map-compass { position: absolute; right: 36px; top: 26px; width: 84px; height: 95px; pointer-events: none; overflow: visible; }
 .map-compass .c-bezel { fill: var(--stock); stroke: var(--key); stroke-width: 1.5; }
 .map-compass .c-inner { fill: none; stroke: var(--plate-leather); stroke-width: 1; }
 .map-compass .c-ticks line { stroke: var(--key); stroke-width: 1; }
@@ -356,3 +356,47 @@
 .tn-label.boss.gang .tn-kicker { font-size: 8.5px; letter-spacing: 0.18em; }
 .trail-node.open .tn-seal.gang { animation: beckon 1.4s ease-in-out infinite alternate; }
 .trail-node.done .tn-seal.gang { filter: saturate(0.4); opacity: 0.8; }
+
+/* --- The trail scrolls sideways inside the map frame ------------------------------- */
+.map-scroll {
+  position: absolute;
+  inset: 22px 22px 22px 22px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  cursor: grab;
+  z-index: 1;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 46px, #000 calc(100% - 46px), transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 46px, #000 calc(100% - 46px), transparent 100%);
+}
+.map-scroll::-webkit-scrollbar { display: none; }
+.map-scroll.at-start { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 46px), transparent 100%); mask-image: linear-gradient(90deg, #000 calc(100% - 46px), transparent 100%); }
+.map-scroll.at-end { -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 46px); mask-image: linear-gradient(90deg, transparent 0, #000 46px); }
+.map-scroll.at-start.at-end { -webkit-mask-image: none; mask-image: none; }
+.map-scroll.dragging { cursor: grabbing; }
+/* The world keeps the frame's coordinates: it starts 22px in, so pull it back. */
+.map-world { position: relative; height: 640px; margin: -22px 0 0 -22px; }
+.map-world .trail-lines { width: auto; height: 640px; }
+/* Fixed furniture sits above the scrolling trail. */
+.map-title, .map-scale, .map-compass, .map-imprint { z-index: 3; }
+.map-scroll:not(.at-end)::after { content: none; }
+.map-hint {
+  position: absolute;
+  left: 50%;
+  top: 112px;
+  z-index: 4;
+  transform: translateX(-50%);
+  padding: 3px 14px 5px;
+  font-family: var(--f-body);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--stock);
+  background: var(--key);
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 1px #c9a46a, var(--lift-1);
+  pointer-events: none;
+  transition: opacity 0.4s;
+}
+.map-hint::after { content: ' ⟶'; }
+.map-hint.gone { opacity: 0; }
