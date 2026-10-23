@@ -115,7 +115,7 @@ export function openCollection() {
   };
   const labels: [Tab, string][] = [
     ['charms', 'Doodads'], ['fortunes', 'Tonics'], ['stars', 'Tall Tales'], ['masks', 'Moonshine'], ['relics', 'Deeds'],
-    ['tokens', 'Telegrams'], ['hosts', 'Outlaws'], ['shoes', 'Shoes'], ['cards', 'Paints & Brands'],
+    ['tokens', 'Telegrams'], ['hosts', 'Outlaws'], ['shoes', 'Decks'], ['cards', 'Paints & Brands'],
   ];
   for (const [id, label] of labels) {
     const b = h('button', { class: 'tab', type: 'button', dataset: { tab: id } }, label, h('small', null, ` ${counts[id][0]}/${counts[id][1]}`));

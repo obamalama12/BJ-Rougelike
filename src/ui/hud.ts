@@ -132,6 +132,7 @@ export class Hud {
       r.banner.className = 'sb-banner kind-shop';
       r.bannerIcon.innerHTML = `<div class="banner-ico shop">${iconSvg('duck')}</div>`;
       r.bannerName.textContent = 'General Store';
+      r.bannerSub.textContent = 'Supplies & Sundries';
     }
     const target = t?.target ?? (idx >= 0 ? tableTarget(run, idx) : nightBase(run));
     r.target.textContent = fmtNum(target);
