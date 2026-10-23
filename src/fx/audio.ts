@@ -1,10 +1,13 @@
 // All sound is synthesised with WebAudio: no assets required.
-// SFX are short tuned plucks/woodblocks/gongs; music is a generative
-// koto-and-taiko loop in the Hirajoshi scale.
+// SFX are banjo-ish plucks, woodblocks, quacks and honks; music is a generative
+// saloon loop in the major pentatonic, with clip-clop percussion and a lonesome
+// whistle when an Outlaw is at the table.
 
 type Mood = 'menu' | 'table' | 'shop' | 'host' | 'silent';
 
-const HIRAJOSHI = [0, 2, 3, 7, 8];
+const MAJOR = [0, 2, 4, 7, 9];
+const MINOR = [0, 3, 5, 7, 10];
+let HIRAJOSHI = MAJOR;
 
 class AudioEngine {
   ctx: AudioContext | null = null;
@@ -199,6 +202,58 @@ class AudioEngine {
     o.stop(t + 0.2);
   }
 
+  /** A synthesised duck quack: buzzy source through a nasal formant, pitch drop. */
+  quack(t: number, vol: number, dest: AudioNode, pitch = 1, goose = false) {
+    const ctx = this.ctx!;
+    const o = ctx.createOscillator();
+    o.type = 'sawtooth';
+    const f0 = (goose ? 330 : 520) * pitch;
+    const dur = goose ? 0.32 : 0.18;
+    o.frequency.setValueAtTime(f0 * 1.15, t);
+    o.frequency.exponentialRampToValueAtTime(f0, t + 0.04);
+    o.frequency.exponentialRampToValueAtTime(f0 * (goose ? 0.82 : 0.7), t + dur);
+    const f1 = ctx.createBiquadFilter();
+    f1.type = 'bandpass';
+    f1.frequency.value = goose ? 1100 : 1500;
+    f1.Q.value = 4;
+    const f2 = ctx.createBiquadFilter();
+    f2.type = 'bandpass';
+    f2.frequency.setValueAtTime(goose ? 2100 : 2600, t);
+    f2.frequency.exponentialRampToValueAtTime(goose ? 1500 : 1800, t + dur);
+    f2.Q.value = 5;
+    const g = ctx.createGain();
+    this.env(g, t, 0.01, vol, dur);
+    o.connect(f1).connect(g);
+    o.connect(f2).connect(g);
+    g.connect(dest);
+    o.start(t);
+    o.stop(t + dur + 0.05);
+  }
+
+  /** Breathy whistle with vibrato (for the Outlaw theme). */
+  private whistle(f: number, t: number, vol: number, dest: AudioNode, dur = 0.9) {
+    const ctx = this.ctx!;
+    const o = ctx.createOscillator();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(f * 0.94, t);
+    o.frequency.exponentialRampToValueAtTime(f, t + 0.08);
+    const lfo = ctx.createOscillator();
+    const lg = ctx.createGain();
+    lfo.frequency.value = 5.5;
+    lg.gain.value = f * 0.015;
+    lfo.connect(lg).connect(o.frequency);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol, t + 0.08);
+    g.gain.setValueAtTime(vol, t + dur * 0.7);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g).connect(dest);
+    o.start(t);
+    lfo.start(t);
+    o.stop(t + dur + 0.05);
+    lfo.stop(t + dur + 0.05);
+  }
+
   // -------------------------------------------------------------------------
   // Sound effects
   // -------------------------------------------------------------------------
@@ -266,18 +321,29 @@ class AudioEngine {
         this.pluck(this.freq(19), t, 0.12, out, 2, 0.25);
         this.pluck(this.freq(24), t + 0.05, 0.12, out, 2, 0.25);
         break;
+      case 'quack':
+        this.quack(t, 0.5, out, 0.9 + Math.random() * 0.25);
+        break;
+      case 'honk':
+        this.quack(t, 0.55, out, 1, true);
+        this.quack(t + 0.2, 0.45, out, 0.95, true);
+        break;
       case 'win':
-        [0, 3, 7, 12, 15].forEach((s, i) => this.pluck(this.freq(12 + s), t + i * 0.07, 0.17, out, 1.3, 0.9));
-        [0, 3, 7, 12, 15].forEach((s, i) => this.pluck(this.freq(12 + s), t + i * 0.07, 0.07, wet, 1.3, 0.9));
+        this.quack(t + 0.32, 0.32, out, 1.1);
+        [0, 4, 7, 12, 16].forEach((s, i) => this.pluck(this.freq(12 + s), t + i * 0.07, 0.17, out, 1.3, 0.9));
+        [0, 4, 7, 12, 16].forEach((s, i) => this.pluck(this.freq(12 + s), t + i * 0.07, 0.07, wet, 1.3, 0.9));
         break;
       case 'blackjack':
-        [0, 7, 12, 15, 19, 24].forEach((s, i) => this.bell(this.freq(12 + s), t + i * 0.06, 0.11, out, 1.4));
+        this.quack(t + 0.1, 0.4, out, 1.2);
+        this.quack(t + 0.3, 0.4, out, 1.35);
+        [0, 7, 12, 16, 19, 24].forEach((s, i) => this.bell(this.freq(12 + s), t + i * 0.06, 0.11, out, 1.4));
         this.drum(t, 0.5, out, 120, 45, 0.7);
         break;
       case 'lose':
         [7, 3, 2, -5].forEach((s, i) => this.pluck(this.freq(s), t + i * 0.12, 0.14, out, 0.6, 0.8));
         break;
       case 'bust':
+        this.quack(t + 0.05, 0.5, out, 0.9, true);
         this.drum(t, 0.55, out, 70, 30, 0.8);
         this.noise(t, 0.4, 0.16, out, 500, 0.6, 'lowpass');
         this.pluck(this.freq(-12), t + 0.02, 0.18, out, 0.5, 0.8);
@@ -404,9 +470,10 @@ class AudioEngine {
 
   private playStep(t: number, b: number) {
     const bus = this.musicBus;
+    HIRAJOSHI = this.mood === 'host' ? MINOR : MAJOR;
     const r = Math.random();
     const bar = Math.floor(b / 16);
-    if (b % 64 === 0) this.chordRoot = [0, -4, 3, -2][bar / 4 % 4 | 0] ?? 0;
+    if (b % 64 === 0) this.chordRoot = (this.mood === 'host' ? [0, -2, 3, -4] : [0, 5, 7, 0])[bar / 4 % 4 | 0] ?? 0;
     const scaleNote = (i: number) => {
       const oct = Math.floor(i / 5);
       return HIRAJOSHI[((i % 5) + 5) % 5] + 12 * oct + this.chordRoot;
@@ -417,7 +484,7 @@ class AudioEngine {
       this.melodyIdx += Math.floor(Math.random() * 5) - 2;
       this.melodyIdx = Math.max(3, Math.min(13, this.melodyIdx));
       const f = this.freq(scaleNote(this.melodyIdx));
-      const g = this.pluck(f, t, 0.11, bus, 1.1, 1.3);
+      const g = this.pluck(f, t, 0.11, bus, 1.6, this.mood === 'host' ? 1.1 : 0.55);
       g.connect(this.delaySend);
       g.connect(this.reverbSend);
       if (Math.random() < 0.18) this.pluck(f * 1.5, t + 0.09, 0.05, bus, 1, 0.9).connect(this.reverbSend);
@@ -428,16 +495,27 @@ class AudioEngine {
       this.pluck(f, t, 0.13, bus, 0.4, 1.6);
     }
     // Taiko & woodblock
+    // Clip-clop: alternating woodblocks like hooves on the trail
+    const clip = b % 4 === 0 ? 900 : b % 4 === 1 ? 700 : 0;
     if (this.mood === 'host') {
-      if (b % 8 === 0) this.drum(t, 0.32, bus, 95, 42, 0.7);
-      if (b % 8 === 6 && Math.random() < 0.6) this.drum(t, 0.18, bus, 120, 60, 0.4);
-      if (b % 4 === 2) this.wood(t, 1500, 0.04, bus);
+      if (b % 8 === 0) this.drum(t, 0.3, bus, 95, 42, 0.7);
+      if (clip) this.wood(t, clip, 0.05, bus);
+      // Lonesome showdown whistle
+      if (b % 16 === 0 && Math.random() < 0.7) {
+        const n = scaleNote(8 + Math.floor(Math.random() * 4)) + 12;
+        const w = this.freq(n);
+        this.whistle(w, t, 0.05, bus, 1.4);
+        this.whistle(w, t, 0.025, this.reverbSend, 1.4);
+      }
     } else if (this.mood === 'shop') {
-      if (b % 4 === 0) this.wood(t, 1100, 0.05, bus);
+      if (clip) this.wood(t, clip + 200, 0.05, bus);
+      if (b % 8 === 4) this.pluck(this.freq(scaleNote(5)), t, 0.06, bus, 1.6, 0.25);
       if (b % 16 === 8) this.drum(t, 0.12, bus, 110, 60, 0.4);
     } else if (this.mood === 'table') {
-      if (b % 16 === 0) this.drum(t, 0.16, bus, 90, 45, 0.6);
-      if (b % 8 === 4 && Math.random() < 0.5) this.wood(t, 1300, 0.035, bus);
+      if (clip) this.wood(t, clip, 0.035, bus);
+      if (b % 16 === 0) this.drum(t, 0.14, bus, 90, 45, 0.6);
+    } else if (this.mood === 'menu') {
+      if (clip && b % 8 < 4) this.wood(t, clip, 0.03, bus);
     }
     // Wind chime shimmer
     if (b % 32 === 24 && Math.random() < 0.5) {

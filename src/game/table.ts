@@ -455,7 +455,7 @@ export function fold(run: Run) {
   t.firstFoldDone = true;
   for (const k of cards) {
     if (k.seal === 'purple' && !t.debuffed.includes(k.id)) {
-      if (createCons(run, 'fortune')) fxQueue.push({ t: 'msg', text: '+Fortune', color: SEAL_INFO.purple.color, src: { kind: 'card', id: k.id } });
+      if (createCons(run, 'fortune')) fxQueue.push({ t: 'msg', text: '+Tonic', color: SEAL_INFO.purple.color, src: { kind: 'card', id: k.id } });
     }
   }
   t.phase = 'resolved';
@@ -643,7 +643,7 @@ export function scoreHand(run: Run, hi: number): ScoreResult {
       if (card.ink === 'glass' && c.chance(4)) result.shattered.push(card.id);
       if (card.seal === 'blue' && handType !== 'push') {
         const star = Object.values(HOST).length && handType;
-        if (star && createConsForHand(run, handType)) sink.events.push({ t: 'msg', text: '+Star', color: SEAL_INFO.blue.color, src: { kind: 'card', id: card.id } });
+        if (star && createConsForHand(run, handType)) sink.events.push({ t: 'msg', text: '+Tale', color: SEAL_INFO.blue.color, src: { kind: 'card', id: card.id } });
       }
     }
 

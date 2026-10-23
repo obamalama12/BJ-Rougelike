@@ -81,7 +81,7 @@ export function winTable(run: Run) {
   run.stats.tablesWon++;
   const lines: { label: string; amount: number; tone?: string }[] = [];
   const reward = tableReward(run, idx);
-  if (reward) lines.push({ label: t.kind === 'host' ? 'Host defeated' : t.kind === 'silk' ? 'Silk Lantern lit' : 'Paper Lantern lit', amount: reward, tone: 'gold' });
+  if (reward) lines.push({ label: t.kind === 'host' ? 'Outlaw defeated' : t.kind === 'silk' ? 'High Roller Table lit' : 'Saloon Table lit', amount: reward, tone: 'gold' });
   if (run.shoeId === 'jade') {
     if (t.handsLeft) lines.push({ label: `${t.handsLeft} hands remaining ($2 each)`, amount: t.handsLeft * 2, tone: 'chips' });
     if (t.foldsLeft) lines.push({ label: `${t.foldsLeft} folds remaining ($1 each)`, amount: t.foldsLeft, tone: 'mult' });
@@ -308,10 +308,10 @@ export function buyItem(run: Run, uid: number, useNow = false): BuyResult {
   const s = run.shop;
   const it = s?.items.find((i) => i.uid === uid);
   if (!s || !it || it.sold) return { ok: false, reason: 'Gone' };
-  if (!canAfford(run, it.price)) return { ok: false, reason: 'Not enough Embers' };
+  if (!canAfford(run, it.price)) return { ok: false, reason: 'Not enough Bucks' };
   if (it.kind === 'charm') {
     const room = it.finish === 'phantom' || run.charms.length < charmSlots(run);
-    if (!room) return { ok: false, reason: 'No Charm slots' };
+    if (!room) return { ok: false, reason: 'No Doodad slots' };
     run.money -= it.price;
     run.charms.push(makeCharm(run, it.id, it.finish));
     run.stats.charmsBought++;
@@ -337,7 +337,7 @@ export function buyVoucher(run: Run, bonus = false): BuyResult {
   const id = bonus ? run.flags.bonusVoucher : s?.voucher;
   if (!s || !id) return { ok: false, reason: 'Gone' };
   const price = voucherPrice(run, id);
-  if (!canAfford(run, price)) return { ok: false, reason: 'Not enough Embers' };
+  if (!canAfford(run, price)) return { ok: false, reason: 'Not enough Bucks' };
   run.money -= price;
   run.vouchers.push(id);
   discover(run, 'voucher', id);
@@ -437,7 +437,7 @@ export function buyPack(run: Run, uid: number): BuyResult {
   const s = run.shop;
   const p = s?.packs.find((x) => x.uid === uid);
   if (!s || !p || p.sold) return { ok: false, reason: 'Gone' };
-  if (!canAfford(run, p.price)) return { ok: false, reason: 'Not enough Embers' };
+  if (!canAfford(run, p.price)) return { ok: false, reason: 'Not enough Bucks' };
   run.money -= p.price;
   p.sold = true;
   openPack(run, p.packId, 'shop');
@@ -488,7 +488,7 @@ export function pickFromPack(run: Run, idx: number, targetIds: number[] = []): B
   const o = p.options[idx];
   if (!o || o.taken) return { ok: false, reason: 'Gone' };
   if (o.kind === 'charm') {
-    if (o.finish !== 'phantom' && run.charms.length >= charmSlots(run)) return { ok: false, reason: 'No Charm slots' };
+    if (o.finish !== 'phantom' && run.charms.length >= charmSlots(run)) return { ok: false, reason: 'No Doodad slots' };
     run.charms.push(makeCharm(run, o.id, o.finish));
     discover(run, 'charm', o.id);
   } else if (o.kind === 'card') {

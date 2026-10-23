@@ -4,10 +4,11 @@ export const SUITS: Suit[] = ['moon', 'flame', 'leaf', 'bell'];
 export const RANKS: Rank[] = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
 
 export const SUIT_INFO: Record<Suit, { name: string; plural: string; color: string; ink: string; yin: boolean }> = {
-  moon: { name: 'Moon', plural: 'Moons', color: '#6f8cff', ink: '#2b3f9e', yin: true },
-  flame: { name: 'Flame', plural: 'Flames', color: '#ff5b3a', ink: '#c2261a', yin: false },
-  leaf: { name: 'Leaf', plural: 'Leaves', color: '#3fcf8e', ink: '#167a4f', yin: true },
-  bell: { name: 'Bell', plural: 'Bells', color: '#f2b632', ink: '#a8690c', yin: false },
+  // Internal ids are historical; on the frontier they are Horseshoes, Dynamite, Cacti and Stars.
+  moon: { name: 'Horseshoe', plural: 'Horseshoes', color: '#5b8cd6', ink: '#24497f', yin: true },
+  flame: { name: 'Dynamite', plural: 'Dynamite', color: '#ff5b3a', ink: '#b8261a', yin: false },
+  leaf: { name: 'Cactus', plural: 'Cacti', color: '#4cbf6a', ink: '#1f6e36', yin: true },
+  bell: { name: 'Star', plural: 'Stars', color: '#f2b632', ink: '#9a5f08', yin: false },
 };
 
 export function rankLabel(r: Rank): string {
@@ -27,28 +28,28 @@ export function rankName(r: Rank): string {
 }
 
 export const INK_INFO: Record<InkId, { name: string; text: string }> = {
-  jade: { name: 'Jade Ink', text: '{c:+30} Chips when scored' },
-  crimson: { name: 'Crimson Ink', text: '{m:+4} Mult when scored' },
-  gilded: { name: 'Gilded', text: 'Earn {$:3} when scored' },
+  jade: { name: 'Greenback', text: '{c:+30} Chips when scored' },
+  crimson: { name: 'Red Hot', text: '{m:+4} Mult when scored' },
+  gilded: { name: 'Gold Plated', text: 'Earn {$:3} when scored' },
   glass: { name: 'Glass', text: '{x:X2} Mult when scored. {g:1 in 4} chance to shatter' },
-  stone: { name: 'Stone', text: '{c:+50} Chips. Worth {g:0} toward your total. No rank or suit' },
+  stone: { name: 'Rock', text: '{c:+50} Chips. Worth {g:0} toward your total. No rank or suit' },
   lucky: { name: 'Lucky', text: '{g:1 in 5} chance for {m:+20} Mult, {g:1 in 15} chance to earn {$:20}' },
-  spirit: { name: 'Spirit Ink', text: 'Counts as every suit' },
-  ash: { name: 'Ash', text: 'If it would bust you, it is worth {g:0} instead, then crumbles' },
+  spirit: { name: 'Wild', text: 'Counts as every suit' },
+  ash: { name: 'Rubber Ducky', text: 'If it would bust you, it is worth {g:0} instead, then pops' },
 };
 
 export const FINISH_INFO: Record<FinishId, { name: string; text: string; charmText: string }> = {
-  foil: { name: 'Foil', text: '{c:+50} Chips', charmText: '{c:+50} Chips' },
+  foil: { name: 'Shiny', text: '{c:+50} Chips', charmText: '{c:+50} Chips' },
   holo: { name: 'Holographic', text: '{m:+10} Mult', charmText: '{m:+10} Mult' },
   prism: { name: 'Prismatic', text: '{x:X1.5} Mult', charmText: '{x:X1.5} Mult' },
-  phantom: { name: 'Phantom', text: '{g:+1} slot', charmText: '{g:+1} Charm slot' },
+  phantom: { name: 'Ghostly', text: '{g:+1} slot', charmText: '{g:+1} Doodad slot' },
 };
 
 export const SEAL_INFO: Record<SealId, { name: string; text: string; color: string }> = {
-  red: { name: 'Vermilion Seal', text: 'Retrigger this card {g:1} time', color: '#e2382b' },
-  gold: { name: 'Gold Seal', text: 'Earn {$:3} when this card is scored', color: '#f0b429' },
-  blue: { name: 'Azure Seal', text: 'Create the {g:Constellation} of the winning hand type', color: '#3d8bff' },
-  purple: { name: 'Violet Seal', text: 'Create a {g:Fortune} when this card is folded', color: '#a35cff' },
+  red: { name: 'Red Brand', text: 'Retrigger this card {g:1} time', color: '#e2382b' },
+  gold: { name: 'Gold Brand', text: 'Earn {$:3} when this card is scored', color: '#f0b429' },
+  blue: { name: 'Blue Brand', text: 'Create the {g:Tall Tale} of the winning hand type', color: '#3d8bff' },
+  purple: { name: 'Purple Brand', text: 'Create a {g:Tonic} when this card is folded', color: '#a35cff' },
 };
 
 export function isFace(c: Card, rules?: Partial<Rules>): boolean {
@@ -131,7 +132,7 @@ export function newDeck(nextId: () => number, ranks: Rank[] = RANKS, suits: Suit
 }
 
 export function cardName(c: Card): string {
-  if (c.ink === 'stone') return 'Stone Card';
+  if (c.ink === 'stone') return 'Rock Card';
   return `${rankName(c.rank)} of ${SUIT_INFO[c.suit].plural}`;
 }
 
@@ -152,15 +153,15 @@ export interface HandTypeInfo {
 
 export const HAND_TYPES: HandTypeInfo[] = [
   { id: 'sevens', name: 'Lucky Sevens', chips: 77, mult: 7, lvChips: 35, lvMult: 4, desc: 'Win with exactly three 7s', star: 'pleiades' },
-  { id: 'royal', name: 'Royal Blackjack', chips: 80, mult: 8, lvChips: 35, lvMult: 3, desc: 'A natural: Ace with a suited Jack, Queen or King', star: 'regulus' },
-  { id: 'flush', name: 'Spirit Flush', chips: 70, mult: 6, lvChips: 30, lvMult: 3, desc: 'Reach 21 with 3+ cards, all of one suit', star: 'cygnus' },
-  { id: 'blackjack', name: 'Blackjack', chips: 50, mult: 5, lvChips: 25, lvMult: 2, desc: 'A natural 21 with your first two cards', star: 'corvus' },
-  { id: 'charlie', name: 'Lantern Charlie', chips: 50, mult: 5, lvChips: 25, lvMult: 2, desc: 'Hold 5 cards without busting (auto-win)', star: 'hydra' },
-  { id: 'twentyone', name: 'Twenty-One', chips: 40, mult: 4, lvChips: 20, lvMult: 2, desc: 'Reach exactly 21 with 3+ cards and win', star: 'polaris' },
-  { id: 'underdog', name: 'Underdog', chips: 40, mult: 3, lvChips: 20, lvMult: 2, desc: 'Win with a total of 14 or less', star: 'canis' },
-  { id: 'outdraw', name: 'Outdraw', chips: 20, mult: 3, lvChips: 15, lvMult: 1, desc: 'Beat the dealer’s total', star: 'sagitta' },
-  { id: 'dealerbust', name: 'Dealer Bust', chips: 30, mult: 2, lvChips: 15, lvMult: 1, desc: 'The dealer busts while you stand', star: 'crater' },
-  { id: 'push', name: 'Push', chips: 10, mult: 1, lvChips: 10, lvMult: 1, desc: 'Tie the dealer', star: 'libra' },
+  { id: 'royal', name: 'Royal Quackjack', chips: 80, mult: 8, lvChips: 35, lvMult: 3, desc: 'A natural: Ace with a suited Jack, Queen or King', star: 'regulus' },
+  { id: 'flush', name: 'Birds of a Feather', chips: 70, mult: 6, lvChips: 30, lvMult: 3, desc: 'Reach 21 with 3+ cards, all of one suit', star: 'cygnus' },
+  { id: 'blackjack', name: 'Quackjack', chips: 50, mult: 5, lvChips: 25, lvMult: 2, desc: 'A natural blackjack: 21 with your first two cards', star: 'corvus' },
+  { id: 'charlie', name: 'Charley Horse', chips: 50, mult: 5, lvChips: 25, lvMult: 2, desc: 'Hold 5 cards without busting (auto-win)', star: 'hydra' },
+  { id: 'twentyone', name: 'Dead Eye', chips: 40, mult: 4, lvChips: 20, lvMult: 2, desc: 'Reach exactly 21 with 3+ cards and win', star: 'polaris' },
+  { id: 'underdog', name: 'Underduck', chips: 40, mult: 3, lvChips: 20, lvMult: 2, desc: 'Win with a total of 14 or less', star: 'canis' },
+  { id: 'outdraw', name: 'Quick Draw', chips: 20, mult: 3, lvChips: 15, lvMult: 1, desc: 'Beat the dealer’s total', star: 'sagitta' },
+  { id: 'dealerbust', name: 'Dealer Bites the Dust', chips: 30, mult: 2, lvChips: 15, lvMult: 1, desc: 'The dealer busts while you stand', star: 'crater' },
+  { id: 'push', name: 'Standoff', chips: 10, mult: 1, lvChips: 10, lvMult: 1, desc: 'Tie the dealer', star: 'libra' },
 ];
 
 export const HAND_TYPE: Record<HandTypeId, HandTypeInfo> = Object.fromEntries(

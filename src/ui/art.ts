@@ -59,12 +59,12 @@ export function cardBackHtml(shoeId: string): string {
   const shoe = SHOE[shoeId];
   return `<div class="cback back-${shoe?.back ?? 'red'}" style="--bk:${shoe?.hue ?? '#e2382b'}">
     <div class="cback-frame"><div class="cback-pattern"></div>
-    <div class="cback-emblem">${iconSvg('lantern')}</div></div></div>`;
+    <div class="cback-emblem">${iconSvg('horseshoe')}</div></div></div>`;
 }
 
 export function playingCardFront(c: Card): string {
   if (c.ink === 'stone') {
-    return `<div class="pc-body stone"><div class="stone-art">${iconSvg('mountain')}</div>${sealHtml(c)}</div>`;
+    return `<div class="pc-body stone"><div class="stone-art">${iconSvg('rock')}</div>${sealHtml(c)}</div>`;
   }
   const s = SUIT_INFO[c.suit];
   const color = c.ink === 'spirit' ? '#8de8d0' : s.ink;
@@ -87,7 +87,7 @@ export function playingCardFront(c: Card): string {
 }
 
 function inkGlyph(ink: string): string {
-  const map: Record<string, string> = { jade: 'leaf', crimson: 'flame', gilded: 'coin', glass: 'crystal', lucky: 'clover', spirit: 'ghost', ash: 'smoke' };
+  const map: Record<string, string> = { jade: 'dollar', crimson: 'pepper', gilded: 'nugget', glass: 'shotglass', lucky: 'clover', spirit: 'spark', ash: 'rubberduck' };
   return map[ink] ? iconSvg(map[ink]) : '';
 }
 
@@ -143,7 +143,7 @@ export function charmTooltip(run: Run | null, id: string, inst?: CharmInst, extr
   return `<div class="tt-title">${esc(d.name)}</div>
     <div class="tt-body">${fmt(text)}</div>
     ${fin ? `<div class="tt-sub"><b>${FINISH_INFO[fin].name}</b>: ${fmt(FINISH_INFO[fin].charmText)}</div>` : ''}
-    ${inst?.disabled ? '<div class="tt-sub bad">Disabled by the Host</div>' : ''}
+    ${inst?.disabled ? '<div class="tt-sub bad">Disabled by the Outlaw</div>' : ''}
     <div class="tt-tags"><span class="tag-rarity r${d.rarity}">${RARITY[d.rarity]}</span>${inst ? `<span class="tag-sell">Sells for $${sellValue(inst)}</span>` : ''}${extra}</div>`;
 }
 
@@ -193,7 +193,7 @@ export function consCard(kind: ConsKind, id: string, finish?: FinishId): HTMLEle
   return el;
 }
 
-const KIND_LABEL: Record<ConsKind, string> = { fortune: 'Fortune', star: 'Constellation', mask: 'Mask' };
+const KIND_LABEL: Record<ConsKind, string> = { fortune: 'Tonic', star: 'Tall Tale', mask: 'Moonshine' };
 
 export function consTooltip(run: Run | null, kind: ConsKind, id: string, extra = ''): string {
   const d = CONS[id];
@@ -218,10 +218,10 @@ export function voucherTooltip(id: string, extra = ''): string {
   const v = VOUCHER[id];
   if (!v) return '';
   return `<div class="tt-title">${esc(v.name)}</div><div class="tt-body">${fmt(v.text)}</div>
-    <div class="tt-tags"><span class="tag-kind k-relic">Relic</span>${v.requires ? `<span class="tag-sub">Upgrade of ${esc(VOUCHER[v.requires]?.name ?? '')}</span>` : ''}${extra}</div>`;
+    <div class="tt-tags"><span class="tag-kind k-relic">Deed</span>${v.requires ? `<span class="tag-sub">Upgrade of ${esc(VOUCHER[v.requires]?.name ?? '')}</span>` : ''}${extra}</div>`;
 }
 
-const PACK_ICON: Record<string, string> = { charm: 'lantern', fortune: 'scroll', star: 'star', mask: 'oni', card: 'cards' };
+const PACK_ICON: Record<string, string> = { charm: 'rubberduck', fortune: 'tonic', star: 'book', mask: 'jug', card: 'cards' };
 const PACK_HUE: Record<string, string> = { charm: '#ff8a3d', fortune: '#c9b8ff', star: '#7fb8ff', mask: '#b04dff', card: '#f7ecd2' };
 
 export function packCard(packId: string): HTMLElement {
@@ -236,9 +236,9 @@ export function packCard(packId: string): HTMLElement {
 
 export function packTooltip(packId: string, extra = ''): string {
   const p = PACK[packId];
-  const what: Record<string, string> = { charm: 'Charms', fortune: 'Fortunes', star: 'Constellations', mask: 'Masks', card: 'playing cards' };
+  const what: Record<string, string> = { charm: 'Doodads', fortune: 'Tonics', star: 'Tall Tales', mask: 'Moonshine', card: 'playing cards' };
   return `<div class="tt-title">${esc(p.name)}</div><div class="tt-body">Choose ${fmt(`{g:${p.picks}}`)} of up to ${fmt(`{g:${p.size}}`)} ${what[p.kind]}${p.kind === 'card' ? ' to add to your deck' : p.kind === 'charm' ? '' : ' to use immediately'}</div>
-    <div class="tt-tags"><span class="tag-kind k-pack">Bundle</span>${extra}</div>`;
+    <div class="tt-tags"><span class="tag-kind k-pack">Crate</span>${extra}</div>`;
 }
 
 export function tagToken(id: string): HTMLElement {
@@ -254,7 +254,7 @@ export function tagToken(id: string): HTMLElement {
 export function tagTooltip(id: string): string {
   const t = TAG[id];
   if (!t) return '';
-  return `<div class="tt-title">${esc(t.name)}</div><div class="tt-body">${fmt(t.text)}</div><div class="tt-tags"><span class="tag-kind k-tag">Token</span></div>`;
+  return `<div class="tt-title">${esc(t.name)}</div><div class="tt-body">${fmt(t.text)}</div><div class="tt-tags"><span class="tag-kind k-tag">Telegram</span></div>`;
 }
 
 export function hostMedallion(id: string, size = 'md'): HTMLElement {
@@ -270,7 +270,7 @@ export function hostTooltip(id: string): string {
   const host = HOST[id];
   if (!host) return '';
   return `<div class="tt-title">${esc(host.name)}</div><div class="tt-sub2">${esc(host.title)}</div><div class="tt-body">${fmt(host.text)}</div>
-    <div class="tt-tags"><span class="tag-kind k-host">${host.showdown ? 'Showdown Host' : 'Host'}</span><span class="tag-sub">Target X${host.scale}</span></div>`;
+    <div class="tt-tags"><span class="tag-kind k-host">${host.showdown ? 'Showdown Outlaw' : 'Outlaw'}</span><span class="tag-sub">Target X${host.scale}</span></div>`;
 }
 
 export function shoeCard(id: string): HTMLElement {

@@ -1,4 +1,4 @@
-// Shared data model for Twenty-One Lanterns. Everything in a Run is plain JSON
+// Shared data model for Buck Ducks. Everything in a Run is plain JSON
 // so it can be saved to localStorage at any decision point.
 
 export type Suit = 'moon' | 'flame' | 'leaf' | 'bell';

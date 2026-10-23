@@ -1,85 +1,88 @@
 // Suit glyphs and face-card portraits, drawn as inline SVG.
 // Suit glyphs live in a 0 0 100 100 box and use currentColor.
+// Internal suit ids: moon = Horseshoes, flame = Dynamite, leaf = Cacti, bell = Stars.
 
 import type { Suit } from '../core/types';
 
 export const SUIT_PATH: Record<Suit, string> = {
-  // Crescent moon with a small star
-  moon: `<path d="M62 8C40 10 22 28 22 52s18 42 40 44C46 88 36 72 36 52S46 16 62 8Z" fill="currentColor"/>
-         <path d="M74 30l3.5 8.5 9 1-7 6 2.2 9-7.7-4.8-7.7 4.8 2.2-9-7-6 9-1Z" fill="currentColor"/>`,
-  // Three-tongued flame
-  flame: `<path d="M50 4C56 22 76 30 76 56c0 20-12 36-26 38-14-2-26-18-26-38 0-12 6-20 12-26 0 10 4 16 10 18C44 34 42 18 50 4Z" fill="currentColor"/>
-          <path d="M50 52c6 8 12 14 12 24 0 8-6 14-12 14s-12-6-12-14c0-6 4-10 6-12 1 5 3 7 6 7-2-6-2-12 0-19Z" fill="#fff6e0" opacity=".55"/>`,
-  // Ginkgo-like leaf
-  leaf: `<path d="M50 96V58" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
-         <path d="M50 60C28 60 8 44 8 22c12-8 26-10 34-6 2 4 6 10 8 10s6-6 8-10c8-4 22-2 34 6 0 22-20 38-42 38Z" fill="currentColor"/>
-         <path d="M50 58L50 30M50 58L30 26M50 58L70 26" stroke="#fff6e0" stroke-width="2.5" opacity=".45" fill="none"/>`,
-  // Temple bell
-  bell: `<path d="M44 8h12v8H44z" fill="currentColor"/>
-         <path d="M50 14c-18 0-26 14-26 34v20l-8 10h68l-8-10V48c0-20-8-34-26-34Z" fill="currentColor"/>
-         <circle cx="50" cy="86" r="8" fill="currentColor"/>
-         <path d="M30 60h40" stroke="#fff6e0" stroke-width="3" opacity=".45"/>`,
+  // Horseshoe, open end up, with nail holes
+  moon: `<path d="M22 14h16v34c0 8 5 14 12 14s12-6 12-14V14h16v34c0 18-12 32-28 32S22 66 22 48Z" fill="currentColor"/>
+         <g fill="#fff6e0" opacity=".6"><circle cx="30" cy="24" r="3"/><circle cx="30" cy="40" r="3"/><circle cx="70" cy="24" r="3"/><circle cx="70" cy="40" r="3"/><circle cx="38" cy="66" r="3"/><circle cx="62" cy="66" r="3"/></g>`,
+  // Two sticks of dynamite with a lit fuse
+  flame: `<rect x="22" y="34" width="22" height="58" rx="5" fill="currentColor" transform="rotate(-10 33 63)"/>
+          <rect x="54" y="34" width="22" height="58" rx="5" fill="currentColor" transform="rotate(10 65 63)"/>
+          <path d="M26 62h50" stroke="#fff6e0" stroke-width="5" opacity=".55"/>
+          <path d="M50 36C50 24 58 22 60 14" stroke="currentColor" stroke-width="4" fill="none" stroke-linecap="round"/>
+          <path d="M60 4l3 7 7 1-6 4 2 7-6-4-6 4 2-7-6-4 7-1Z" fill="currentColor"/>`,
+  // Saguaro cactus
+  leaf: `<path d="M42 96V18c0-12 16-12 16 0v78Z" fill="currentColor"/>
+         <path d="M42 62H28c-8 0-12-5-12-12V34c0-8 12-8 12 0v14h14Z" fill="currentColor"/>
+         <path d="M58 52h14V30c0-8 12-8 12 0v22c0 7-4 12-12 12H58Z" fill="currentColor"/>
+         <path d="M50 22v68" stroke="#fff6e0" stroke-width="3" opacity=".4"/>`,
+  // Sheriff star badge (round-tipped six-point star)
+  bell: `<path d="M50 4l12 22 25 1-13 21 13 21-25 1-12 22-12-22-25-1 13-21-13-21 25-1Z" fill="currentColor" stroke="currentColor" stroke-width="6" stroke-linejoin="round"/>
+         <circle cx="50" cy="48" r="13" fill="#fff6e0" opacity=".5"/>
+         <g fill="currentColor"><circle cx="50" cy="5" r="6"/><circle cx="88" cy="27" r="6"/><circle cx="88" cy="70" r="6"/><circle cx="50" cy="92" r="6"/><circle cx="12" cy="70" r="6"/><circle cx="12" cy="27" r="6"/></g>`,
 };
 
 export function suitSvg(s: Suit, cls = ''): string {
   return `<svg class="suit ${cls}" viewBox="0 0 100 100" aria-hidden="true">${SUIT_PATH[s]}</svg>`;
 }
 
-/** Stylised face-card portraits (J = fox youth, Q = moon princess, K = oni lord). */
+/** Duck portraits: J = Duckling Deputy, Q = Saloon Swan, K = Sheriff Drake. */
 export function faceArt(rank: 11 | 12 | 13, color: string, ink: string): string {
-  const skin = '#f7e6cf';
-  const dark = '#1b1430';
+  const dark = '#1b1410';
+  const bill = '#ffb02e';
+  const eye = (x: number, y: number, r = 5) =>
+    `<circle cx="${x}" cy="${y}" r="${r}" fill="#fff" stroke="${dark}" stroke-width="2"/><circle cx="${x + 1}" cy="${y + 1}" r="${r * 0.45}" fill="${dark}"/>`;
+  const frame = `<rect x="6" y="6" width="108" height="148" rx="10" fill="${color}" opacity=".12"/><circle cx="60" cy="70" r="46" fill="${color}" opacity=".16"/>`;
   if (rank === 11) {
-    // Kitsune youth with fox mask pushed aside
-    return `<svg class="face-art" viewBox="0 0 120 160" aria-hidden="true">
-      <rect x="6" y="6" width="108" height="148" rx="10" fill="${color}" opacity=".12"/>
-      <circle cx="60" cy="70" r="46" fill="${color}" opacity=".18"/>
-      <path d="M28 160c4-34 18-48 32-48s28 14 32 48Z" fill="${color}" stroke="${dark}" stroke-width="3"/>
-      <path d="M44 118l16 18 16-18" fill="none" stroke="#fff6e0" stroke-width="3"/>
-      <ellipse cx="60" cy="74" rx="22" ry="26" fill="${skin}" stroke="${dark}" stroke-width="3"/>
-      <path d="M36 66c2-22 14-30 24-30s24 8 26 30c-8-10-18-12-26-12s-18 4-24 12Z" fill="${dark}"/>
-      <path d="M50 78q4-3 8 0M64 78q4-3 8 0" stroke="${dark}" stroke-width="2.6" fill="none" stroke-linecap="round"/>
-      <path d="M56 92q4 3 8 0" stroke="${ink}" stroke-width="2.6" fill="none" stroke-linecap="round"/>
-      <g transform="translate(80 30) rotate(18)">
-        <path d="M-16 6l-4-22 12 10h16l12-10-4 22c0 10-8 18-16 18s-16-8-16-18Z" fill="#fff6e0" stroke="${dark}" stroke-width="3"/>
-        <path d="M-10 6l6 3M10 6l-6 3" stroke="${ink}" stroke-width="3" stroke-linecap="round"/>
-        <path d="M-2 18h4" stroke="${dark}" stroke-width="3"/>
-        <path d="M-14-8l-2-6 6 4M14-8l2-6-6 4" fill="${ink}"/>
-      </g>
+    // Duckling Deputy: fuzzy yellow, bandana, tiny star, oversized hat
+    return `<svg class="face-art" viewBox="0 0 120 160" aria-hidden="true">${frame}
+      <path d="M30 160c2-30 14-44 30-44s28 14 30 44Z" fill="${color}" stroke="${dark}" stroke-width="3"/>
+      <path d="M44 116l16 16 16-16" fill="${ink}" stroke="${dark}" stroke-width="3" stroke-linejoin="round"/>
+      <path d="M60 138l4 7 8 1-6 5 2 8-8-4-8 4 2-8-6-5 8-1Z" fill="#ffd23f" stroke="${dark}" stroke-width="2"/>
+      <ellipse cx="60" cy="82" rx="27" ry="25" fill="#ffe066" stroke="${dark}" stroke-width="3"/>
+      <path d="M47 60c4-8 10-6 13-12 3 6 9 4 13 12" fill="#ffe066" stroke="${dark}" stroke-width="2.5"/>
+      ${eye(50, 80)}${eye(70, 80)}
+      <path d="M48 92c6-4 18-4 24 0-2 8-22 8-24 0Z" fill="${bill}" stroke="${dark}" stroke-width="2.5"/>
+      <path d="M26 54c0-8 14-12 34-12s34 4 34 12c-8-2-12 4-34 4s-26-6-34-4Z" fill="#8a5a2a" stroke="${dark}" stroke-width="3"/>
+      <path d="M40 46c0-14 8-22 20-22s20 8 20 22Z" fill="#a8692a" stroke="${dark}" stroke-width="3"/>
+      <path d="M41 42h38" stroke="${ink}" stroke-width="4"/>
     </svg>`;
   }
   if (rank === 12) {
-    // Moon princess with tall hair and crescent ornament
-    return `<svg class="face-art" viewBox="0 0 120 160" aria-hidden="true">
-      <rect x="6" y="6" width="108" height="148" rx="10" fill="${color}" opacity=".12"/>
-      <circle cx="60" cy="62" r="48" fill="${color}" opacity=".18"/>
-      <path d="M22 160c2-30 14-46 38-46s36 16 38 46Z" fill="${color}" stroke="${dark}" stroke-width="3"/>
-      <path d="M40 124c8 10 32 10 40 0" fill="none" stroke="#fff6e0" stroke-width="3"/>
-      <path d="M30 96c-6-40 8-74 30-74s36 34 30 74c-6-8-10-14-10-24H40c0 10-4 16-10 24Z" fill="${dark}"/>
-      <ellipse cx="60" cy="76" rx="20" ry="24" fill="${skin}" stroke="${dark}" stroke-width="3"/>
-      <path d="M40 68c6-14 34-14 40 0-8-6-32-6-40 0Z" fill="${dark}"/>
-      <path d="M50 78q4 3 8 0M62 78q4 3 8 0" stroke="${dark}" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-      <circle cx="60" cy="90" r="2.8" fill="${ink}"/>
-      <path d="M68 16c-10 0-16 8-16 16s6 16 16 16c-6-3-9-9-9-16s3-13 9-16Z" fill="#ffe7a0" stroke="${dark}" stroke-width="2.5"/>
-      <path d="M40 40l-10-6M80 40l10-6" stroke="${ink}" stroke-width="3" stroke-linecap="round"/>
-      <circle cx="29" cy="33" r="3" fill="${ink}"/><circle cx="91" cy="33" r="3" fill="${ink}"/>
+    // Saloon Swan: long neck, feathered hat, pearls, lashes
+    return `<svg class="face-art" viewBox="0 0 120 160" aria-hidden="true">${frame}
+      <path d="M24 160c4-30 18-42 36-42s32 12 36 42Z" fill="${color}" stroke="${dark}" stroke-width="3"/>
+      <path d="M34 128c8 10 44 10 52 0" fill="none" stroke="#fff6e0" stroke-width="3"/>
+      <g fill="#fff6e0" stroke="${dark}" stroke-width="1.5"><circle cx="46" cy="122" r="3.5"/><circle cx="53" cy="125" r="3.5"/><circle cx="60" cy="126" r="3.5"/><circle cx="67" cy="125" r="3.5"/><circle cx="74" cy="122" r="3.5"/></g>
+      <path d="M52 118c-2-20 2-34 8-40 6 6 10 20 8 40Z" fill="#fffaf2" stroke="${dark}" stroke-width="3"/>
+      <ellipse cx="60" cy="68" rx="22" ry="20" fill="#fffaf2" stroke="${dark}" stroke-width="3"/>
+      ${eye(51, 66, 4.5)}${eye(69, 66, 4.5)}
+      <path d="M45 60l-4-4M48 58l-2-5M72 58l2-5M75 60l4-4" stroke="${dark}" stroke-width="2" stroke-linecap="round"/>
+      <path d="M52 78c4-3 12-3 16 0-2 7-14 7-16 0Z" fill="#ff7a3d" stroke="${dark}" stroke-width="2.5"/>
+      <path d="M32 50c4-14 18-20 30-18 10 2 22 8 26 18-18-6-40-6-56 0Z" fill="${ink}" stroke="${dark}" stroke-width="3"/>
+      <path d="M80 40c10-12 22-16 28-14-6 4-10 14-22 20" fill="#ff8ab3" stroke="${dark}" stroke-width="2.5"/>
+      <path d="M84 36c6-8 14-12 20-12" stroke="${dark}" stroke-width="1.5" fill="none"/>
     </svg>`;
   }
-  // King: oni lord with horns and crown
-  return `<svg class="face-art" viewBox="0 0 120 160" aria-hidden="true">
-    <rect x="6" y="6" width="108" height="148" rx="10" fill="${color}" opacity=".12"/>
-    <circle cx="60" cy="72" r="48" fill="${color}" opacity=".18"/>
-    <path d="M16 160c4-36 20-50 44-50s40 14 44 50Z" fill="${color}" stroke="${dark}" stroke-width="3"/>
-    <path d="M60 110v50M40 118l20 16 20-16" fill="none" stroke="#fff6e0" stroke-width="3"/>
-    <path d="M34 50L24 18l20 22M86 50l10-32-20 22" fill="#fff6e0" stroke="${dark}" stroke-width="3" stroke-linejoin="round"/>
-    <ellipse cx="60" cy="76" rx="26" ry="28" fill="${ink}" stroke="${dark}" stroke-width="3"/>
-    <path d="M36 66l14 6M84 66l-14 6" stroke="${dark}" stroke-width="4" stroke-linecap="round"/>
-    <circle cx="48" cy="76" r="4" fill="#ffe27a" stroke="${dark}" stroke-width="2"/>
-    <circle cx="72" cy="76" r="4" fill="#ffe27a" stroke="${dark}" stroke-width="2"/>
-    <path d="M44 94q16 10 32 0" fill="#fff6e0" stroke="${dark}" stroke-width="2.6"/>
-    <path d="M48 94l3 7M72 94l-3 7" stroke="${dark}" stroke-width="2"/>
-    <path d="M60 104c-12 0-20 6-22 12 8-2 14 0 22 0s14-2 22 0c-2-6-10-12-22-12Z" fill="${dark}"/>
-    <path d="M40 46l6-16 8 10 6-14 6 14 8-10 6 16Z" fill="#ffd23f" stroke="${dark}" stroke-width="2.6" stroke-linejoin="round"/>
+  // Sheriff Drake: green mallard head, white collar ring, big hat, star, mustache
+  return `<svg class="face-art" viewBox="0 0 120 160" aria-hidden="true">${frame}
+    <path d="M18 160c4-32 20-46 42-46s38 14 42 46Z" fill="${color}" stroke="${dark}" stroke-width="3"/>
+    <path d="M60 116v44" stroke="${dark}" stroke-width="2.5"/>
+    <path d="M78 130l4 8 9 1-7 6 2 9-8-5-8 5 2-9-7-6 9-1Z" fill="#ffd23f" stroke="${dark}" stroke-width="2"/>
+    <path d="M38 112c6 6 38 6 44 0" fill="none" stroke="#fff6e0" stroke-width="6"/>
+    <ellipse cx="60" cy="84" rx="28" ry="26" fill="#2f8f4e" stroke="${dark}" stroke-width="3"/>
+    <ellipse cx="52" cy="76" rx="10" ry="6" fill="#56c47a" opacity=".6"/>
+    ${eye(50, 82, 5)}${eye(70, 82, 5)}
+    <path d="M42 74l14 4M78 74l-14 4" stroke="${dark}" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M44 96c8-6 24-6 32 0-3 9-29 9-32 0Z" fill="${bill}" stroke="${dark}" stroke-width="2.5"/>
+    <path d="M44 94c6 6 10 2 16 0 6 2 10 6 16 0" fill="none" stroke="${dark}" stroke-width="3" stroke-linecap="round"/>
+    <path d="M14 58c0-10 20-14 46-14s46 4 46 14c-10-3-16 4-46 4S24 55 14 58Z" fill="#5a3a1a" stroke="${dark}" stroke-width="3"/>
+    <path d="M34 48c0-18 10-28 26-28s26 10 26 28Z" fill="#7a4e24" stroke="${dark}" stroke-width="3"/>
+    <path d="M35 43h50" stroke="${ink}" stroke-width="5"/>
+    <path d="M60 22v10" stroke="${dark}" stroke-width="2.5"/>
   </svg>`;
 }
 

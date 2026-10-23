@@ -31,9 +31,9 @@ export function titleScreen(): HTMLElement {
   });
   const logo = div(
     'logo',
-    div('logo-top', 'Twenty-One'),
-    div('logo-main', 'Lanterns'),
-    div('logo-sub', 'a blackjack roguelike of the spirit night market'),
+    div('logo-top', 'The Legend of'),
+    div('logo-main', 'Buck Ducks'),
+    div('logo-sub', 'a blackjack roguelike of the duck frontier'),
   );
   const menu = div('title-menu');
   if (hasSavedRun()) {
@@ -51,7 +51,7 @@ export function titleScreen(): HTMLElement {
   );
   const stats = div(
     'title-stats',
-    `Runs ${profile.runs} · Victories ${profile.wins} · Best hand ${fmtNum(profile.bestHand)} · Deepest night ${profile.bestNight}`,
+    `Runs ${profile.runs} · Victories ${profile.wins} · Best hand ${fmtNum(profile.bestHand)} · Furthest town ${profile.bestNight}`,
   );
   el.append(fan, logo, menu, stats, div('title-hint', 'H / S / D / P / F to Hit, Stand, Double, Split, Fold · Space to deal'));
   return el;
@@ -83,7 +83,7 @@ export function openNewRun() {
     for (const s of STAKES) {
       const locked = s.id > maxStake(shoe.id);
       const chip = h('button', { class: `stake-chip${s.id === stake ? ' on' : ''}${locked ? ' locked' : ''}`, type: 'button', style: { '--c': s.color } as any });
-      chip.innerHTML = `<span class="moon-phase p${s.id}"></span>`;
+      chip.innerHTML = `<span class="moon-phase p${s.id}" style="--c:${s.color}">${s.id}</span>`;
       chip.addEventListener('click', () => {
         if (locked) return;
         stake = s.id;
@@ -97,9 +97,9 @@ export function openNewRun() {
     const seedIn = h('input', { class: 'seed-input', placeholder: 'Random seed', maxlength: 12, value: seed }) as HTMLInputElement;
     seedIn.addEventListener('input', () => (seed = seedIn.value.toUpperCase().replace(/[^A-Z0-9]/g, '')));
     box.append(
-      div('nr-title', 'Choose your Shoe'),
+      div('nr-title', 'Pick Your Deck, Partner'),
       div('nr-carousel', prev, back, shoeInfo, next),
-      div('nr-sub', 'Moon Phase'),
+      div('nr-sub', 'Wanted Level'),
       stakes,
       h('div', { class: 'nr-stake-text', html: `<b style="color:${st.color}">${st.name}</b> · ${fmt(st.text)}` }),
       div('nr-foot', seedIn, button('Begin', 'primary big', () => start())),
@@ -128,8 +128,8 @@ export function gameOverScreen(): HTMLElement {
   recordEnd(false);
   const el = div('end-screen over');
   el.append(
-    div('end-title', 'The Lanterns Go Dark'),
-    div('end-sub', `Fallen on Night ${run.night}, ${['the Paper table', 'the Silk table', 'the Host’s table'][run.tableIdx] ?? ''}`),
+    div('end-title', 'You Bit the Dust'),
+    div('end-sub', `Run out of Town ${run.night} at ${['the Saloon table', 'the High Roller table', 'the Outlaw’s table'][run.tableIdx] ?? ''}`),
     runSummary(),
     div(
       'end-btns',
@@ -160,15 +160,15 @@ export function victoryScreen(): HTMLElement {
     div('end-lanterns', ...Array.from({ length: 21 }, (_, i) => {
       const l = div('mini-lantern');
       l.style.setProperty('--i', String(i));
-      l.innerHTML = iconSvg('lantern');
+      l.innerHTML = iconSvg('badge');
       return l;
     })),
-    div('end-title', 'Twenty-One Lanterns Lit'),
-    div('end-sub', 'The Night Market bows to you. The road home glows.'),
+    div('end-title', 'Fastest Bill in the West'),
+    div('end-sub', 'Twenty-one bounties collected. The whole frontier tips its hat to you.'),
     runSummary(),
     div(
       'end-btns',
-      button('Endless Night', 'primary big', () => {
+      button('Keep Ridin’ (Endless)', 'primary big', () => {
         continueEndless(run);
         save();
         app.render();
@@ -208,9 +208,9 @@ function runSummary(): HTMLElement {
     ['Best hand', `${fmtNum(s.bestHand)}${s.bestHandType ? ` (${HAND_TYPE[s.bestHandType].name})` : ''}`],
     ['Hands played', String(s.handsPlayed)],
     ['Hands won', String(s.handsWon)],
-    ['Blackjacks', String(s.blackjacks)],
+    ['Quackjacks', String(s.blackjacks)],
     ['Busts', String(s.busts)],
-    ['Embers earned', `$${s.moneyEarned}`],
+    ['Bucks earned', `$${s.moneyEarned}`],
     ['Tables lit', String(s.tablesWon)],
     ['Shoe', `${SHOE[run.shoeId]?.name} · ${STAKES[run.stake - 1]?.name}`],
     ['Seed', run.seed],

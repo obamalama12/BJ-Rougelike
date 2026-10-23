@@ -1,4 +1,4 @@
-// Choose the next table of the Night: Paper, Silk or the Host.
+// Choose the next table in town: the Saloon, the High Rollers, or the Outlaw.
 
 import type { Run } from '../../core/types';
 import { HOST } from '../../content/hosts';
@@ -22,9 +22,9 @@ export function selectScreen(hud: Hud): HTMLElement {
     setTimeout(() => app.render(), 0);
   }
   const el = div('select-screen');
-  const title = div('night-title', h('span', { class: 'nt-small' }, run.endless ? 'Endless Night' : 'Night'), h('span', { class: 'nt-num' }, String(run.night)), run.endless ? null : h('span', { class: 'nt-of' }, `of ${NIGHTS}`));
+  const title = div('night-title', h('span', { class: 'nt-small' }, run.endless ? 'Endless Trail' : 'Town'), h('span', { class: 'nt-num' }, String(run.night)), run.endless ? null : h('span', { class: 'nt-of' }, `of ${NIGHTS}`));
   const row = div('lantern-row');
-  const names = ['Paper Lantern', 'Silk Lantern', ''];
+  const names = ['Saloon Table', 'High Roller Table', ''];
   const next = run.tableStatus.findIndex((s) => s === 'open');
   for (let i = 0; i < 3; i++) {
     const status = run.tableStatus[i];
@@ -38,20 +38,20 @@ export function selectScreen(hud: Hud): HTMLElement {
       tip(med, () => hostTooltip(host.id));
       art.appendChild(med);
     } else {
-      art.innerHTML = `<div class="paper-lantern ${i === 1 ? 'silk' : ''}"><div class="pl-glow"></div><div class="pl-top"></div><div class="pl-body">${iconSvg(i === 1 ? 'blossom' : 'moon')}</div><div class="pl-bottom"></div><div class="pl-tassel"></div></div>`;
+      art.innerHTML = `<div class="saloon-sign ${i === 1 ? 'silk' : ''}"><div class="ss-chain l"></div><div class="ss-chain r"></div><div class="ss-board"><div class="ss-icon">${iconSvg(i === 1 ? 'tophat' : 'saloon')}</div><div class="ss-text">${i === 1 ? 'High Rollers' : 'Saloon'}</div></div></div>`;
     }
     const name = div('lp-name', isHost ? host.name : names[i]);
-    const sub = isHost ? h('div', { class: 'lp-curse', html: fmt(host.text) }) : div('lp-sub', i === 0 ? 'A gentle table' : 'The stakes rise');
+    const sub = isHost ? h('div', { class: 'lp-curse', html: fmt(host.text) }) : div('lp-sub', i === 0 ? 'A friendly game. Mostly.' : 'No chickens allowed');
     const target = div('lp-target', div('lp-label', 'Score at least'), div('lp-target-val', fmtNum(tableTarget(run, i))));
     const reward = tableReward(run, i);
     const rew = div('lp-reward', reward ? h('span', { class: 't-money' }, `${'$'.repeat(reward)}+`) : h('span', { class: 't-dim' }, 'No reward'));
     const foot = div('lp-foot');
-    if (status === 'won') foot.appendChild(div('lp-stamp won', 'Lit'));
+    if (status === 'won') foot.appendChild(div('lp-stamp won', 'Cleaned Out'));
     else if (status === 'skipped') foot.appendChild(div('lp-stamp skipped', 'Skipped'));
     else if (i === next) {
       foot.appendChild(
         button('Play', 'primary', () => {
-          sfx('gong');
+          sfx(isHost ? 'honk' : 'quack');
           selectTable(run, i);
           save();
           app.render();
@@ -77,7 +77,7 @@ export function selectScreen(hud: Hud): HTMLElement {
         );
       } else if (canRerollHost(run) || run.vouchers.includes('fate_thread')) {
         foot.appendChild(
-          button('Reroll Host $10', 'ghost small', () => {
+          button('Reroll Outlaw $10', 'ghost small', () => {
             if (!canRerollHost(run)) return toast('Cannot reroll', 'bad');
             payRerollHost(run);
             sfx('reroll');

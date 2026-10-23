@@ -1,9 +1,9 @@
 {
-  "name": "twenty-one-lanterns",
+  "name": "buck-ducks",
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "A blackjack roguelike set in a spirit night market.",
+  "description": "A blackjack roguelike of the duck frontier.",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@fontsource/m-plus-rounded-1c": "^5.3.0",
+    "@fontsource/rye": "^5.3.0",
     "@fontsource/shojumaru": "^5.3.0"
   }
 }

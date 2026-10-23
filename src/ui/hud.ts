@@ -15,6 +15,7 @@ import { sfx } from '../fx/audio';
 import { openRunInfo } from './screens/runinfo';
 import { openOptions } from './screens/options';
 import { pickTargets } from './picker';
+import { iconSvg } from './icons';
 
 export class Hud {
   el: HTMLElement;
@@ -75,7 +76,7 @@ export class Hud {
     const targetBox = div('sb-box sb-target', div('sb-label', 'Score at least'), r.target, r.reward);
     r.score = div('sb-score-val', '0');
     r.scoreBar = div('sb-score-bar-fill');
-    const scoreBox = div('sb-box sb-score', div('sb-label', 'Lantern light'), r.score, div('sb-score-bar', r.scoreBar));
+    const scoreBox = div('sb-box sb-score', div('sb-label', 'Winnings'), r.score, div('sb-score-bar', r.scoreBar));
     r.handName = div('sb-hand-name', ' ');
     r.handLevel = div('sb-hand-level');
     r.chips = div('sb-chips', '0');
@@ -91,8 +92,8 @@ export class Hud {
       'sb-stats',
       div('sb-stat', div('sb-label', 'Hands'), r.hands),
       div('sb-stat', div('sb-label', 'Folds'), r.folds),
-      div('sb-stat wide money', div('sb-label', 'Embers'), r.money),
-      div('sb-stat', div('sb-label', 'Night'), r.night),
+      div('sb-stat wide money', div('sb-label', 'Bucks'), r.money),
+      div('sb-stat', div('sb-label', 'Town'), r.night),
       div('sb-stat', div('sb-label', 'Table'), r.table),
     );
     r.tags = div('sb-tags');
@@ -120,17 +121,17 @@ export class Hud {
       tip(med, () => hostTooltip(t?.hostId ?? run.nightHost), 'right');
       r.bannerIcon.appendChild(med);
       const host = HOST[t?.hostId ?? run.nightHost];
-      r.bannerName.textContent = host?.name ?? 'Host';
+      r.bannerName.textContent = host?.name ?? 'Outlaw';
       r.bannerSub.innerHTML = t?.hostDisabled ? '<s>Curse lifted</s>' : host?.title ?? '';
     } else {
-      r.bannerIcon.innerHTML = `<div class="lantern-ico ${kind}"></div>`;
-      r.bannerName.textContent = kind === 'silk' ? 'Silk Lantern' : 'Paper Lantern';
-      r.bannerSub.textContent = run.phase === 'shop' ? 'The Night Market' : t ? 'In play' : 'Choose your table';
+      r.bannerIcon.innerHTML = `<div class="banner-ico ${kind}">${iconSvg(kind === 'silk' ? 'tophat' : 'saloon')}</div>`;
+      r.bannerName.textContent = kind === 'silk' ? 'High Roller Table' : 'Saloon Table';
+      r.bannerSub.textContent = run.phase === 'shop' ? 'Supplies & Sundries' : t ? 'Cards on the felt' : 'Choose your table';
     }
     if (run.phase === 'shop') {
       r.banner.className = 'sb-banner kind-shop';
-      r.bannerIcon.innerHTML = `<div class="lantern-ico shop"></div>`;
-      r.bannerName.textContent = 'Tanuki’s Stall';
+      r.bannerIcon.innerHTML = `<div class="banner-ico shop">${iconSvg('duck')}</div>`;
+      r.bannerName.textContent = 'General Store';
     }
     const target = t?.target ?? (idx >= 0 ? tableTarget(run, idx) : nightBase(run));
     r.target.textContent = fmtNum(target);
@@ -143,7 +144,7 @@ export class Hud {
     r.night.innerHTML = `${run.night}<small>/${NIGHTS}</small>`;
     r.table.innerHTML = `${Math.max(1, idx + 1)}<small>/3</small>`;
     const stake = STAKES[run.stake - 1];
-    r.runStrip.innerHTML = `<span class="moon-phase p${run.stake}"></span><div><div class="sb-run-shoe">${SHOE[run.shoeId]?.name ?? ''}</div><div class="sb-run-stake" style="color:${stake?.color}">${stake?.name ?? ''}</div></div><div class="sb-run-deck">${run.deck.length}<small> cards</small></div>`;
+    r.runStrip.innerHTML = `<span class="moon-phase p${run.stake}" style="--c:${stake?.color}">${run.stake}</span><div><div class="sb-run-shoe">${SHOE[run.shoeId]?.name ?? ''}</div><div class="sb-run-stake" style="color:${stake?.color}">${stake?.name ?? ''}</div></div><div class="sb-run-deck">${run.deck.length}<small> cards</small></div>`;
     clear(r.tags);
     for (const tg of run.tags) {
       const tk = tagToken(tg.id);
@@ -251,7 +252,7 @@ export class Hud {
       this.charmRow.appendChild(slot);
     });
     this.charmCount.textContent = `${run.charms.length}/${charmSlots(run)}`;
-    if (!run.charms.length) this.charmRow.appendChild(div('tray-empty', 'Charms'));
+    if (!run.charms.length) this.charmRow.appendChild(div('tray-empty', 'Doodads'));
     run.consumables.forEach((k) => {
       const slot = div('cons-slot');
       const card = consCard(k.kind, k.id, k.finish);
@@ -284,7 +285,7 @@ export class Hud {
       this.consRow.appendChild(slot);
     });
     this.consCount.textContent = `${run.consumables.length}/${consSlots(run)}`;
-    if (!run.consumables.length) this.consRow.appendChild(div('tray-empty small', 'Omens'));
+    if (!run.consumables.length) this.consRow.appendChild(div('tray-empty small', 'Satchel'));
   }
 
   private async useCons(uid: number) {

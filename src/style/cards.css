@@ -104,8 +104,8 @@
 .pc-corner.br { left: auto; top: auto; right: 7px; bottom: 6px; transform: rotate(180deg); }
 .pc-rank {
   font-family: var(--f-display);
-  font-size: 25px;
-  line-height: 1;
+  font-size: 22px;
+  line-height: 1.05;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 .pc-corner .suit { width: 16px; height: 16px; margin-top: 1px; }
@@ -177,8 +177,8 @@
   border-color: #3f9a3a;
 }
 .pc-body.ink-spirit {
-  --suit: #2a8a7a !important;
-  background: linear-gradient(160deg, #e8fffa, #c8e8ff 30%, #e8d8ff 60%, #d8fff0);
+  --suit: #8a2a8a !important;
+  background: linear-gradient(160deg, #ffe8f4, #fff2c0 30%, #d8f4ff 60%, #e8ffe0);
   background-size: 300% 300%;
   animation: spirit 5s ease-in-out infinite;
   border-color: #6ab8c8;
@@ -187,10 +187,10 @@
 @keyframes spirit { 50% { background-position: 100% 50%; } }
 .pc-body.ink-ash {
   background:
-    radial-gradient(circle, rgba(255, 106, 42, 0.7) 1px, transparent 1.6px) 3px 5px / 19px 23px,
-    radial-gradient(ellipse at 30% 20%, #b8b0a8, #7a726a 65%, #4a443e);
-  border-color: #2a2420;
-  --suit: #1b1410 !important;
+    radial-gradient(circle, transparent 3px, rgba(120, 190, 255, 0.55) 3.5px 4.5px, transparent 5px) 3px 5px / 19px 23px,
+    radial-gradient(ellipse at 30% 20%, #fffbe0, #ffe266 60%, #f0b020);
+  border-color: #c88a10;
+  --suit: #7a3a08 !important;
 }
 .pc-body.stone {
   background:
@@ -285,8 +285,9 @@
   inset: 0;
   /* Seigaiha waves */
   background:
-    radial-gradient(circle at 50% 100%, transparent 7px, rgba(255, 255, 255, 0.16) 8px 10px, transparent 11px 14px, rgba(255, 255, 255, 0.12) 15px 17px, transparent 18px) 0 0 / 36px 18px,
-    radial-gradient(circle at 50% 100%, transparent 7px, rgba(255, 255, 255, 0.16) 8px 10px, transparent 11px 14px, rgba(255, 255, 255, 0.12) 15px 17px, transparent 18px) 18px 9px / 36px 18px,
+    radial-gradient(circle, rgba(255, 255, 255, 0.55) 2px, transparent 2.6px) 0 0 / 18px 18px,
+    radial-gradient(circle, transparent 4px, rgba(255, 255, 255, 0.28) 4.5px 5.5px, transparent 6px) 9px 9px / 18px 18px,
+    conic-gradient(from 45deg, rgba(0, 0, 0, 0.12) 25%, transparent 0 50%, rgba(0, 0, 0, 0.12) 0 75%, transparent 0) 0 0 / 36px 36px,
     linear-gradient(160deg, color-mix(in srgb, var(--bk) 85%, #fff), color-mix(in srgb, var(--bk) 70%, #000));
 }
 .back-gold .cback-pattern,
@@ -395,7 +396,7 @@
   inset: 0;
   border-radius: 11px;
   background:
-    radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--hue) 38%, #1b1430) 0%, #160f2c 62%, #0d0820 100%);
+    radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--hue) 38%, #2a1408) 0%, #20100a 62%, #120804 100%);
   border: 3px solid var(--frame);
   box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.45), inset 0 0 22px rgba(0, 0, 0, 0.5);
   overflow: hidden;
@@ -427,7 +428,7 @@
   margin: -39px 0 0 -39px;
   border-radius: 50%;
   background: radial-gradient(circle at 40% 35%, #fffaf0, #f2e2bc 70%, #d8bf8a);
-  border: 3px solid #1b1430;
+  border: 3px solid #2a1408;
   box-shadow: 0 0 0 3px var(--frame), 0 0 22px color-mix(in srgb, var(--hue) 70%, transparent);
   display: grid;
   place-items: center;
@@ -529,19 +530,19 @@
 .cs-star .cs-name { color: #cfe0ff; }
 .cs-mask {
   background:
-    radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--hue) 50%, #2a0a4a), #12061f 70%);
-  border: 2px solid #b04dff;
-  color: #f0d8ff;
+    radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--hue) 40%, #6a3a08), #1e0e02 70%);
+  border: 2px solid #e0a320;
+  color: #ffe9b0;
 }
 .ms-glow {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 50% 45%, rgba(200, 120, 255, 0.35), transparent 55%);
+  background: radial-gradient(circle at 50% 45%, rgba(255, 190, 80, 0.35), transparent 55%);
   animation: maskGlow 2.4s ease-in-out infinite;
 }
 @keyframes maskGlow { 50% { opacity: 0.4; transform: scale(1.1); } }
-.cs-mask .cs-art { background: radial-gradient(circle, #fff8ff, #e0c8ff); border: 3px solid #12061f; box-shadow: 0 0 20px rgba(200, 120, 255, 0.9); }
-.cs-mask .cs-name { color: #f0d8ff; }
+.cs-mask .cs-art { background: radial-gradient(circle, #fff8e6, #f0d08a); border: 3px solid #1e0e02; box-shadow: 0 0 20px rgba(255, 180, 60, 0.9); }
+.cs-mask .cs-name { color: #ffe9b0; }
 .cons-slot .card.cons { --cw: 92px; --ch: 130px; }
 
 /* Relics ----------------------------------------------------------------------------- */

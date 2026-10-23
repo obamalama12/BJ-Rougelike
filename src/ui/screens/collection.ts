@@ -94,7 +94,7 @@ export function openCollection() {
         grid.appendChild(div('mod-cell', card, div('mod-name', label)));
       };
       for (const ink of Object.keys(INK_INFO) as InkId[]) mk({ ink, rank: 9, suit: 'moon' }, `<div class="tt-title">${INK_INFO[ink].name}</div><div class="tt-body">${fmt(INK_INFO[ink].text)}</div>`, INK_INFO[ink].name);
-      for (const f of Object.keys(FINISH_INFO) as FinishId[]) mk({ finish: f, rank: 13, suit: 'bell' }, `<div class="tt-title">${FINISH_INFO[f].name}</div><div class="tt-body">Cards: ${fmt(FINISH_INFO[f].text)}<br>Charms: ${fmt(FINISH_INFO[f].charmText)}</div>`, FINISH_INFO[f].name);
+      for (const f of Object.keys(FINISH_INFO) as FinishId[]) mk({ finish: f, rank: 13, suit: 'bell' }, `<div class="tt-title">${FINISH_INFO[f].name}</div><div class="tt-body">Cards: ${fmt(FINISH_INFO[f].text)}<br>Doodads: ${fmt(FINISH_INFO[f].charmText)}</div>`, FINISH_INFO[f].name);
       for (const s of Object.keys(SEAL_INFO) as SealId[]) mk({ seal: s, rank: 7, suit: 'leaf' }, `<div class="tt-title">${SEAL_INFO[s].name}</div><div class="tt-body">${fmt(SEAL_INFO[s].text)}</div>`, SEAL_INFO[s].name);
       void cardTooltip;
     }
@@ -114,8 +114,8 @@ export function openCollection() {
     }
   };
   const labels: [Tab, string][] = [
-    ['charms', 'Charms'], ['fortunes', 'Fortunes'], ['stars', 'Constellations'], ['masks', 'Masks'], ['relics', 'Relics'],
-    ['tokens', 'Tokens'], ['hosts', 'Hosts'], ['shoes', 'Shoes'], ['cards', 'Inks & Seals'],
+    ['charms', 'Doodads'], ['fortunes', 'Tonics'], ['stars', 'Tall Tales'], ['masks', 'Moonshine'], ['relics', 'Deeds'],
+    ['tokens', 'Telegrams'], ['hosts', 'Outlaws'], ['shoes', 'Shoes'], ['cards', 'Paints & Brands'],
   ];
   for (const [id, label] of labels) {
     const b = h('button', { class: 'tab', type: 'button', dataset: { tab: id } }, label, h('small', null, ` ${counts[id][0]}/${counts[id][1]}`));

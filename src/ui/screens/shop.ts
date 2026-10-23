@@ -1,4 +1,4 @@
-// Tanuki's Stall: buy Charms, consumables, Bundles and Relics.
+// The General Store: buy Doodads, consumables, Crates and Deeds.
 
 import type { Run, ShopItem } from '../../core/types';
 import { CONS } from '../../content/consumables';
@@ -13,14 +13,16 @@ import { audio, sfx } from '../../fx/audio';
 import { iconSvg } from '../icons';
 
 const QUIPS = [
-  'Welcome, welcome! Everything glows, nothing refunds.',
-  'Fresh charms! Only slightly haunted.',
-  'A wise soul spends... but a wiser one rerolls.',
-  'The Host is watching. Buy something shiny.',
-  'Ah, a returning customer! Or are you a ghost?',
-  'My prices are fair. My tail is fluffier.',
-  'Lanterns light the way. Embers light my purse.',
-  'Psst. The fortunes never lie. Mostly.',
+  'Howdy, partner! All sales final. All refunds imaginary.',
+  'Fresh doodads! Only slightly stolen.',
+  'Snake oil? No no. This here is DUCK oil. Totally different.',
+  'That Outlaw\u2019s been eyein\u2019 you. Buy somethin\u2019 shiny.',
+  'I don\u2019t do haggling. I do quacking. Quack.',
+  'You break it, you bought it. You look at it funny, you also bought it.',
+  'Bread\u2019s not for sale. Bread is sacred.',
+  'Back in my day we played blackjack with pond rocks.',
+  'Tonics cure everything except bad luck. And gout.',
+  'Ain\u2019t no shame in a reroll, friend. Just bucks.',
 ];
 
 export function shopScreen(hud: Hud): HTMLElement {
@@ -35,7 +37,7 @@ export function shopScreen(hud: Hud): HTMLElement {
     const quip = QUIPS[(run.night * 3 + run.tableIdx + s.rerollsDone) % QUIPS.length];
     const head = div(
       'shop-head',
-      div('merchant', h('div', { class: 'merchant-face', html: iconSvg('tanuki') }), div('merchant-bubble', quip)),
+      div('merchant', h('div', { class: 'merchant-face', html: iconSvg('duck') }), div('merchant-bubble', quip)),
       div(
         'shop-buttons',
         button('Next Table', 'primary big', () => {
@@ -46,7 +48,7 @@ export function shopScreen(hud: Hud): HTMLElement {
           app.render();
         }),
         button(`Reroll $${rerollPrice(run)}`, 'reroll', () => {
-          if (!reroll(run)) return toast('Not enough Embers', 'bad');
+          if (!reroll(run)) return toast('Not enough Bucks', 'bad');
           sfx('reroll');
           drainFx();
           save();
@@ -59,7 +61,7 @@ export function shopScreen(hud: Hud): HTMLElement {
     const items = div('shop-items');
     for (const it of s.items) items.appendChild(itemSlot(run, it, hud, render));
     const lower = div('shop-lower');
-    const vouch = div('shop-vouchers', div('shelf-label', 'Relic'));
+    const vouch = div('shop-vouchers', div('shelf-label', 'Deed'));
     const vids: [string | null, boolean][] = [[s.voucher, false]];
     if (run.flags.bonusVoucher) vids.push([run.flags.bonusVoucher, true]);
     for (const [vid, bonus] of vids) {
@@ -72,7 +74,7 @@ export function shopScreen(hud: Hud): HTMLElement {
       const price = voucherPrice(run, vid);
       const slot = div('shop-slot', div('price-tag', `$${price}`), card);
       slot.appendChild(
-        button('Redeem', 'buy tiny', () => {
+        button('Sign Deed', 'buy tiny', () => {
           const r = buyVoucher(run, bonus);
           if (!r.ok) return toast(r.reason, 'bad');
           sfx('buy');
@@ -86,7 +88,7 @@ export function shopScreen(hud: Hud): HTMLElement {
       );
       vouch.appendChild(slot);
     }
-    const packs = div('shop-packs', div('shelf-label', 'Bundles'));
+    const packs = div('shop-packs', div('shelf-label', 'Crates'));
     for (const p of s.packs) {
       if (p.sold) {
         packs.appendChild(div('shop-slot empty', div('sold-out', 'Opened')));
@@ -107,7 +109,7 @@ export function shopScreen(hud: Hud): HTMLElement {
       packs.appendChild(slot);
     }
     lower.append(vouch, packs);
-    el.append(head, div('shelf shelf-items', div('shelf-label', 'Wares'), items), lower);
+    el.append(head, div('shelf shelf-items', div('shelf-label', 'Goods'), items), lower);
   };
   render();
   hud.update();

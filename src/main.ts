@@ -1,4 +1,4 @@
-import '@fontsource/shojumaru/latin-400.css';
+import '@fontsource/rye/latin-400.css';
 import '@fontsource/m-plus-rounded-1c/latin-400.css';
 import '@fontsource/m-plus-rounded-1c/latin-700.css';
 import '@fontsource/m-plus-rounded-1c/latin-800.css';

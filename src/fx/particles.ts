@@ -1,12 +1,15 @@
 // Two 2D canvases: ambient sky lanterns behind the stage, and bursts in front.
 
-interface Lantern {
+interface Drifter {
+  kind: 'weed' | 'feather';
   x: number;
   y: number;
   z: number;
+  vx: number;
   vy: number;
   phase: number;
-  hue: number;
+  rot: number;
+  sprite: number;
 }
 
 interface P {
@@ -18,43 +21,51 @@ interface P {
   max: number;
   size: number;
   color: string;
-  kind: 'spark' | 'petal' | 'ember' | 'coin' | 'ring' | 'smoke';
+  kind: 'spark' | 'petal' | 'ember' | 'coin' | 'ring' | 'smoke' | 'feather';
   rot: number;
   vr: number;
 }
 
-function lanternSprite(hue: number): HTMLCanvasElement {
+function tumbleweedSprite(seed: number): HTMLCanvasElement {
   const c = document.createElement('canvas');
   c.width = 96;
-  c.height = 128;
+  c.height = 96;
   const g = c.getContext('2d')!;
-  const cx = 48;
-  const cy = 66;
-  const glow = g.createRadialGradient(cx, cy, 4, cx, cy, 48);
-  glow.addColorStop(0, `hsla(${hue},100%,70%,0.55)`);
-  glow.addColorStop(0.45, `hsla(${hue},100%,55%,0.18)`);
-  glow.addColorStop(1, `hsla(${hue},100%,50%,0)`);
-  g.fillStyle = glow;
-  g.fillRect(0, 0, 96, 128);
-  // body
-  const body = g.createLinearGradient(cx - 16, 0, cx + 16, 0);
-  body.addColorStop(0, `hsl(${hue},90%,38%)`);
-  body.addColorStop(0.5, `hsl(${hue + 12},100%,72%)`);
-  body.addColorStop(1, `hsl(${hue},90%,38%)`);
-  g.fillStyle = body;
-  g.beginPath();
-  g.ellipse(cx, cy, 15, 21, 0, 0, Math.PI * 2);
-  g.fill();
-  g.strokeStyle = `hsla(${hue - 10},80%,25%,0.6)`;
-  g.lineWidth = 1;
-  for (let i = -2; i <= 2; i++) {
+  let h = seed * 9301 + 49297;
+  const rnd = () => ((h = (h * 9301 + 49297) % 233280) / 233280);
+  g.lineCap = 'round';
+  for (let i = 0; i < 46; i++) {
+    const r1 = 10 + rnd() * 32;
+    const a1 = rnd() * Math.PI * 2;
+    const a2 = a1 + 0.6 + rnd() * 1.6;
+    g.strokeStyle = `rgba(${120 + rnd() * 60},${80 + rnd() * 40},${40 + rnd() * 20},0.9)`;
+    g.lineWidth = 1.2 + rnd() * 1.6;
     g.beginPath();
-    g.ellipse(cx, cy + i * 7, 15 * Math.cos((i * 7) / 24), 1.2, 0, 0, Math.PI * 2);
+    g.arc(48, 48, r1, a1, a2);
     g.stroke();
   }
-  g.fillStyle = '#2a1410';
-  g.fillRect(cx - 8, cy - 24, 16, 5);
-  g.fillRect(cx - 8, cy + 19, 16, 5);
+  return c;
+}
+
+function featherSprite(hue: number): HTMLCanvasElement {
+  const c = document.createElement('canvas');
+  c.width = 40;
+  c.height = 80;
+  const g = c.getContext('2d')!;
+  g.translate(20, 40);
+  g.fillStyle = `hsl(${hue},70%,82%)`;
+  g.strokeStyle = `hsl(${hue},40%,35%)`;
+  g.lineWidth = 1.5;
+  g.beginPath();
+  g.moveTo(0, -34);
+  g.bezierCurveTo(14, -18, 12, 18, 0, 30);
+  g.bezierCurveTo(-12, 18, -14, -18, 0, -34);
+  g.fill();
+  g.stroke();
+  g.beginPath();
+  g.moveTo(0, -30);
+  g.lineTo(0, 38);
+  g.stroke();
   return c;
 }
 
@@ -64,9 +75,10 @@ class Particles {
   bctx!: CanvasRenderingContext2D;
   fctx!: CanvasRenderingContext2D;
   enabled = true;
-  lanterns: Lantern[] = [];
+  lanterns: Drifter[] = [];
   parts: P[] = [];
   sprites: HTMLCanvasElement[] = [];
+  feathers: HTMLCanvasElement[] = [];
   lanternRate = 1;
   private last = performance.now();
   private dpr = 1;
@@ -76,10 +88,11 @@ class Particles {
     this.front = front;
     this.bctx = back.getContext('2d')!;
     this.fctx = front.getContext('2d')!;
-    this.sprites = [18, 30, 8, 42].map(lanternSprite);
+    this.sprites = [1, 2, 3].map(tumbleweedSprite);
+    this.feathers = [40, 200, 20, 330].map(featherSprite);
     this.resize();
     window.addEventListener('resize', () => this.resize());
-    for (let i = 0; i < 16; i++) this.spawnLantern(true);
+    for (let i = 0; i < 10; i++) this.spawnLantern(true);
     const loop = (now: number) => {
       requestAnimationFrame(loop);
       this.frame(now);
@@ -98,15 +111,14 @@ class Particles {
   private spawnLantern(anywhere = false) {
     const W = window.innerWidth;
     const H = window.innerHeight;
-    const z = 0.25 + Math.random() * 0.75;
-    this.lanterns.push({
-      x: Math.random() * W,
-      y: anywhere ? Math.random() * H : H + 60,
-      z,
-      vy: -(8 + Math.random() * 14) * z,
-      phase: Math.random() * Math.PI * 2,
-      hue: Math.floor(Math.random() * this.sprites.length),
-    });
+    const z = 0.3 + Math.random() * 0.7;
+    if (Math.random() < 0.35) {
+      // Tumbleweed rolling along the ground
+      this.lanterns.push({ kind: 'weed', x: anywhere ? Math.random() * W : -80, y: H * (0.8 + z * 0.15), z, vx: (60 + Math.random() * 80) * z, vy: 0, phase: Math.random() * 6, rot: 0, sprite: Math.floor(Math.random() * this.sprites.length) });
+    } else {
+      // Feather drifting down
+      this.lanterns.push({ kind: 'feather', x: Math.random() * W, y: anywhere ? Math.random() * H : -40, z, vx: 10 + Math.random() * 20, vy: (14 + Math.random() * 18) * z, phase: Math.random() * 6, rot: 0, sprite: Math.floor(Math.random() * this.feathers.length) });
+    }
   }
 
   burst(x: number, y: number, opts: { n?: number; color?: string | string[]; kind?: P['kind']; speed?: number; size?: number; spread?: number; up?: number } = {}) {
@@ -170,7 +182,7 @@ class Particles {
         life: 0,
         max: 4 + Math.random() * 3,
         size: 5 + Math.random() * 5,
-        color: ['#ffb3c7', '#ffd6e2', '#ff8ab3', '#ffe27a'][i % 4],
+        color: ['#fff6e0', '#ffe27a', '#ffb02e', '#ff7a3d'][i % 4],
         kind: 'petal',
         rot: Math.random() * 6,
         vr: (Math.random() - 0.5) * 6,
@@ -190,21 +202,35 @@ class Particles {
     b.setTransform(d, 0, 0, d, 0, 0);
     b.clearRect(0, 0, W, H);
     if (this.enabled) {
-      const target = Math.round(16 * this.lanternRate);
-      if (this.lanterns.length < target && Math.random() < dt * 2) this.spawnLantern();
-      b.globalCompositeOperation = 'lighter';
+      const target = Math.round(10 * this.lanternRate);
+      if (this.lanterns.length < target && Math.random() < dt * 1.5) this.spawnLantern();
       for (const l of this.lanterns) {
-        l.y += l.vy * dt;
-        l.phase += dt * 0.8;
-        const x = l.x + Math.sin(l.phase) * 14 * l.z;
-        const s = this.sprites[l.hue];
-        const sc = 0.35 + l.z * 0.65;
-        b.globalAlpha = 0.25 + 0.6 * l.z * (0.85 + 0.15 * Math.sin(l.phase * 3.1));
-        b.drawImage(s, x - 48 * sc, l.y - 64 * sc, 96 * sc, 128 * sc);
+        l.phase += dt;
+        if (l.kind === 'weed') {
+          l.x += l.vx * dt;
+          const hop = Math.abs(Math.sin(l.phase * 2.2)) * 26 * l.z;
+          l.rot += (l.vx / (40 * l.z)) * dt;
+          const sc = 0.4 + l.z * 0.7;
+          b.save();
+          b.globalAlpha = 0.35 + 0.5 * l.z;
+          b.translate(l.x, l.y - hop);
+          b.rotate(l.rot);
+          b.drawImage(this.sprites[l.sprite], -48 * sc, -48 * sc, 96 * sc, 96 * sc);
+          b.restore();
+        } else {
+          l.y += l.vy * dt;
+          l.x += (l.vx + Math.sin(l.phase * 1.3) * 30) * dt;
+          const sc = 0.35 + l.z * 0.45;
+          b.save();
+          b.globalAlpha = 0.25 + 0.45 * l.z;
+          b.translate(l.x, l.y);
+          b.rotate(Math.sin(l.phase * 1.7) * 0.8);
+          b.drawImage(this.feathers[l.sprite], -20 * sc, -40 * sc, 40 * sc, 80 * sc);
+          b.restore();
+        }
       }
       b.globalAlpha = 1;
-      b.globalCompositeOperation = 'source-over';
-      this.lanterns = this.lanterns.filter((l) => l.y > -100);
+      this.lanterns = this.lanterns.filter((l) => l.x < W + 120 && l.y < H + 80);
     }
     // --- front: particles
     const f = this.fctx;

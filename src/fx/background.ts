@@ -13,70 +13,92 @@ uniform float uMoon;
 uniform float uSpin;
 
 float hash(vec2 p){ p = fract(p*vec2(123.34, 456.21)); p += dot(p, p+45.32); return fract(p.x*p.y); }
+float hash1(float x){ return fract(sin(x*127.1)*43758.5453); }
 float noise(vec2 p){
   vec2 i = floor(p), f = fract(p);
   vec2 u = f*f*(3.0-2.0*f);
   return mix(mix(hash(i), hash(i+vec2(1,0)), u.x), mix(hash(i+vec2(0,1)), hash(i+vec2(1,1)), u.x), u.y);
 }
+float noise1(float x){ float i = floor(x), f = fract(x); return mix(hash1(i), hash1(i+1.0), f*f*(3.0-2.0*f)); }
 float fbm(vec2 p){
   float v = 0.0, a = 0.5;
   mat2 m = mat2(1.6, 1.2, -1.2, 1.6);
   for (int i = 0; i < ${octaves}; i++){ v += a*noise(p); p = m*p; a *= 0.5; }
   return v;
 }
+// Mesa skyline: flat-topped buttes with steep sides.
+float mesa(float x, float seed, float base, float amp){
+  float n = noise1(x*2.2 + seed);
+  float plateau = smoothstep(0.42, 0.58, n);
+  float bumps = noise1(x*9.0 + seed*3.0) * 0.015;
+  return base + amp * plateau + bumps;
+}
 
 void main(){
+  vec2 uv = gl_FragCoord.xy / uRes;
   vec2 p = (gl_FragCoord.xy - 0.5*uRes) / uRes.y;
-  float t = uTime * 0.035;
-  // slow swirl around the centre
-  float ang = uSpin * 0.25 * sin(t*0.7) + length(p)*0.35*uSpin;
-  mat2 rot = mat2(cos(ang), -sin(ang), sin(ang), cos(ang));
-  vec2 sp = rot * p;
+  float t = uTime;
 
-  vec2 q = vec2(fbm(sp*1.5 + vec2(0.0, t)), fbm(sp*1.5 + vec2(5.2, -t*0.8)));
-  vec2 r = vec2(fbm(sp*1.9 + 3.2*q + vec2(1.7, 9.2) + t*1.2), fbm(sp*1.9 + 3.2*q + vec2(8.3, 2.8) - t));
-  float f = fbm(sp*1.7 + 3.6*r);
+  // Banded sunset sky (woodcut-style posterised gradient)
+  float h = uv.y;
+  float bands = 9.0;
+  float hb = floor(h*bands)/bands;
+  float hq = mix(hb, h, 0.25);
+  vec3 sky = mix(uC, uB, smoothstep(0.25, 0.65, hq));
+  sky = mix(sky, uA, smoothstep(0.6, 1.0, hq));
 
-  // woodblock banding: quantise with soft edges
-  float bands = 7.0;
-  float fb = floor(f*bands)/bands;
-  float edge = smoothstep(0.0, 0.08, fract(f*bands)) ;
-  float fq = mix(fb, f, 0.35 + 0.25*edge);
+  // Drifting striped clouds
+  vec2 cp = vec2(p.x*1.4 + t*0.012*uSpin, p.y*5.0);
+  float c = fbm(cp + vec2(0.0, 3.0));
+  float cloud = smoothstep(0.55, 0.62, c) * smoothstep(0.35, 0.6, uv.y);
+  float cloudBand = step(0.5, fract(c*8.0));
+  sky = mix(sky, mix(uC, vec3(1.0, 0.85, 0.7), 0.4 + 0.2*cloudBand), cloud*0.55);
 
-  vec3 col = mix(uA, uB, clamp(fq*fq*2.4, 0.0, 1.0));
-  col = mix(col, uC, clamp(length(q) - 0.45, 0.0, 1.0) * 0.85);
-  col = mix(col, uD, clamp(r.x*r.x*1.6 - 0.15, 0.0, 1.0) * 0.45);
+  // Sun sitting on the horizon, with retro slice bands
+  vec2 sp = p - vec2(0.42, -0.12);
+  float sd = length(sp);
+  float sun = smoothstep(0.24, 0.235, sd);
+  float slices = step(0.0, sin((p.y + 0.3) * 70.0 - t*0.8)) + step(0.06, p.y + 0.12);
+  sun *= clamp(slices, 0.0, 1.0);
+  vec3 sunCol = mix(vec3(1.0, 0.86, 0.45), vec3(1.0, 0.45, 0.25), smoothstep(0.1, -0.12, sp.y));
+  sky = mix(sky, sunCol, sun * uMoon);
+  sky += vec3(1.0, 0.55, 0.25) * exp(-sd*4.5) * 0.35 * uMoon;
 
-  // ink contour ripples
-  float ripple = abs(fract(f*bands) - 0.5);
-  col += uC * smoothstep(0.035, 0.0, abs(ripple - 0.47)) * 0.12;
-
-  // moon
-  vec2 mp = p - vec2(0.66, 0.3);
-  float md = length(mp);
-  float cloud = fbm(p*3.0 + vec2(t*2.0, 0.0));
-  float moon = smoothstep(0.115, 0.108, md);
-  float crater = fbm(mp*18.0) * 0.25;
-  vec3 moonCol = mix(vec3(1.0, 0.93, 0.78), vec3(1.0, 0.82, 0.55), crater + mp.y*1.5);
-  float veil = smoothstep(0.42, 0.75, cloud);
-  col = mix(col, moonCol, moon * (1.0 - veil*0.85) * uMoon);
-  col += vec3(1.0, 0.75, 0.45) * exp(-md*8.0) * 0.3 * uMoon;
-
-  // stars
+  // Stars in the upper sky
   vec2 sg = gl_FragCoord.xy / 3.0;
   float st = hash(floor(sg));
-  float tw = 0.5 + 0.5*sin(uTime*1.5 + st*40.0);
-  col += vec3(1.0, 0.9, 0.75) * step(0.9975, st) * tw * (1.0 - smoothstep(0.2, 0.9, f)) * 0.8;
+  float tw = 0.5 + 0.5*sin(t*1.5 + st*40.0);
+  sky += vec3(1.0, 0.9, 0.75) * step(0.9975, st) * tw * smoothstep(0.6, 0.95, uv.y) * 0.9;
+
+  vec3 col = sky;
+  // Three layers of mesas, far to near
+  float x = p.x;
+  float m1 = mesa(x*0.8 + 3.0, 1.0, -0.1, 0.16);
+  float m2 = mesa(x*1.1 - 7.0, 5.0, -0.22, 0.13);
+  float m3 = mesa(x*1.5 + 11.0, 9.0, -0.36, 0.1);
+  vec3 far = mix(uD, sky, 0.55);
+  vec3 mid = mix(uD, sky, 0.3);
+  vec3 near = uD * 0.7;
+  col = mix(col, far, step(p.y, m1));
+  col = mix(col, mid, step(p.y, m2));
+  col = mix(col, near, step(p.y, m3));
+  // rim light on the near mesa tops
+  col += uC * 0.25 * smoothstep(0.012, 0.0, abs(p.y - m3)) * step(p.y, m3 + 0.01);
+  // Desert floor stripes
+  float ground = step(p.y, -0.42);
+  float rows = step(0.5, fract((p.y + 0.42) * 30.0 / max(0.05, -p.y + 0.2)));
+  col = mix(col, uD * (0.45 + 0.08*rows), ground);
+
+  // Blowing dust
+  float dust = fbm(vec2(p.x*3.0 - t*0.15*uSpin, p.y*6.0));
+  col += uC * smoothstep(0.6, 0.85, dust) * 0.08 * smoothstep(0.1, -0.5, p.y);
 
   // pulse when scoring
-  col *= 1.0 + uPulse*0.35;
+  col *= 1.0 + uPulse*0.3;
   col += uC * uPulse * 0.08;
 
-  // vignette
-  vec2 uv = gl_FragCoord.xy / uRes;
   float vig = smoothstep(1.25, 0.35, length((uv - 0.5) * vec2(1.25, 1.0)));
-  col *= mix(0.45, 1.0, vig);
-
+  col *= mix(0.5, 1.0, vig);
   gl_FragColor = vec4(col, 1.0);
 }
 `;
@@ -84,14 +106,14 @@ void main(){
 export type Palette = [string, string, string, string];
 
 export const PALETTES: Record<string, Palette> = {
-  menu: ['#0b0820', '#2a1a5e', '#ff6a3d', '#3fd1c8'],
-  select: ['#0a0a22', '#22246a', '#ffb03d', '#5a3dff'],
-  table: ['#07101c', '#123a4a', '#ff8a3d', '#2a5cff'],
-  shop: ['#140818', '#4a1a52', '#ffcf3d', '#ff3d7a'],
-  host: ['#120406', '#4a0f1a', '#ff3d2a', '#7a2aff'],
-  pack: ['#0a0620', '#3a1f7a', '#c9b8ff', '#ff7ad9'],
-  over: ['#050508', '#1a1a2a', '#6a6a8a', '#3a2a4a'],
-  victory: ['#120a04', '#5a3a0a', '#ffd23f', '#ff7a3d'],
+  menu: ['#1b1040', '#8a2a5a', '#ff8a3d', '#4a1e2a'],
+  select: ['#14123a', '#6a2a6a', '#ffa64a', '#3a1a2a'],
+  table: ['#101030', '#4a2058', '#ff7a3d', '#2a1222'],
+  shop: ['#2a1030', '#a03a4a', '#ffc34a', '#4a2414'],
+  host: ['#1a0408', '#6a0f14', '#ff4a2a', '#240608'],
+  pack: ['#1a1040', '#5a2a8a', '#ffb0d0', '#2a1438'],
+  over: ['#08080c', '#24202e', '#7a6a6a', '#141018'],
+  victory: ['#3a1a08', '#c2501a', '#ffe27a', '#5a2a10'],
 };
 
 function hex(c: string): [number, number, number] {

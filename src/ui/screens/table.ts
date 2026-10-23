@@ -29,11 +29,11 @@ const PLAYER_Y = 595;
 const FELT_CX = 965;
 
 const OUTCOME_LABEL: Record<Outcome, string> = {
-  blackjack: 'Blackjack!',
-  charlie: 'Charlie!',
+  blackjack: 'Quackjack!',
+  charlie: 'Charley Horse!',
   win: 'Win',
-  dealerbust: 'Dealer Busts!',
-  push: 'Push',
+  dealerbust: 'Dealer Bit the Dust!',
+  push: 'Standoff',
   lose: 'Lose',
   bust: 'Bust!',
   fold: 'Folded',
@@ -60,7 +60,7 @@ export class TableScreen {
     this.el = div('table-screen');
     this.felt = div('felt');
     this.felt.innerHTML = `<div class="felt-inner"><div class="felt-pattern"></div><div class="felt-rule">
-      <span>Dealer stands on 17</span><span class="dot">◆</span><span>Blackjack pays in light</span></div></div>`;
+      <span>Dealer stands on 17</span><span class="dot">◆</span><span>No fowl play</span></div></div>`;
     this.cardLayer = div('card-layer');
     this.dealerBadge = div('total-badge dealer-badge');
     this.handBadges = div('hand-badges');
@@ -89,6 +89,7 @@ export class TableScreen {
     const host = t.kind === 'host' ? HOST[t.hostId!] : null;
     background.setPalette(host ? 'host' : 'table', 0.25);
     audio.setMood(host ? 'host' : 'table');
+    if (host && t.phase === 'ready' && t.dealt === 0) setTimeout(() => sfx('honk'), 300);
     this.el.classList.toggle('host-table', !!host);
     if (host) {
       const med = hostMedallion(host.id, 'lg');
@@ -384,7 +385,7 @@ export class TableScreen {
     this.flushFx();
     if (res.dealerNatural) {
       await wait(250);
-      this.showBanner('Dealer Blackjack', 'bad');
+      this.showBanner('Dealer Quackjack!', 'bad');
       sfx('lose');
       await wait(700);
     } else if (res.playerNatural) {
@@ -521,7 +522,7 @@ export class TableScreen {
     if (dealerBust && dealerNeedsToPlayOrScored(run)) {
       const el = this.cardLayer.querySelector(`[data-id="${run.table!.dealer[run.table!.dealer.length - 1]}"]`);
       if (el) {
-        popup(el, 'Dealer Busts!', 'pop-big pop-good');
+        popup(el, 'Dealer Bit the Dust!', 'pop-big pop-good');
         burstAt(el, { n: 18, color: ['#ffe27a', '#ffb03d'] });
       }
       sfx('win');
@@ -596,19 +597,19 @@ export class TableScreen {
         card?.classList.add('burn');
         break;
       case 'blackjack':
-        popup(el, 'Blackjack!', 'pop-big pop-gold');
+        popup(el, 'Quackjack!', 'pop-big pop-gold');
         sfx('blackjack');
         burstAt(el, { n: 40, color: ['#ffe27a', '#ffb03d', '#fff6e0'], speed: 420 });
         particles.ring(center(el).x, center(el).y, '#ffd23f', 160);
         background.bump(1.5);
         break;
       case 'charlie':
-        popup(el, 'Lantern Charlie!', 'pop-big pop-gold');
+        popup(el, 'Charley Horse!', 'pop-big pop-gold');
         sfx('blackjack');
         burstAt(el, { n: 30, color: ['#7fe8ff', '#ffe27a'] });
         break;
       case 'push':
-        popup(el, 'Spared!', 'pop-info');
+        popup(el, 'Ducked it!', 'pop-info');
         break;
     }
   }
@@ -796,10 +797,10 @@ export class TableScreen {
     sfx('blackjack');
     particles.petals(60);
     background.bump(2);
-    const lit = div('lantern-lit', div('ll-lantern', div('ll-glow'), h('div', { class: 'll-body', html: iconSvg('lantern') })), div('ll-text', t.kind === 'host' ? 'Host Defeated' : 'Lantern Lit'));
+    const lit = div('lantern-lit', div('ll-lantern', div('ll-glow'), h('div', { class: 'll-body', html: iconSvg('badge') })), div('ll-text', t.kind === 'host' ? 'Run Outta Town!' : 'Cleaned Out!'));
     this.el.appendChild(lit);
     if (run.flags.savedBy) {
-      popup(this.hud.refs.score, 'Saved by Jizo!', 'pop-big pop-gold');
+      popup(this.hud.refs.score, 'Saved by a Second Wind!', 'pop-big pop-gold');
       run.flags.savedBy = undefined;
     }
     profile.handsPlayed += 0;
@@ -820,7 +821,7 @@ export class TableScreen {
     app.busy = false;
     const panel = div('cashout');
     const list = div('co-lines');
-    panel.append(div('co-title', 'The Lantern Burns Bright'), list);
+    panel.append(div('co-title', 'Collect Your Winnings'), list);
     const btn = button(`Cash Out: $${co.total}`, 'primary big', () => {
       sfx('money');
       burstAt(btn, { n: 20, kind: 'coin', color: '#ffd23f', up: 260 });
