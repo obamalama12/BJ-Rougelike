@@ -286,7 +286,10 @@ export class TableScreen {
     const rules = getRules(run);
     const cards = cardsOf(run, hand.cards);
     const tot = handTotal(cards, rules);
-    if (tot.bust) return;
+    if (tot.bust) {
+      this.hud.clearCalc();
+      return;
+    }
     const ht = classifyHand(cards, tot.total, cards.length >= rules.charlieSize ? 'charlie' : 'win', rules);
     const lv = run.handLevels[ht];
     const b = handBase(ht, lv);
@@ -367,7 +370,8 @@ export class TableScreen {
     ];
     for (const [w, name, desc] of opts) {
       const b = h('button', { class: `wager-opt w${w}${t.wager === w ? ' on' : ''}`, type: 'button', disabled: t.phase !== 'ready' });
-      b.innerHTML = `<span class="wager-chips">${'<i></i>'.repeat(w)}</span><span class="wager-name">${name}</span><span class="wager-x">X${w}</span>`;
+      const piles = ([[2], [3, 2], [4, 3, 3]] as const)[w - 1];
+      b.innerHTML = `<span class="wager-chips">${piles.map((n) => `<span class="pile">${'<i></i>'.repeat(n)}</span>`).join('')}</span><span class="wager-name">${name}</span><span class="wager-x">X${w}</span>`;
       tip(b, () => `<div class="tt-title">${name}</div><div class="tt-body">${desc}</div>`, 'left');
       b.addEventListener('click', () => {
         if (t.phase !== 'ready' || app.busy) return;
@@ -656,6 +660,7 @@ export class TableScreen {
     this.hud.update();
     this.hud.renderTrays();
     this.banner.className = 'outcome-banner';
+    this.hud.clearCalc();
     await wait(380);
     if (state === 'won') await this.winSequence();
     else if (state === 'dead') await this.loseSequence();
@@ -742,6 +747,7 @@ export class TableScreen {
       if (o === 'lose' || o === 'bust') {
         for (const id of hand.cards) this.cards.get(id)?.classList.add('dim');
       }
+      this.hud.clearCalc();
       await wait(360);
       await this.playEvents(res.events.filter((e) => e.t === 'money' || e.t === 'msg'), true);
       await wait(400);

@@ -531,3 +531,56 @@ body.no-grain #grain {
   clip-path: polygon(50% 0, 61% 33%, 98% 35%, 68% 56%, 79% 92%, 50% 70%, 21% 92%, 32% 56%, 2% 35%, 39% 33%);
   filter: drop-shadow(0 0 6px var(--c));
 }
+
+/* Phones held upright: ask to rotate ------------------------------------------- */
+
+#rotate {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  place-items: center;
+  padding: 24px;
+  background: rgba(20, 8, 2, 0.88);
+}
+@media (orientation: portrait) and (max-width: 900px) {
+  body:not(.rotate-ok) #rotate { display: grid; }
+}
+.rotate-card {
+  max-width: 320px;
+  padding: 24px 22px 22px;
+  text-align: center;
+  color: var(--ink);
+  background: var(--halftone), var(--paper);
+  border: 4px solid var(--ink);
+  border-radius: 3px;
+  box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.5);
+  transform: rotate(-1deg);
+}
+.rotate-phone { width: 110px; height: 110px; animation: tilt 2.4s ease-in-out infinite; }
+@keyframes tilt { 0%, 30% { transform: rotate(0); } 60%, 100% { transform: rotate(-90deg); } }
+.rotate-title { font-family: var(--f-display); font-size: 26px; line-height: 1.1; margin: 8px 0; }
+.rotate-text { font-size: 17px; font-weight: 600; line-height: 1.35; }
+.rotate-skip {
+  margin-top: 16px;
+  font-family: var(--f-body);
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--ink);
+  background: none;
+  border: none;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* Keyboard focus */
+.btn:focus-visible,
+.tab:focus-visible,
+.seg-btn:focus-visible,
+.choice:focus-visible,
+.yarn:focus-visible,
+.wager-opt:focus-visible,
+.trail-node:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 3px;
+}

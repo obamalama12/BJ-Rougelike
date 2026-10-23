@@ -46,7 +46,7 @@ function handsTab(run: Run): HTMLElement {
       div('hr-level', `Lv.${lv}`),
       div('hr-name', ht.name, div('hr-desc', ht.desc)),
       div('hr-calc', h('span', { class: 'hr-chips' }, fmtNum(b.chips)), h('span', { class: 'hr-x' }, '×'), h('span', { class: 'hr-mult' }, fmtNum(b.mult))),
-      div('hr-plays', `#${run.handPlays[ht.id] ?? 0}`),
+      div('hr-plays', `played ${run.handPlays[ht.id] ?? 0}×`),
     );
     list.appendChild(row);
   }

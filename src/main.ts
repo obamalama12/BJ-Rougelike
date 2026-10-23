@@ -92,3 +92,4 @@ render();
 
 window.addEventListener('beforeunload', () => saveProfile());
 document.getElementById('boot')?.remove();
+document.querySelector('.rotate-skip')?.addEventListener('click', () => document.body.classList.add('rotate-ok'));

@@ -670,13 +670,13 @@
 .ri-head { display: flex; align-items: baseline; justify-content: space-between; }
 .ri-meta { opacity: 0.6; font-weight: 800; }
 .ri-foot { display: flex; justify-content: center; margin-top: 20px; }
-.hand-list { display: flex; flex-direction: column; gap: 6px; }
+.hand-list { display: flex; flex-direction: column; gap: 4px; }
 .hand-row {
   display: grid;
-  grid-template-columns: 80px 1fr 260px 70px;
+  grid-template-columns: 70px 1fr 260px 96px;
   align-items: center;
   gap: 14px;
-  padding: 8px 14px;
+  padding: 4px 14px;
   border-radius: 3px;
   background: rgba(0, 0, 0, 0.28);
   border: 2px solid rgba(0, 0, 0, 0.35);
