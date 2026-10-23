@@ -4,7 +4,7 @@ import { coach } from '../coach';
 import { townCelebration, type Celebration } from '../scenes';
 import type { Run, TrailNode, NodeKind } from '../../core/types';
 import { HOST } from '../../content/hosts';
-import { COLS, NODE_INFO, nodeTarget, reachable, travel, isTableNode } from '../../game/trail';
+import { COLS, GANG_COLS, NODE_INFO, nodeTarget, reachable, travel, isTableNode } from '../../game/trail';
 import { canRerollHost, payRerollHost, maybeOpenTagPack } from '../../game/shop';
 import { NIGHTS } from '../../game/engine';
 import { app, button, save, tip, toast } from '../app';
@@ -111,7 +111,7 @@ export function trailScreen(hud: Hud): HTMLElement {
   }
   const el = div('trail-screen');
   const map = div('trail-map');
-  map.innerHTML = `<div class="map-paper sheet"></div><div class="map-neat"></div>
+  map.innerHTML = `<div class="map-paper sheet"></div><div class="map-wear"></div><div class="map-neat"></div>
     <div class="map-title"><span class="mt-kicker">Route Map · Town ${run.night} of ${NIGHTS}</span><span class="mt-name">${townName(run.night)}</span><small>Choose your route to the Outlaw</small></div>
     ${COMPASS}
     <div class="map-imprint">Buck Ducks Survey Office · Sheet ${run.night}</div>`;
@@ -151,6 +151,7 @@ export function trailScreen(hud: Hud): HTMLElement {
   scroller.appendChild(world);
   map.appendChild(scroller);
   world.appendChild(svg);
+  svg.appendChild(pencilNotes(run));
 
   for (const n of run.trail.nodes) {
     const p = nodePos(n);
@@ -298,4 +299,70 @@ function setupScroll(sc: HTMLElement, focusX: number) {
   };
   sc.addEventListener('pointerup', up);
   sc.addEventListener('pointercancel', up);
+}
+
+// ---------------------------------------------------------------------------
+// Pencil notes: what a previous rider scrawled on this map
+// ---------------------------------------------------------------------------
+
+const GANG_NOTES = ['his gang', 'the gang', 'his boys', 'trouble'];
+const OUTLAW_NOTES = ['mean as a snake', 'watch this one', 'don’t blink', 'cheats at cards', 'owes me $5'];
+
+/** A small deterministic noise source so the scribbles stay put between redraws. */
+function scribbleRng(seed: string) {
+  let h = 2166136261;
+  for (let i = 0; i < seed.length; i++) h = Math.imul(h ^ seed.charCodeAt(i), 16777619);
+  return () => ((h = Math.imul(h ^ (h >>> 15), 2246822507) ^ Math.imul(h ^ (h >>> 13), 3266489909)) >>> 0) / 4294967296;
+}
+
+/** A wobbly hand-drawn ellipse, traced twice like a pencil going round. */
+function roughEllipse(cx: number, cy: number, rx: number, ry: number, rnd: () => number) {
+  const loop = (k: number) => {
+    const pts: string[] = [];
+    const start = rnd() * Math.PI * 2;
+    for (let i = 0; i <= 26; i++) {
+      const a = start + (i / 24) * Math.PI * 2;
+      const w = 1 + (rnd() - 0.5) * 0.07 + k * 0.03;
+      pts.push(`${(cx + Math.cos(a) * rx * w).toFixed(1)},${(cy + Math.sin(a) * ry * w).toFixed(1)}`);
+    }
+    return `M${pts[0]} ` + pts.slice(1).map((p) => `L${p}`).join(' ');
+  };
+  return `<path class="pc-line" d="${loop(0)}"/><path class="pc-line faint" d="${loop(1)}"/>`;
+}
+
+function pencilNotes(run: Run): SVGGElement {
+  const g = document.createElementNS(SVG_NS, 'g');
+  g.setAttribute('class', 'pencil');
+  const rnd = scribbleRng(`${run.seed}:${run.night}`);
+  const pick = <T,>(a: T[]) => a[Math.floor(rnd() * a.length)];
+  let html = '';
+  // Ring the first gang column.
+  const gang = run.trail.nodes.filter((n) => n.col === GANG_COLS[0]);
+  if (gang.length) {
+    const ys = gang.map((n) => nodePos(n).y);
+    const x = nodePos(gang[0]).x;
+    const top = Math.min(...ys) - 66;
+    const bot = Math.max(...ys) + 70;
+    html += roughEllipse(x, (top + bot) / 2, 80, (bot - top) / 2, rnd);
+    // Written over the top of the ring, leaning right.
+    const ly = top + 6;
+    html += `<text class="pc-text" x="${x + 40}" y="${ly}" transform="rotate(-6 ${x + 40} ${ly})">${pick(GANG_NOTES)}</text>`;
+  }
+  // An arrow to the Outlaw.
+  const boss = run.trail.nodes.find((n) => n.kind === 'outlaw');
+  if (boss) {
+    const p = nodePos(boss);
+    // Above his seal, with an arrow curling down onto it.
+    const tx = p.x - 96;
+    const ty = p.y - 122;
+    html += `<text class="pc-text" x="${tx}" y="${ty}" transform="rotate(-4 ${tx} ${ty})">${pick(OUTLAW_NOTES)}</text>`;
+    const ax = tx + 22;
+    const ay = ty + 8;
+    const bx = p.x - 30;
+    const by = p.y - 74;
+    html += `<path class="pc-line" d="M${ax},${ay} Q${ax + 6},${by - 6} ${bx},${by}"/>`;
+    html += `<path class="pc-line" d="M${bx - 11},${by - 3} L${bx},${by} L${bx - 4},${by - 11}"/>`;
+  }
+  g.innerHTML = html;
+  return g;
 }

@@ -210,6 +210,7 @@ export class Hud {
         (this.refs.rules = div('poster-rules')),
         div('poster-nail l'),
         div('poster-nail r'),
+        div('poster-wear'),
       );
       p.className = `poster${isOutlaw ? ' outlaw' : ''}`;
       this.shownScore = t?.score ?? 0;

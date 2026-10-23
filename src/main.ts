@@ -2,6 +2,8 @@ import '@fontsource/rye/latin-400.css';
 import '@fontsource/zilla-slab/latin-500.css';
 import '@fontsource/zilla-slab/latin-600.css';
 import '@fontsource/zilla-slab/latin-700.css';
+import '@fontsource/caveat/latin-600.css';
+import '@fontsource/caveat/latin-700.css';
 import { clearCoach } from './ui/coach';
 import { setHeroPortrait } from './ui/characters';
 import { HERO } from './content/heroes';
@@ -15,6 +17,7 @@ import './style/stops.css';
 import './style/shop.css';
 import './style/menus.css';
 import './style/scenes.css';
+import './style/handmade.css';
 
 import { app, mountShell, hideTip, closeAllModals } from './ui/app';
 import { clear, div } from './ui/dom';
