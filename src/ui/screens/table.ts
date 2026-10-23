@@ -22,9 +22,9 @@ import { iconSvg } from '../icons';
 
 const CW = 112;
 const CH = 156;
-const SHOE_POS = { x: 1430, y: 300 };
-const DISCARD_POS = { x: 470, y: 300 };
-const DEALER_Y = 300;
+const SHOE_POS = { x: 1430, y: 330 };
+const DISCARD_POS = { x: 470, y: 330 };
+const DEALER_Y = 330;
 const PLAYER_Y = 595;
 const FELT_CX = 965;
 
@@ -766,7 +766,7 @@ export class TableScreen {
     sfx('blackjack');
     particles.petals(60);
     background.bump(2);
-    const lit = div('lantern-lit', div('ll-lantern', div('ll-glow'), div('ll-body', iconSvg('lantern'))), div('ll-text', t.kind === 'host' ? 'Host Defeated' : 'Lantern Lit'));
+    const lit = div('lantern-lit', div('ll-lantern', div('ll-glow'), h('div', { class: 'll-body', html: iconSvg('lantern') })), div('ll-text', t.kind === 'host' ? 'Host Defeated' : 'Lantern Lit'));
     this.el.appendChild(lit);
     if (run.flags.savedBy) {
       popup(this.hud.refs.score, 'Saved by Jizo!', 'pop-big pop-gold');

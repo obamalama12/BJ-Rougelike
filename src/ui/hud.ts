@@ -5,6 +5,7 @@ import { HAND_TYPE } from '../core/cards';
 import { CHARM, sellValue } from '../content/charms';
 import { CONS, consSellValue } from '../content/consumables';
 import { HOST } from '../content/hosts';
+import { SHOE, STAKES } from '../content/shoes';
 import { app, button, jiggle, modal, popup, save, tip, toast, hideTip } from './app';
 import { charmCard, charmTooltip, consCard, consTooltip, hostMedallion, hostTooltip, tagToken, tagTooltip } from './art';
 import { h, div, fmtNum, fmtMult, clear } from './dom';
@@ -95,12 +96,14 @@ export class Hud {
       div('sb-stat', div('sb-label', 'Table'), r.table),
     );
     r.tags = div('sb-tags');
+    r.runStrip = div('sb-run');
     const btns = div(
       'sb-buttons',
       button('Run Info', 'small ghost', () => openRunInfo()),
+      button('Deck', 'small ghost', () => openRunInfo('deck')),
       button('Options', 'small ghost', () => openOptions()),
     );
-    this.side.append(r.banner, targetBox, scoreBox, handBox, stats, r.tags, btns);
+    this.side.append(r.banner, targetBox, scoreBox, handBox, stats, r.tags, r.runStrip, btns);
   }
 
   /** Refresh every number on the sidebar. */
@@ -139,6 +142,8 @@ export class Hud {
     r.money.classList.toggle('neg', run.money < 0);
     r.night.innerHTML = `${run.night}<small>/${NIGHTS}</small>`;
     r.table.innerHTML = `${Math.max(1, idx + 1)}<small>/3</small>`;
+    const stake = STAKES[run.stake - 1];
+    r.runStrip.innerHTML = `<span class="moon-phase p${run.stake}"></span><div><div class="sb-run-shoe">${SHOE[run.shoeId]?.name ?? ''}</div><div class="sb-run-stake" style="color:${stake?.color}">${stake?.name ?? ''}</div></div><div class="sb-run-deck">${run.deck.length}<small> cards</small></div>`;
     clear(r.tags);
     for (const tg of run.tags) {
       const tk = tagToken(tg.id);
@@ -246,6 +251,7 @@ export class Hud {
       this.charmRow.appendChild(slot);
     });
     this.charmCount.textContent = `${run.charms.length}/${charmSlots(run)}`;
+    if (!run.charms.length) this.charmRow.appendChild(div('tray-empty', 'Charms'));
     run.consumables.forEach((k) => {
       const slot = div('cons-slot');
       const card = consCard(k.kind, k.id, k.finish);
@@ -278,6 +284,7 @@ export class Hud {
       this.consRow.appendChild(slot);
     });
     this.consCount.textContent = `${run.consumables.length}/${consSlots(run)}`;
+    if (!run.consumables.length) this.consRow.appendChild(div('tray-empty small', 'Omens'));
   }
 
   private async useCons(uid: number) {

@@ -52,15 +52,15 @@ void main(){
   col += uC * smoothstep(0.035, 0.0, abs(ripple - 0.47)) * 0.12;
 
   // moon
-  vec2 mp = p - vec2(0.62, 0.26);
+  vec2 mp = p - vec2(0.66, 0.3);
   float md = length(mp);
   float cloud = fbm(p*3.0 + vec2(t*2.0, 0.0));
-  float moon = smoothstep(0.155, 0.148, md);
-  float crater = fbm(mp*14.0) * 0.25;
+  float moon = smoothstep(0.115, 0.108, md);
+  float crater = fbm(mp*18.0) * 0.25;
   vec3 moonCol = mix(vec3(1.0, 0.93, 0.78), vec3(1.0, 0.82, 0.55), crater + mp.y*1.5);
   float veil = smoothstep(0.42, 0.75, cloud);
   col = mix(col, moonCol, moon * (1.0 - veil*0.85) * uMoon);
-  col += vec3(1.0, 0.75, 0.45) * exp(-md*7.0) * 0.32 * uMoon;
+  col += vec3(1.0, 0.75, 0.45) * exp(-md*8.0) * 0.3 * uMoon;
 
   // stars
   vec2 sg = gl_FragCoord.xy / 3.0;

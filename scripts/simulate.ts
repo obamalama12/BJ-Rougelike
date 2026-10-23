@@ -117,29 +117,33 @@ export function simulate(seed: string, shoe = 'paper', stake = 1) {
   return { night: run.night, table: run.tableIdx, won: false, run };
 }
 
-const N = Number(process.argv[2] ?? 200);
-const shoe = process.argv[3] ?? 'paper';
-const stake = Number(process.argv[4] ?? 1);
-const reach: number[] = new Array(NIGHTS + 2).fill(0);
-let wins = 0;
-const t0 = Date.now();
-for (let i = 0; i < N; i++) {
-  const r = simulate(`SIM${i}`, shoe, stake);
-  reach[r.night]++;
-  if (r.won) wins++;
-}
-console.log(`${N} runs (${shoe}, stake ${stake}) in ${Date.now() - t0}ms. Wins: ${wins}`);
-console.log('Died on night:', reach.map((n, i) => `${i}:${n}`).slice(1).join('  '));
-if (process.env.DETAIL) {
-  const where: Record<string, number> = {};
-  const hosts: Record<string, number> = {};
-  let charms = 0;
+if (!process.env.VITEST) main();
+
+function main() {
+  const N = Number(process.argv[2] ?? 200);
+  const shoe = process.argv[3] ?? 'paper';
+  const stake = Number(process.argv[4] ?? 1);
+  const reach: number[] = new Array(NIGHTS + 2).fill(0);
+  let wins = 0;
+  const t0 = Date.now();
   for (let i = 0; i < N; i++) {
     const r = simulate(`SIM${i}`, shoe, stake);
-    const k = `${r.night}.${r.table}`;
-    where[k] = (where[k] ?? 0) + 1;
-    if (r.table === 2) hosts[r.run.nightHost] = (hosts[r.run.nightHost] ?? 0) + 1;
-    charms += r.run.charms.length;
+    reach[r.night]++;
+    if (r.won) wins++;
   }
-  console.log(where, hosts, 'avg charms at death', (charms / N).toFixed(2));
+  console.log(`${N} runs (${shoe}, stake ${stake}) in ${Date.now() - t0}ms. Wins: ${wins}`);
+  console.log('Died on night:', reach.map((n, i) => `${i}:${n}`).slice(1).join('  '));
+  if (process.env.DETAIL) {
+    const where: Record<string, number> = {};
+    const hosts: Record<string, number> = {};
+    let charms = 0;
+    for (let i = 0; i < N; i++) {
+      const r = simulate(`SIM${i}`, shoe, stake);
+      const k = `${r.night}.${r.table}`;
+      where[k] = (where[k] ?? 0) + 1;
+      if (r.table === 2) hosts[r.run.nightHost] = (hosts[r.run.nightHost] ?? 0) + 1;
+      charms += r.run.charms.length;
+    }
+    console.log(where, hosts, 'avg charms at death', (charms / N).toFixed(2));
+  }
 }

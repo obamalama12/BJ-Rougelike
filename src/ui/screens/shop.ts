@@ -35,7 +35,7 @@ export function shopScreen(hud: Hud): HTMLElement {
     const quip = QUIPS[(run.night * 3 + run.tableIdx + s.rerollsDone) % QUIPS.length];
     const head = div(
       'shop-head',
-      div('merchant', div('merchant-face', iconSvg('tanuki')), div('merchant-bubble', quip)),
+      div('merchant', h('div', { class: 'merchant-face', html: iconSvg('tanuki') }), div('merchant-bubble', quip)),
       div(
         'shop-buttons',
         button('Next Table', 'primary big', () => {
