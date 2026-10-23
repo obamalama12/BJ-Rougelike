@@ -220,7 +220,7 @@ const billShapes = (b: Bill, k: K): BillShapes => {
       };
     case 'goose':
       return {
-        back: C(b.c2 ?? c, 6, -hu - 2, hu * 0.62),
+        back: C(b.c2 ?? c, 16, -hu - 1, hu * 0.42),
         u: P(c, d`M-8,${-hu}C${l * 0.35},${-hu * 1.05} ${l * 0.8},${-hu * 0.6} ${l},${-hu * 0.2}Q${l * 1.04},${2} ${l * 0.9},3L-4,3Z`),
         ux: P(hiU, d`M${l * 0.12},${-hu * 0.85}Q${l * 0.5},${-hu * 0.85} ${l * 0.8},${-hu * 0.5}Q${l * 0.5},${-hu * 0.62} ${l * 0.12},${-hu * 0.6}Z`, NS) +
           P('#f6eedd', d`M${l * 0.86},${-hu * 0.33}Q${l * 1.05},${-hu * 0.2} ${l * 0.97},3L${l * 0.86},3Z`, sw(3)) +
@@ -308,9 +308,11 @@ const drawBill = (k: K): string => {
   let up = sh.u + (sh.ux ?? '');
   if (teeth) up += P(WHITE, d`M4,0L${Lm * 0.8},0L${Lm * 0.75},5L6,5Z`, sw(2.5)) + L(d`M${Lm * 0.3},0V5M${Lm * 0.55},0V5`, 2);
   if (k.acc.has('mustache')) {
-    const mx = Math.min(l * 0.22, 20), sc = Math.max(0.9, Math.min(1.3, b.hu / 16));
-    const half = 'M0,-4C7,-10 17,-11 25,-5Q31,0 37,-3Q41,-6 38,-11Q46,-8 44,0Q39,9 26,7Q13,6 0,8Z';
-    up += G(`translate(${f(mx)} ${f(b.hu * 0.1)}) scale(${f(sc)})`, P('#5a3320', half) + P('#5a3320', half, 'transform="scale(-1 1)"') + E('#4a2814', 0, 2, 7, 6), sw(4 / sc));
+    const mx = Math.min(l * 0.16, 14), sc = Math.max(0.95, Math.min(1.25, b.hu / 17));
+    const half = 'M0,-3C6,-9 14,-9 20,-4C25,0 31,0 35,-5Q37,-10 33,-13Q41,-12 40,-4Q37,6 24,7C14,8 6,7 0,6Z';
+    const mc = k.o.plumage && lum(k.o.plumage) > 0.75 ? '#7a4a2a' : '#4a2a16';
+    const hair = L('M4,1Q12,-3 20,1M-4,1Q-12,-3 -20,1', 2, lt(mc, 0.35));
+    up += G(`translate(${f(mx)} ${f(b.hu * 0.05)}) rotate(${f(-b.a)}) scale(${f(sc)})`, P(mc, half) + P(mc, half, 'transform="scale(-1 1)"') + hair, sw(4 / sc));
   }
   s += G(`rotate(${f(-a1)})`, up);
   const c = CURL[k.ex];
@@ -355,7 +357,8 @@ const drawEyes = (k: K): string => {
   for (const g of eyeGeo(k.sp)) {
     const sc = F.scale ?? 1, rx = g.rx * sc, ry = g.ry * sc;
     if (F.closed) {
-      s += L(d`M${g.x - rx * 0.95},${g.y + 3}Q${g.x},${g.y - ry * 0.95} ${g.x + rx * 0.95},${g.y + 3}`, 6);
+      const cp = d`M${g.x - rx * 0.95},${g.y + 3}Q${g.x},${g.y - ry * 0.95} ${g.x + rx * 0.95},${g.y + 3}`;
+      s += lum(lidCol) < 0.3 ? L(cp, 9) + L(cp, 4, '#efe4d0') : L(cp, 6);
       continue;
     }
     s += E(WHITE, g.x, g.y, rx, ry);
@@ -394,7 +397,8 @@ const drawBrows = (k: K): string => {
     const ix = g.x + g.inner * g.rx * 0.5, ox = g.x - g.inner * g.rx * 1.05;
     s += d`M${ox},${base + bo}Q${g.x},${base + Math.min(bi, bo) - arch} ${ix},${base + bi}`;
   }
-  return L(s, 7);
+  // dark faces get pale brows with an ink rim so expressions still read
+  return lum(k.sp.lid ? k.sp.lid(k) : k.M) < 0.3 ? L(s, 10) + L(s, 4.5, '#efe4d0') : L(s, 7);
 };
 
 const drop = (x: number, y: number, s = 1, col = '#8fd3f0'): string =>
@@ -561,13 +565,17 @@ const neckwear = (k: K): string => {
 };
 
 const faceUnder = (k: K): string => {
-  const [near, ] = [eyeGeo(k.sp)[1]];
-  const far = eyeGeo(k.sp)[0];
+  const [far, near] = eyeGeo(k.sp);
   let s = '';
   if (k.acc.has('scar')) {
     const x = near.x - near.rx * 0.3, y = near.y;
-    s += L(d`M${x + 6},${y - near.ry * 2.1}L${x - near.rx * 0.9},${y + near.ry * 1.9}`, 6, '#e08a80') +
-      L(d`M${x - 2},${y - near.ry * 1.6}l-9,-2M${x - near.rx * 0.6},${y + near.ry * 1.25}l-9,-2M${x - 6},${y - near.ry * 1.1}l-9,-2`, 2.5);
+    const x0 = x + 4, y0 = y - near.ry * 2, x1 = x - near.rx * 1.1, y1 = y + near.ry * 1.8;
+    let st = '';
+    for (const t of [0.12, 0.3, 0.72, 0.9]) {
+      const sx = x0 + (x1 - x0) * t, sy = y0 + (y1 - y0) * t;
+      st += d`M${sx - 6},${sy - 3}l12,4`;
+    }
+    s += L(d`M${x0},${y0}L${x1},${y1}`, 9, INK) + L(d`M${x0},${y0}L${x1},${y1}`, 4.5, '#e8968a') + L(st, 3);
   }
   if (k.hat === 'bandit') {
     const col = k.o.accent ?? HATC.bandit!;
@@ -638,8 +646,8 @@ const SPECIES: Record<Species, Sp> = {
   goose: {
     hs: [1.12, 112, 128],
     main: '#9a8a76', hat: 'none',
-    h: [116, 90, 50, 46], e: [120, 86, 17, 31],
-    bill: () => ({ t: 'goose', x: 144, y: 106, a: 12, L: 74, hu: 17, hl: 9, c: '#f08a2a', c2: '#e07a22' }),
+    h: [116, 90, 50, 46], e: [118, 84, 17, 30],
+    bill: () => ({ t: 'goose', x: 144, y: 110, a: 12, L: 74, hu: 17, hl: 9, c: '#f08a2a', c2: '#e07a22' }),
     hatA: [118, 0, 0.76, -6], neck: [100, 198, 36], chest: [182, 222],
     body: k => {
       const chest = lum(k.M) > 0.8 ? lt(k.M, 0.3) : '#efe6d6';
@@ -878,20 +886,18 @@ const SPECIES: Record<Species, Sp> = {
     bill: () => ({ t: 'point', x: 134, y: 143, a: 10, L: 70, hu: 15, hl: 10, c: '#2e2e36', c2: '#24242c' }),
     hatA: [114, 0, 0.9, -6], neck: [110, 178, 40], chest: [60, 218],
     body: k => shoulders(k.M, 188) +
-      P('#fbf7ee', d`M-8,236C10,208 30,202 52,202Q60,218 50,248L-8,248Z`) + P('#fbf7ee', d`M248,236C230,208 210,202 188,202Q180,218 190,248L248,248Z`) +
-      P('#3a6aa8', d`M52,202Q66,210 70,248L50,248Q60,218 52,202Z`, NS) + P('#3a6aa8', d`M188,202Q174,210 170,248L190,248Q180,218 188,202Z`, NS) +
-      bib(k.M, 150, 40) + P('#fbf7ee', d`M80,210Q112,224 144,210Q156,228 156,248L68,248Q68,228 80,210Z`),
+      P('#fbf7ee', d`M-8,224C6,200 34,192 64,192Q76,216 64,248L-8,248Z`) + P('#fbf7ee', d`M248,224C234,200 206,192 176,192Q164,216 176,248L248,248Z`) +
+      P('#3a7ab8', d`M64,192Q78,206 80,248L64,248Q76,216 64,192Z`, NS) + P('#3a7ab8', d`M176,192Q162,206 160,248L176,248Q164,216 176,192Z`, NS) +
+      bib(k.M, 150, 40) + P('#fbf7ee', d`M74,198Q112,214 150,198Q162,222 160,248L64,248Q62,222 74,198Z`),
     head: k => roundHead(k.M, k.sp.h) + highlight('#4a5a8a', 82, 86, 14, 6),
   },
 };
 
 // ------------------------------------------------------------------ public API
-const AUTO_DEFAULT_HAT = (s: Species): Hat => SPECIES[s]?.hat ?? 'none';
-
 /** Returns a complete `<svg class="portrait" viewBox="0 0 240 240">…</svg>` bust portrait. */
 export function portrait(o: PortraitOpts): string {
   const sp = SPECIES[o.species] ?? SPECIES.duck;
-  let hat: Hat = o.hat ?? AUTO_DEFAULT_HAT(o.species);
+  let hat: Hat = o.hat ?? sp.hat;
   if (hat === 'sombrero-free') hat = 'cowboy';
   const acc = new Set<Accessory>();
   for (const a of [o.accessory ?? 'none', ...(o.extras ?? [])]) acc.add(a === 'cigar-free' ? 'toothpick' : a);
