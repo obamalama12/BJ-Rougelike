@@ -34,7 +34,6 @@
   position: absolute;
   top: 300px;
   text-align: center;
-  filter: drop-shadow(0 8px 0 rgba(0, 0, 0, 0.5));
 }
 .logo-top {
   font-family: var(--f-display);
@@ -52,6 +51,7 @@
   background-clip: text;
   color: transparent;
   -webkit-text-stroke: 3px #2a1410;
+  filter: drop-shadow(0 7px 0 rgba(0, 0, 0, 0.55));
   animation: logoGlow 3s ease-in-out infinite, logoWobble 5s ease-in-out infinite;
 }
 @keyframes logoWobble {
@@ -59,7 +59,7 @@
   50% { transform: rotate(1.5deg) scale(1.02); }
 }
 @keyframes logoGlow {
-  50% { filter: drop-shadow(0 0 26px rgba(255, 140, 50, 0.7)); }
+  50% { filter: drop-shadow(0 7px 0 rgba(0, 0, 0, 0.55)) drop-shadow(0 0 26px rgba(255, 140, 50, 0.7)); }
 }
 .logo-sub {
   margin-top: 6px;
@@ -67,8 +67,8 @@
   font-weight: 800;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: #f7ecd2;
-  opacity: 0.85;
+  color: #fff3d0;
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.6), 0 0 12px rgba(0, 0, 0, 0.5);
 }
 .title-menu {
   position: absolute;

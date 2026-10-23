@@ -99,7 +99,7 @@ export class TableScreen {
     }
     const rules = getRules(run);
     const rule = this.felt.querySelector('.felt-rule')!;
-    rule.innerHTML = `<span>Dealer ${rules.dealerStand > 17 ? `hits to ${rules.dealerStand}` : rules.dealerHitSoft17 ? 'hits soft 17' : 'stands on 17'}</span><span class="dot">◆</span><span>Bust over ${rules.bustLimit}</span><span class="dot">◆</span><span>Charlie at ${rules.charlieSize}</span>`;
+    rule.innerHTML = `<span>Dealer ${rules.dealerStand > 17 ? `hits to ${rules.dealerStand}` : rules.dealerHitSoft17 ? 'hits soft 17' : 'stands on 17'}</span><span class="dot">◆</span><span>Bust over ${rules.bustLimit}</span><span class="dot">◆</span><span>Charley Horse at ${rules.charlieSize}</span>`;
     // Restore any cards on the felt (e.g. after reload mid-hand).
     for (const id of [...t.dealer, ...t.hands.flatMap((x) => x.cards)]) this.spawn(id, false);
     this.layout();
