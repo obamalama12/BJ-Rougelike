@@ -56,7 +56,7 @@ export class Hud {
     this.consRow = div('satchel-row');
     this.charmCount = div('belt-count');
     this.consCount = div('satchel-count');
-    this.belt.append(div('belt-strap'), this.charmRow, this.charmCount);
+    this.belt.append(div('belt-strap', div('belt-tip')), div('belt-buckle', div('belt-buckle-frame'), div('belt-prong')), this.charmRow, this.charmCount);
     this.satchel.append(div('satchel-flap', h('span', null, 'Satchel'), this.consCount), this.consRow);
     this.pot = this.buildPot();
     this.buildTop();
@@ -88,13 +88,25 @@ export class Hud {
     const money = div('wall-money', div('wall-money-plate', h('div', { class: 'wall-money-bag', html: iconSvg('moneybag') }), r.money));
     tip(money, () => '<div class="tt-title">Bucks</div><div class="tt-body">Spend them at the General Store. You earn interest on every $5 you hold when you win a table.</div>', 'bottom');
     tip(r.grit, () => `<div class="tt-title">Grit ${this.run.grit}/${gritCap(this.run)}</div><div class="tt-body">Your health for the whole run. Risky wagers cost Grit when you lose a hand, and falling short of a target costs more. At 0 Grit the run is over.</div>`, 'bottom');
+    const plank = (label: string, icon: string, fn: () => void) => {
+      const b = button(label, 'plank', fn);
+      b.prepend(h('span', { class: 'plank-ico', html: iconSvg(icon) }));
+      return b;
+    };
     const btns = div(
       'wall-btns',
-      button('Deck', 'plank', () => openRunInfo('deck')),
-      button('Info', 'plank', () => openRunInfo()),
-      button('Options', 'plank', () => openOptions()),
+      plank('Deck', 'cards', () => openRunInfo('deck')),
+      plank('Info', 'book', () => openRunInfo()),
+      plank('Options', 'wagonwheel', () => openOptions()),
     );
-    this.top.append(div('wall-left', r.town, r.trailPips), r.tags, div('wall-right', r.grit, money, btns));
+    const track = div('wall-track', div('wall-track-label', 'The Trail'), r.trailPips);
+    this.top.append(
+      div('wall-bolt l'),
+      div('wall-left', div('wall-plaque', r.town), track),
+      r.tags,
+      div('wall-right', r.grit, money, btns),
+      div('wall-bolt r'),
+    );
   }
 
   private buildPot(): HTMLElement {
@@ -194,7 +206,7 @@ export class Hud {
         div('poster-row', div('poster-label', t ? 'Score at least' : 'Showdown target'), this.refs.target),
         t ? div('poster-row', div('poster-label', 'Winnings'), this.refs.score) : '',
         t ? div('poster-bar', this.refs.scoreBar) : '',
-        div('poster-reward', `Reward $${reward}${t?.kind === 'bank' ? ' + loot' : isGang ? ' + Bounty' : ''}`),
+        div(`poster-reward${t?.kind === 'bank' || isGang ? ' long' : ''}`, `Reward $${reward}${t?.kind === 'bank' ? ' + loot' : isGang ? ' + Bounty' : ''}`),
         (this.refs.rules = div('poster-rules')),
         div('poster-nail l'),
         div('poster-nail r'),
