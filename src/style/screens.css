@@ -693,7 +693,7 @@
 .hr-plays { font-weight: 800; opacity: 0.6; text-align: right; }
 .deck-summary { margin-bottom: 14px; font-weight: 800; opacity: 0.85; }
 .deck-row { display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
-.deck-row-label { width: 90px; font-family: var(--f-display); font-size: 18px; }
+.deck-row-label { width: 124px; flex: none; font-family: var(--f-display); font-size: 18px; }
 .deck-row-label small { font-family: var(--f-body); opacity: 0.6; }
 .deck-strip { display: flex; flex-wrap: wrap; gap: 2px; }
 .deck-strip .card.mini { margin-right: -14px; }

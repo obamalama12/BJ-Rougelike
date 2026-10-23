@@ -17,7 +17,7 @@ export interface CoachPos {
 }
 
 const NOTES: Record<string, string> = {
-  trail: 'This is the trail. Click a stop that is lit up to ride there. Card tables pay {$:Bucks}. The Outlaw at the far end guards the road to the next town.',
+  trail: 'This is the trail. Click a stop that is lit up to ride there. Card tables pay out Bucks. The Outlaw at the far end guards the road to the next town.',
   grit: 'Those horseshoes are your {g:Grit}. Fall short at a table and you lose some. At zero the run is over. The Doc and the campfire patch you back up.',
   table: 'Reach the score on the poster before you run out of hands. Each bullet in the revolver down there is one hand of blackjack.',
   wager: 'Pick a wager before you deal. {g:Dollar} doubles the score and {g:Bankroll} triples it, but losing the hand costs 1 or 2 {g:Grit}.',

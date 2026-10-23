@@ -70,24 +70,18 @@ function cardBackEmblem(): string {
   if (backEmblem) return backEmblem;
   const K = PRINT.key;
   const P = PRINT.paper;
-  let rays = '';
-  for (let i = 0; i < 16; i++) {
-    const a0 = ((i * 22.5 - 5) * Math.PI) / 180;
-    const a1 = ((i * 22.5 + 5) * Math.PI) / 180;
-    rays += `M50 50L${(50 + 34 * Math.cos(a0)).toFixed(2)} ${(50 + 34 * Math.sin(a0)).toFixed(2)}L${(50 + 34 * Math.cos(a1)).toFixed(2)} ${(50 + 34 * Math.sin(a1)).toFixed(2)}Z`;
-  }
   backEmblem = `<svg class="cb-art" viewBox="0 0 100 100" aria-hidden="true">
     <circle cx="50" cy="50" r="47" fill="${P}" stroke="${K}" stroke-width="3"/>
-    <circle cx="50" cy="50" r="41.5" fill="none" stroke="${K}" stroke-width="3.2" stroke-dasharray="3.2 2.6"/>
-    <circle cx="50" cy="50" r="35" fill="currentColor" stroke="${K}" stroke-width="2.4"/>
-    <path d="${rays}" fill="${K}" opacity=".22"/>
-    <g transform="translate(19 19.5) scale(.62)" color="${P}">${suitInner('moon')}</g>
+    <circle cx="50" cy="50" r="42.5" fill="none" stroke="${K}" stroke-width="2" stroke-dasharray="2.6 2.2"/>
+    <circle cx="50" cy="50" r="38" fill="currentColor" stroke="${K}" stroke-width="2.4"/>
+    <g transform="translate(17 15) scale(.66)" color="${P}">${suitInner('moon')}</g>
+    <g transform="translate(7.5 7) scale(.85)">
     <path d="M38 58C38 50 43 45 50 45C57 45 62 50 62 58C62 65 57 69 50 69C43 69 38 65 38 58Z" fill="${PRINT.white}" stroke="${K}" stroke-width="2.4"/>
     <path d="M60 58C67 55.5 74 56.5 76 60C73 64 66 64.5 60 62.5Z" fill="${PRINT.ochre}" stroke="${K}" stroke-width="2.2" stroke-linejoin="round"/>
     <circle cx="54" cy="55" r="2.2" fill="${K}"/>
     <path d="M41 46C41 37 44 32 50 32C56 32 59 37 59 46Z" fill="${K}"/>
     <path d="M32 47C36 44 64 44 68 47C64 50 36 50 32 47Z" fill="${K}"/>
-    <path d="M41.5 43H58.5" stroke="${PRINT.ochre}" stroke-width="2"/>
+    <path d="M41.5 43H58.5" stroke="${PRINT.ochre}" stroke-width="2"/></g>
   </svg>`;
   return backEmblem;
 }
@@ -254,7 +248,7 @@ export function consFront(kind: ConsKind, id: string): string {
       : kind === 'fortune'
         ? `<div class="fs-stamp">${iconSvg('stamp')}</div><div class="fs-lines"></div>`
         : `<div class="ms-glow"></div>`;
-  return `<div class="cs-body cs-${kind}" style="--hue:${d.hue}">${deco}
+  return `<div class="cs-body cs-${kind}" style="--hue:${d.hue}">${deco}<div class="cs-kind">${KIND_LABEL[kind]}</div>
     <div class="cs-art">${iconSvg(d.icon)}</div>
     <div class="cs-name">${esc(d.name)}</div></div>`;
 }
@@ -305,7 +299,7 @@ export function voucherTooltip(id: string, extra = ''): string {
 }
 
 const PACK_ICON: Record<string, string> = { charm: 'rubberduck', fortune: 'tonic', star: 'book', mask: 'jug', card: 'cards' };
-const PACK_HUE: Record<string, string> = { charm: '#ff8a3d', fortune: '#c9b8ff', star: '#7fb8ff', mask: '#b04dff', card: '#f7ecd2' };
+const PACK_HUE: Record<string, string> = { charm: '#d9792c', fortune: '#c8402a', star: '#2f5d8a', mask: '#6f4f9a', card: '#557a46' };
 
 export function packCard(packId: string): HTMLElement {
   const p = PACK[packId];
