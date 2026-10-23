@@ -58,7 +58,7 @@ H({ id: 'nue', name: 'Chickenhawk Charlie', title: 'Three’s a Crowd', icon: 'c
 H({ id: 'gashadokuro', name: 'Big Bertha', title: 'The Biggest Bird in the West', icon: 'ostrich', hue: '#e9e2cf', scale: 4, minNight: 2,
   text: 'An enormous target. She is a very large bird' });
 H({ id: 'baku', name: 'Taxman Toucan', title: 'Takes Half', icon: 'toucan', hue: '#c7a0ff', scale: 2, minNight: 2,
-  text: 'Base Chips and Mult are halved',
+  text: 'Base Pot and Odds are halved',
   rules: (r) => { r.halveBase = true; } });
 H({ id: 'yuki_onna', name: 'Snow Goose Sue', title: 'Cold Cards', icon: 'goose', hue: '#d8f0ff', scale: 2, minNight: 2,
   text: 'Face cards are dealt face down',

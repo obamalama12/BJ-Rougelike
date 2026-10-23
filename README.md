@@ -1,12 +1,11 @@
 # Buck Ducks
 
-A blackjack roguelike of the duck frontier, inspired by Balatro.
+A blackjack roguelike of the duck frontier.
 
-You're a drifter duck riding the trail through seven frontier towns. Each **Town** has three
-tables: the **Saloon Table**, the **High Roller Table**, and a table run by an **Outlaw**, a
-varmint whose dirty trick bends the rules of blackjack. Seven towns, three tables each:
-twenty-one bounties. Collect them all and you're the Fastest Bill in the West. After that
-the trail goes on forever (Endless).
+You're a drifter duck riding through seven frontier towns. Each **Town** is a branching
+**trail**: pick your route between card games, the General Store, the Doc, campfires and
+strange encounters, then face the town's **Outlaw** in a showdown at the end. Beat all seven
+Outlaws and you're the Fastest Bill in the West. After that the trail goes on forever.
 
 ## Playing
 
@@ -17,16 +16,27 @@ npm run build    # static build in dist/ (works from any folder or sub-path)
 npm run build:single  # one self-contained HTML file in dist-single/
 ```
 
-### How a table works
+### How it plays
 
-- You have **Hands** (default 6) and **Folds** (default 3) per table.
-- Each hand is real blackjack against the dealer (dealer stands on 17, peeks for naturals).
-- Winning (or tying) a hand **scores** it: `Chips × Mult`. The hand type sets the base
-  values, each card adds its chips, then your Doodads fire left to right.
-- Reach the table's target before you run out of hands.
-- **Double Down** costs an extra hand and multiplies the hand's score (X2).
-- **Split** a pair into two hands, at the cost of an extra hand.
-- **Fold** throws a bad hand away *without* using up a hand. Folds are limited.
+- **Grit** is your health for the whole run (10 horseshoes). The run ends at 0 Grit.
+- **The trail.** Choose your next stop each step:
+  - **Saloon Game** and **High Stakes** tables (bigger target, bigger purse).
+  - **Bank Job**: an elite table with an Outlaw's curse and a rare Doodad as loot.
+  - **General Store** (shop), **Doc's Office** (heal, remove cards), **Campfire** (rest,
+    level up a hand, or whittle a Doodad shiny).
+  - **Strange Happenings**: 20 encounters with choices, including a Quick-Draw duel.
+  - The **Showdown** with the town's Outlaw. Lose it and you can try again, if you have
+    the Grit.
+- **A table** is real blackjack against a dealer who reacts to every hand. You have
+  **Hands** (bullets in your revolver) and **Folds**. Reach the target on the wanted poster
+  before you run out of hands, or lose Grit.
+- **Wagers.** Before each deal pick Penny (X1, safe), Dollar (X2, lose 1 Grit if you lose
+  the hand) or Bankroll (X3, lose 2 Grit).
+- **Scoring.** Winning (or tying) a hand builds a **Pot** of chips times the **Odds**. The
+  hand type sets the base values, each card adds to the pot, then your Doodads fire left to
+  right along your bandolier.
+- **Double Down** costs an extra hand and multiplies the hand's score (X2). **Split** a pair
+  at the cost of an extra hand. **Fold** throws a bad hand away *without* using up a hand.
 - Keys: `H` hit, `S` stand, `D` double, `P` split, `F` fold, `Space` deal.
 
 ### Hand types
@@ -50,14 +60,16 @@ Tall Tales level these up.
 
 - **Suits:** Horseshoes, Dynamite, Cacti and Sheriff Stars. Face cards are the Duckling
   Deputy, the Saloon Swan and the Sheriff Drake.
-- **210 Doodads** (common / uncommon / rare / legendary): the Rubber Ducky, the
+- **217 Doodads** (common / uncommon / rare / legendary): the Rubber Ducky, the
   Ten-Gallon Hat, Moneybags McDuck, Fastest Bill in the West, the Tin Foil Hat... Suit and
   rank synergies, scaling critters, money engines, rule-benders (bust at 22, 4-card
   Charley Horses, peek at the hole card, free doubles), copiers, and 8 legendaries.
 - **24 Snake-Oil Tonics** (card magic), **10 Tall Tales** (hand upgrades), **18 jugs of
   Moonshine** (powerful, with a hangover).
 - **38 Deeds**, permanent upgrades in tiered pairs.
-- **25 Telegrams**, earned by skipping tables.
+- **25 Telegrams**, earned on the trail.
+- **20 trail encounters** and a Quick-Draw duel minigame.
+- **40 illustrated characters**: every dealer and Outlaw has a face that reacts to your play.
 - **33 Outlaws**, including Mother Goose, the Poker-Faced Penguin, Taxman Toucan, and 6
   showdown bosses like the Golden Goose.
 - **16 Decks** (starting decks) and **8 Wanted Levels**, from Greenhorn to Legend.

@@ -11,6 +11,27 @@
   flex-direction: column;
   align-items: center;
 }
+.title-hero, .title-villain {
+  position: absolute;
+  bottom: -20px;
+  width: 400px;
+  height: 400px;
+  filter: drop-shadow(0 20px 30px rgba(0, 0, 0, 0.6));
+  animation: heroIn 0.9s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+.title-hero { left: 30px; animation-delay: 0.1s; }
+.title-villain { right: 30px; transform: scaleX(-1); animation-name: villainIn; animation-delay: 0.25s; }
+.title-hero .portrait, .title-villain .portrait { width: 100%; height: 100%; }
+@keyframes heroIn { from { opacity: 0; transform: translateX(-200px); } }
+@keyframes villainIn { from { opacity: 0; transform: scaleX(-1) translateX(-200px); } }
+.title-ground {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 150px;
+  background: linear-gradient(180deg, transparent, rgba(30, 10, 4, 0.75));
+}
 .title-fan {
   position: absolute;
   left: 50%;

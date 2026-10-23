@@ -24,8 +24,9 @@ import { VOUCHER } from '../content/vouchers';
 import { HOST } from '../content/hosts';
 import { SHOE } from '../content/shoes';
 import { TAG } from '../content/tags';
+import { startTownState } from './trail';
 
-export const RUN_VERSION = 3;
+export const RUN_VERSION = 4;
 export const NIGHTS = 7;
 
 // ---------------------------------------------------------------------------
@@ -61,7 +62,11 @@ export function newRun(seed: string, shoeId: string, stake: number): Run {
     stake,
     night: 1,
     tableIdx: 0,
-    phase: 'select',
+    phase: 'trail',
+    grit: 10,
+    maxGrit: 10,
+    trail: { nodes: [], at: null },
+    event: null,
     money: 4,
     deck: [],
     nextId: 1,
@@ -76,8 +81,6 @@ export function newRun(seed: string, shoeId: string, stake: number): Run {
     vouchers: [],
     tags: [],
     nightHost: 'kappa',
-    nightTags: ['uncommon', 'investment'],
-    tableStatus: ['open', 'open', 'open'],
     hostsSeen: [],
     shop: null,
     table: null,
@@ -191,7 +194,7 @@ export function debtLimit(run: Run): number {
 
 export function currentHost(run: Run) {
   const t = run.table;
-  if (!t || t.kind !== 'host' || !t.hostId) return null;
+  if (!t || !t.hostId) return null;
   if (t.hostDisabled || has(run, 'shrine_guardian')) return null;
   return HOST[t.hostId] ?? null;
 }
@@ -216,20 +219,6 @@ function roundTarget(n: number): number {
   if (n < 1000) return Math.round(n / 10) * 10;
   const mag = Math.pow(10, Math.floor(Math.log10(n)) - 1);
   return Math.round(n / mag) * mag;
-}
-
-export function tableTarget(run: Run, idx: number): number {
-  const base = nightBase(run);
-  if (idx === 0) return base;
-  if (idx === 1) return roundTarget(base * 1.5);
-  const host = HOST[run.nightHost];
-  return roundTarget(base * (host?.scale ?? 2));
-}
-
-export function tableReward(run: Run, idx: number): number {
-  if (idx === 0) return run.stake >= 2 ? 0 : 3;
-  if (idx === 1) return 4;
-  return 5;
 }
 
 export function getRules(run: Run): Rules {
@@ -540,23 +529,7 @@ export function fireTags(run: Run, when: 'shop' | 'tableStart' | 'hostBeaten') {
 // ---------------------------------------------------------------------------
 
 export function startNight(run: Run) {
-  const r = rng(run);
-  const showdown = run.night % NIGHTS === 0;
-  const all = Object.values(HOST);
-  let pool = all.filter((h) => !!h.showdown === showdown && h.minNight <= Math.max(run.night, showdown ? 7 : 1) && !run.hostsSeen.includes(h.id));
-  if (!pool.length) pool = all.filter((h) => !!h.showdown === showdown && h.minNight <= Math.max(run.night, 7));
-  if (!pool.length) pool = all.filter((h) => !h.showdown);
-  run.nightHost = r.pick(pool).id;
-  run.hostsSeen.push(run.nightHost);
-  const tags = Object.values(TAG).filter((t) => (t.minNight ?? 1) <= run.night);
-  run.nightTags = [r.pick(tags).id, r.pick(tags).id];
-  run.tableStatus = ['open', 'open', 'open'];
-  run.tableIdx = 0;
-  run.flags.hostRerolls = 0;
-  // A fresh relic for the shop each night.
-  const avail = availableVouchers(run);
-  run.flags.nightVoucher = avail.length ? r.pick(avail) : null;
-  run.flags.nightVoucherSold = false;
+  startTownState(run);
 }
 
 export function availableVouchers(run: Run): string[] {
@@ -574,6 +547,7 @@ export function rerollHost(run: Run) {
   if (!pool.length) return;
   run.nightHost = r.pick(pool).id;
   if (!run.hostsSeen.includes(run.nightHost)) run.hostsSeen.push(run.nightHost);
+  for (const n of run.trail.nodes) if (n.kind === 'outlaw') n.hostId = run.nightHost;
 }
 
 // ---------------------------------------------------------------------------

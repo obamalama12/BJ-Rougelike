@@ -57,7 +57,8 @@ export interface TagInst {
   id: string;
 }
 
-export type TableKind = 'paper' | 'silk' | 'host';
+/** paper = Saloon game, silk = High Stakes, bank = Bank Job (elite), host = Outlaw showdown. */
+export type TableKind = 'paper' | 'silk' | 'bank' | 'host';
 
 export interface PlayerHand {
   cards: number[];
@@ -108,6 +109,37 @@ export interface TableState {
   drawn: number;
   /** A one-shot rule tweak for the next deal (from Fortunes, etc). */
   nextDeal?: { peek?: boolean };
+  /** Wager multiplier chosen for the current hand (1, 2 or 3). */
+  wager: number;
+  /** Grit lost at this table from wagers. */
+  gritLost: number;
+}
+
+export type NodeKind = 'saloon' | 'highstakes' | 'bank' | 'store' | 'doc' | 'camp' | 'event' | 'outlaw';
+
+export interface TrailNode {
+  id: number;
+  col: number;
+  row: number;
+  kind: NodeKind;
+  next: number[];
+  done?: boolean;
+  /** Curse for Bank Jobs, the Outlaw for the showdown. */
+  hostId?: string;
+  eventId?: string;
+}
+
+export interface Trail {
+  nodes: TrailNode[];
+  /** The node we are standing on (null before the first step of a town). */
+  at: number | null;
+}
+
+export interface ActiveEvent {
+  id: string;
+  /** Result text once a choice has been made. */
+  result?: string;
+  duel?: { stake: number; reward: number };
 }
 
 export type ShopItem =
@@ -143,7 +175,7 @@ export interface OpenPack {
   )[];
   /** Cards drawn from the deck to target Fortunes/Masks while the pack is open. */
   spread: number[];
-  returnTo: 'shop' | 'select';
+  returnTo: 'shop' | 'trail';
 }
 
 export interface RunStats {
@@ -182,7 +214,12 @@ export interface Run {
   stake: number;
   night: number;
   tableIdx: number;
-  phase: 'select' | 'table' | 'cashout' | 'shop' | 'pack' | 'gameover' | 'victory';
+  phase: 'trail' | 'table' | 'cashout' | 'shop' | 'pack' | 'event' | 'doc' | 'camp' | 'gameover' | 'victory';
+  /** Run-long health. Lost on risky wagers and failed tables; the run ends at 0. */
+  grit: number;
+  maxGrit: number;
+  trail: Trail;
+  event: ActiveEvent | null;
   money: number;
   deck: Card[];
   nextId: number;
@@ -198,15 +235,11 @@ export interface Run {
   tags: TagInst[];
   /** Host id for each night, decided as the night begins. */
   nightHost: string;
-  /** Skip-tag offers for paper / silk tables of the current night. */
-  nightTags: [string, string];
-  /** Which of the three tables were skipped / won this night. */
-  tableStatus: ('open' | 'skipped' | 'won')[];
   hostsSeen: string[];
   shop: ShopState | null;
   table: TableState | null;
   pack: OpenPack | null;
-  cashout: { lines: { label: string; amount: number; tone?: string }[]; total: number } | null;
+  cashout: { lines: { label: string; amount: number; tone?: string }[]; total: number; failed?: boolean; gritLost?: number } | null;
   lastCons: { kind: ConsKind; id: string } | null;
   stats: RunStats;
   endless: boolean;

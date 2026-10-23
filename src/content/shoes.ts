@@ -21,7 +21,7 @@ export const SHOES: ShoeDef[] = [
     build: (c) => { for (const k of c.run.deck) { if (k.suit === 'leaf') k.suit = 'moon'; if (k.suit === 'bell') k.suit = 'flame'; } } },
   { id: 'ember', name: 'Tornado Deck', hue: '#ff6a2a', back: 'ember', text: 'All ranks and suits are randomised',
     build: (c) => { for (const k of c.run.deck) { k.rank = c.rng.pick(RANKS); k.suit = c.rng.pick(SUITS); } } },
-  { id: 'balance', name: 'Even Steven Deck', hue: '#e9e2cf', back: 'yinyang', text: 'Chips and Mult are {g:balanced} before scoring. {r:Targets X2}', scale: 2 },
+  { id: 'balance', name: 'Even Steven Deck', hue: '#e9e2cf', back: 'yinyang', text: 'Pot and Odds are {g:balanced} before scoring. {r:Targets X2}', scale: 2 },
   { id: 'twin', name: 'Double Barrel Deck', hue: '#3fcf8e', back: 'twin', text: 'Two full decks shuffled together. {g:+1} hand each table', start: { baseHands: 7 },
     build: (c) => { const extra = c.run.deck.map((k) => ({ ...k })); for (const k of extra) c.addCard({ rank: k.rank, suit: k.suit }); } },
   { id: 'lucky7', name: 'Lucky Seven Deck', hue: '#ffd23f', back: 'lucky', text: 'An extra {g:7} of every suit. {h:sevens} starts at level {g:3}',

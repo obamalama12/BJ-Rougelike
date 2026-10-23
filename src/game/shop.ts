@@ -27,38 +27,18 @@ import {
   rollCharm,
   rotate,
   startNight,
-  tableReward,
+  createCharm,
 } from './engine';
-import { startTable } from './table';
+import { TABLE_INFO, finishNode, hurt, nextTown } from './trail';
 
 // ---------------------------------------------------------------------------
-// Table selection
+// Outlaw rerolls (Fate Thread deed)
 // ---------------------------------------------------------------------------
-
-export function selectTable(run: Run, idx: number) {
-  if (run.tableStatus[idx] !== 'open') return;
-  if (run.tableStatus.slice(0, idx).some((s) => s === 'open')) return;
-  discover(run, 'host', run.nightHost);
-  startTable(run, idx);
-}
-
-export function skipTable(run: Run, idx: number) {
-  if (idx > 1 || run.tableStatus[idx] !== 'open') return;
-  run.tableStatus[idx] = 'skipped';
-  run.stats.tablesSkipped++;
-  const tag = run.nightTags[idx];
-  addTag(run, tag);
-  fire(run, 'tableSkip');
-  if (run.flags.rerollHost) {
-    run.flags.rerollHost = false;
-    rerollHost(run);
-  }
-  run.tableIdx = idx + 1;
-}
 
 export function canRerollHost(run: Run): boolean {
   if (!hasVoucher(run, 'fate_thread')) return false;
-  if (run.tableStatus[2] !== 'open') return false;
+  const outlaw = run.trail.nodes.find((n) => n.kind === 'outlaw');
+  if (!outlaw || outlaw.done || run.trail.at === outlaw.id) return false;
   if (!hasVoucher(run, 'fate_loom') && (run.flags.hostRerolls ?? 0) >= 1) return false;
   return run.money >= 10;
 }
@@ -71,17 +51,18 @@ export function payRerollHost(run: Run) {
 }
 
 // ---------------------------------------------------------------------------
-// Winning a table / cash out
+// Winning or losing a table / cash out
 // ---------------------------------------------------------------------------
+
+const KIND_KEY = { paper: 'saloon', silk: 'highstakes', bank: 'bank', host: 'outlaw' } as const;
 
 export function winTable(run: Run) {
   const t = run.table!;
-  const idx = run.tableIdx;
-  run.tableStatus[idx] = 'won';
   run.stats.tablesWon++;
+  const info = TABLE_INFO[KIND_KEY[t.kind]];
   const lines: { label: string; amount: number; tone?: string }[] = [];
-  const reward = tableReward(run, idx);
-  if (reward) lines.push({ label: t.kind === 'host' ? 'Outlaw defeated' : t.kind === 'silk' ? 'High Roller Table lit' : 'Saloon Table lit', amount: reward, tone: 'gold' });
+  const reward = t.kind === 'paper' && run.stake >= 2 ? 0 : info.reward;
+  if (reward) lines.push({ label: t.kind === 'host' ? 'Outlaw run outta town' : `${info.name} won`, amount: reward, tone: 'gold' });
   if (run.shoeId === 'jade') {
     if (t.handsLeft) lines.push({ label: `${t.handsLeft} hands remaining ($2 each)`, amount: t.handsLeft * 2, tone: 'chips' });
     if (t.foldsLeft) lines.push({ label: `${t.foldsLeft} folds remaining ($1 each)`, amount: t.foldsLeft, tone: 'mult' });
@@ -93,12 +74,17 @@ export function winTable(run: Run) {
   if (interest > 0) lines.push({ label: `Interest ($1 per $5, max $${cap})`, amount: interest, tone: 'gold' });
   run.flags.unusedFolds = (run.flags.unusedFolds ?? 0) + t.foldsLeft;
 
-  // Charm end-of-table money.
+  // Doodad end-of-table money.
   for (const k of run.charms) {
     const d = CHARM[k.id];
     if (!d?.endMoney || k.disabled) continue;
     const v = d.endMoney(run, k);
     if (v) lines.push({ label: d.name, amount: v, tone: 'gold' });
+  }
+  // Bank Jobs pay out in loot.
+  if (t.kind === 'bank') {
+    if (createCharm(run, { rarity: 3 })) fxQueue.push({ t: 'msg', text: 'Rare Doodad!', color: '#ff6a3d', src: { kind: 'deck' } });
+    else lines.push({ label: 'Loot (no room for the Doodad)', amount: 10, tone: 'gold' });
   }
   // Table end hooks (scaling, eggs...).
   fire(run, 'tableEnd');
@@ -110,31 +96,50 @@ export function winTable(run: Run) {
   }
   for (const k of run.charms) k.disabled = false;
   const total = lines.reduce((a, l) => a + l.amount, 0);
-  run.cashout = { lines, total };
+  run.cashout = { lines, total, gritLost: t.gritLost };
   run.phase = 'cashout';
+}
+
+/** Ran out of hands short of the target: lose Grit instead of the whole run. */
+export function failTable(run: Run) {
+  const t = run.table!;
+  const info = TABLE_INFO[KIND_KEY[t.kind]];
+  const before = run.grit;
+  hurt(run, info.gritOnFail);
+  const lost = before - run.grit;
+  for (const k of run.charms) k.disabled = false;
+  run.cashout = {
+    lines: [{ label: `Fell short by ${Math.max(0, t.target - t.score).toLocaleString('en-US')}`, amount: 0, tone: 'mult' }],
+    total: 0,
+    failed: true,
+    gritLost: lost + t.gritLost,
+  };
+  run.phase = run.grit <= 0 ? 'gameover' : 'cashout';
 }
 
 export function cashOut(run: Run) {
   if (!run.cashout) return;
+  const failed = run.cashout.failed;
   run.money += run.cashout.total;
   run.stats.moneyEarned += run.cashout.total;
   run.cashout = null;
-  const t = run.table!;
-  const wasHost = t.kind === 'host';
   run.table = null;
   rotate(run);
-  if (wasHost && run.night >= NIGHTS && !run.endless && !run.flags.victoryShown) {
-    run.flags.victoryShown = true;
-    run.phase = 'victory';
-    return;
+  if (failed) {
+    // A failed Showdown can be retried; any other stop is simply behind you.
+    const n = run.trail.nodes.find((x) => x.id === run.trail.at);
+    if (n?.kind === 'outlaw') {
+      run.phase = 'trail';
+      return;
+    }
   }
-  openShop(run);
+  finishNode(run);
 }
 
 /** Move on after a victory screen into endless mode. */
 export function continueEndless(run: Run) {
   run.endless = true;
-  openShop(run);
+  nextTown(run);
 }
 
 // ---------------------------------------------------------------------------
@@ -248,7 +253,7 @@ export function openShop(run: Run) {
   const s = run.shop;
   for (let i = 0; i < slots; i++) s.items.push(rollShopItem(run));
   // First shop always has a normal Charm bundle so a run can get going.
-  s.packs.push(run.night === 1 && run.tableIdx === 0 && !run.flags.firstShop ? { uid: run.nextId++, packId: 'charm_normal', price: packPrice(run, 'charm_normal') } : rollPack(run));
+  s.packs.push(run.night === 1 && !run.flags.firstShop ? { uid: run.nextId++, packId: 'charm_normal', price: packPrice(run, 'charm_normal') } : rollPack(run));
   s.packs.push(rollPack(run));
   run.flags.firstShop = true;
   fireTags(run, 'shop');
@@ -444,7 +449,7 @@ export function buyPack(run: Run, uid: number): BuyResult {
   return { ok: true };
 }
 
-export function openPack(run: Run, packId: string, returnTo: 'shop' | 'select') {
+export function openPack(run: Run, packId: string, returnTo: 'shop' | 'trail') {
   const def = PACK[packId];
   const r = rng(run);
   const pack: OpenPack = { packId, picksLeft: def.picks, options: [], spread: [], returnTo };
@@ -525,7 +530,7 @@ export function skipPack(run: Run) {
 function closePack(run: Run) {
   const p = run.pack;
   run.pack = null;
-  run.phase = p?.returnTo === 'select' ? 'select' : 'shop';
+  run.phase = p?.returnTo === 'trail' ? 'trail' : 'shop';
   maybeOpenTagPack(run);
 }
 
@@ -534,7 +539,7 @@ export function maybeOpenTagPack(run: Run): boolean {
   const id = run.flags.openPack as string | undefined;
   if (!id || run.pack) return false;
   run.flags.openPack = undefined;
-  openPack(run, id, run.phase === 'shop' ? 'shop' : 'select');
+  openPack(run, id, run.phase === 'shop' ? 'shop' : 'trail');
   return true;
 }
 
@@ -546,12 +551,7 @@ export function leaveShop(run: Run) {
   fire(run, 'shopLeave');
   run.shop = null;
   run.flags.bonusVoucher = null;
-  // Next table, or a new night after the host.
-  if (run.tableStatus.every((s) => s !== 'open')) {
-    run.night += 1;
-    startNight(run);
-  }
-  run.phase = 'select';
+  finishNode(run);
 }
 
 export function tagDef(id: string) {
@@ -562,4 +562,3 @@ export function shoeDef(id: string) {
   return SHOE[id];
 }
 
-export { CHARMS, fxQueue };

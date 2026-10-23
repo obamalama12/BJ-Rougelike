@@ -63,3 +63,20 @@ describe('full runs', () => {
     }
   });
 });
+
+describe('trail', () => {
+  it('lays out a connected map that ends at the Outlaw', async () => {
+    const { reachable } = await import('../src/game/trail');
+    for (let i = 0; i < 30; i++) {
+      const run = newRun(`MAP${i}`, 'paper', 1);
+      const nodes = run.trail.nodes;
+      const last = Math.max(...nodes.map((n) => n.col));
+      expect(nodes.filter((n) => n.col === last).map((n) => n.kind)).toEqual(['outlaw']);
+      expect(nodes.some((n) => n.col === 0 && n.kind === 'saloon')).toBe(true);
+      // Every node is reachable from the first column.
+      const seen = new Set(reachable(run).map((n) => n.id));
+      for (let c = 0; c < last; c++) for (const n of nodes.filter((x) => x.col === c && seen.has(x.id))) n.next.forEach((id) => seen.add(id));
+      expect(seen.size).toBe(nodes.length);
+    }
+  });
+});

@@ -16,6 +16,7 @@ import { particles } from '../../fx/particles';
 import { openOptions } from './options';
 import { openCollection } from './collection';
 import { iconSvg } from '../icons';
+import { nameOf, portraitOf } from '../characters';
 
 export function titleScreen(): HTMLElement {
   background.setPalette('menu', 1);
@@ -29,6 +30,12 @@ export function titleScreen(): HTMLElement {
     card.style.setProperty('--i', String(i - 2));
     fan.appendChild(card);
   });
+  // A standoff: you versus this week's most wanted.
+  const rivals = ['chochin_o', 'ubume', 'tsukuyomi', 'kitsunebi', 'otakemaru', 'baku'];
+  const rival = rivals[Math.floor(Date.now() / 86400000) % rivals.length];
+  const hero = h('div', { class: 'title-hero', html: portraitOf('player', 'smug') });
+  const villain = h('div', { class: 'title-villain', html: portraitOf(rival, 'smug') });
+  tip(villain, () => `<div class="tt-title">${nameOf(rival)}</div><div class="tt-body">Wanted in seven towns. Allegedly.</div>`);
   const logo = div(
     'logo',
     div('logo-top', 'The Legend of'),
@@ -53,7 +60,7 @@ export function titleScreen(): HTMLElement {
     'title-stats',
     `Runs ${profile.runs} · Victories ${profile.wins} · Best hand ${fmtNum(profile.bestHand)} · Furthest town ${profile.bestNight}`,
   );
-  el.append(fan, logo, menu, stats, div('title-hint', 'H / S / D / P / F to Hit, Stand, Double, Split, Fold · Space to deal'));
+  el.append(div('title-ground'), hero, villain, fan, logo, menu, stats, div('title-hint', 'H / S / D / P / F to Hit, Stand, Double, Split, Fold · Space to deal'));
   return el;
 }
 
@@ -129,7 +136,7 @@ export function gameOverScreen(): HTMLElement {
   const el = div('end-screen over');
   el.append(
     div('end-title', 'You Bit the Dust'),
-    div('end-sub', `Run out of Town ${run.night} at ${['the Saloon table', 'the High Roller table', 'the Outlaw’s table'][run.tableIdx] ?? ''}`),
+    div('end-sub', `Out of Grit in Town ${run.night}. The buzzards are circling.`),
     runSummary(),
     div(
       'end-btns',

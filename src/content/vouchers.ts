@@ -21,7 +21,7 @@ V({ id: 'crystal_ball', name: 'Saddlebag', icon: 'holster', text: '{g:+1} consum
 V({ id: 'omen_globe', name: 'Moonshine Still', icon: 'jug', requires: 'crystal_ball', text: 'Moonshine may appear in Tonic Crates' });
 
 V({ id: 'telescope', name: 'Spyglass', icon: 'spyglass', text: 'Tall Tale Crates always contain the Tall Tale of your most played hand' });
-V({ id: 'observatory', name: 'Lookout Tower', icon: 'watertower', requires: 'telescope', text: 'Tall Tales you hold give {x:X1.5} Mult to their hand type' });
+V({ id: 'observatory', name: 'Lookout Tower', icon: 'watertower', requires: 'telescope', text: 'Tall Tales you hold give {x:X1.5} Odds to their hand type' });
 
 V({ id: 'grabber', name: 'Third Arm', icon: 'hand', text: '{g:+1} hand each table', slots: { hands: 1 } });
 V({ id: 'nacho_tong', name: 'Octo-Ranch Hand', icon: 'fist', requires: 'grabber', text: '{g:+1} more hand each table', slots: { hands: 1 } });
@@ -53,8 +53,8 @@ V({ id: 'fate_loom', name: 'Own the Sheriff', icon: 'crown', requires: 'fate_thr
 V({ id: 'card_tray', name: 'Card Rack', icon: 'cards', text: 'Playing cards may appear in the shop' });
 V({ id: 'card_market', name: 'Card Emporium', icon: 'chips', requires: 'card_tray', text: 'Playing cards in the shop may be painted, branded or finished' });
 
-V({ id: 'bold_wager', name: 'Bold Bet', icon: 'dice', text: 'Doubled hands give {x:X2.5} Mult', rules: (r) => { r.doubleX = Math.max(r.doubleX, 2.5); } });
-V({ id: 'high_roller', name: 'High Roller', icon: 'tophat', requires: 'bold_wager', text: 'Doubled hands give {x:X3} Mult and cost no extra hand', rules: (r) => { r.doubleX = Math.max(r.doubleX, 3); r.doubleCost = 0; } });
+V({ id: 'bold_wager', name: 'Bold Bet', icon: 'dice', text: 'Doubled hands give {x:X2.5} Odds', rules: (r) => { r.doubleX = Math.max(r.doubleX, 2.5); } });
+V({ id: 'high_roller', name: 'High Roller', icon: 'tophat', requires: 'bold_wager', text: 'Doubled hands give {x:X3} Odds and cost no extra hand', rules: (r) => { r.doubleX = Math.max(r.doubleX, 3); r.doubleCost = 0; } });
 
 V({ id: 'split_decision', name: 'Split Decision', icon: 'scissors', text: 'You may split any two 10-value cards', rules: (r) => { r.splitAnyTen = true; } });
 V({ id: 'hydra_gift', name: 'Two-Headed Duck', icon: 'duckling', requires: 'split_decision', text: 'Splitting costs no extra hand', rules: (r) => { r.splitCost = 0; } });

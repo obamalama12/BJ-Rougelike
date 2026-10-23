@@ -107,7 +107,7 @@ for (const h of HAND_TYPES) {
     icon: s.icon,
     hue: s.hue,
     hand: h.id,
-    text: (run) => `Levels up {h:${h.id}} {d:(Lv.${run.handLevels[h.id]})}: {c:+${h.lvChips}} Chips, {m:+${h.lvMult}} Mult`,
+    text: (run) => `Levels up {h:${h.id}} {d:(Lv.${run.handLevels[h.id]})}: {c:+${h.lvChips}} Pot, {m:+${h.lvMult}} Odds`,
     use: (c) => c.levelUp(h.id, 1),
   });
 }

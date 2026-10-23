@@ -6,7 +6,9 @@ import {
   afterDeal, availableActions, beginHand, cardsOf, dealTo, dealerHit, dealerShouldHit, double, endFold,
   endRound, fillSplit, fold, hit, scoreHand, settleOutcomes, settleSplit, split, stand,
 } from '../src/game/table';
-import { buyItem, buyPack, buyVoucher, cashOut, leaveShop, pickFromPack, reroll, selectTable, sellCharm, skipPack, winTable, maybeOpenTagPack, useCons } from '../src/game/shop';
+import { buyItem, buyPack, buyVoucher, cashOut, failTable, leaveShop, pickFromPack, reroll, sellCharm, skipPack, winTable, maybeOpenTagPack, useCons } from '../src/game/shop';
+import { reachable, travel, docPatch, campRest, chooseEvent, resolveDuel, finishNode, isTableNode } from '../src/game/trail';
+import { EVENT } from '../src/content/events';
 import { CHARM } from '../src/content/charms';
 import { charmSlots } from '../src/game/engine';
 import { handTotal } from '../src/core/cards';
@@ -50,7 +52,7 @@ function botTurn(run: Run) {
   }
 }
 
-function playHand(run: Run): 'ready' | 'won' | 'lost' {
+function playHand(run: Run): 'ready' | 'won' | 'lost' | 'dead' {
   beginHand(run);
   dealTo(run, 'player');
   dealTo(run, 'dealer');
@@ -117,27 +119,53 @@ function packBot(run: Run) {
 export function simulate(seed: string, shoe = 'paper', stake = 1) {
   const run = newRun(seed, shoe, stake);
   let guard = 0;
-  while (guard++ < 2000) {
-    if (run.phase === 'select') {
+  while (guard++ < 4000) {
+    if (run.phase === 'trail') {
       if (maybeOpenTagPack(run)) { packBot(run); continue; }
-      const idx = run.tableStatus.findIndex((s) => s === 'open');
-      selectTable(run, idx);
+      const opts = reachable(run);
+      // Prefer: store when rich, doc/camp when hurt, otherwise card games.
+      const pick =
+        (run.grit <= 5 && opts.find((n) => n.kind === 'doc' || n.kind === 'camp')) ||
+        (run.money >= 12 && opts.find((n) => n.kind === 'store')) ||
+        opts.find((n) => isTableNode(n)) ||
+        opts[0];
+      travel(run, pick.id);
+    } else if (run.phase === 'table') {
       let r: string = 'ready';
-      while (r === 'ready') r = playHand(run);
-      if (r === 'lost') return { night: run.night, table: run.tableIdx, won: false, run };
-      winTable(run);
+      while (r === 'ready') {
+        // Wager boldly while healthy.
+        run.table!.wager = run.grit >= 7 ? 2 : 1;
+        r = playHand(run);
+      }
+      if (r === 'dead') return { night: run.night, won: false, run };
+      if (r === 'won') winTable(run);
+      else failTable(run);
     } else if (run.phase === 'cashout') {
       cashOut(run);
+    } else if (run.phase === 'doc') {
+      docPatch(run);
+      finishNode(run);
+    } else if (run.phase === 'camp') {
+      campRest(run);
+      finishNode(run);
+    } else if (run.phase === 'event') {
+      const def = EVENT[run.event!.id];
+      let done = false;
+      for (let i = 0; i < def.choices.length && !done; i++) done = chooseEvent(run, i);
+      if (run.event?.duel) resolveDuel(run, Math.random() < 0.5);
+      if (run.phase === 'event') finishNode(run);
     } else if (run.phase === 'victory') {
-      return { night: NIGHTS, table: 2, won: true, run };
+      return { night: NIGHTS, won: true, run };
     } else if (run.phase === 'shop') {
       shopBot(run);
       leaveShop(run);
     } else if (run.phase === 'pack') {
       packBot(run);
+    } else if (run.phase === 'gameover') {
+      return { night: run.night, won: false, run };
     } else break;
   }
-  return { night: run.night, table: run.tableIdx, won: false, run };
+  return { night: run.night, won: false, run };
 }
 
 if (!process.env.VITEST) main();
@@ -162,9 +190,9 @@ function main() {
     let charms = 0;
     for (let i = 0; i < N; i++) {
       const r = simulate(`SIM${i}`, shoe, stake);
-      const k = `${r.night}.${r.table}`;
+      const k = `${r.night}`;
       where[k] = (where[k] ?? 0) + 1;
-      if (r.table === 2) hosts[r.run.nightHost] = (hosts[r.run.nightHost] ?? 0) + 1;
+      hosts[r.run.nightHost] = (hosts[r.run.nightHost] ?? 0) + 1;
       charms += r.run.charms.length;
     }
     console.log(where, hosts, 'avg charms at death', (charms / N).toFixed(2));

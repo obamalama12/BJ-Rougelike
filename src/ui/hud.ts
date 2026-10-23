@@ -1,56 +1,66 @@
-// The persistent HUD: left sidebar and the Charm / consumable trays.
+// The persistent HUD around the table: the saloon wall (town, Grit, Bucks),
+// the wanted poster with the target, the revolver of hands, the bandolier of
+// Doodads along the bottom and the satchel of consumables on the right.
 
 import type { Run, HandTypeId } from '../core/types';
 import { HAND_TYPE } from '../core/cards';
 import { CHARM, sellValue } from '../content/charms';
 import { CONS, consSellValue } from '../content/consumables';
 import { HOST } from '../content/hosts';
-import { SHOE, STAKES } from '../content/shoes';
 import { app, button, jiggle, modal, popup, save, tip, toast, hideTip } from './app';
-import { charmCard, charmTooltip, consCard, consTooltip, hostMedallion, hostTooltip, tagToken, tagTooltip } from './art';
-import { h, div, fmtNum, fmtMult, clear } from './dom';
-import { charmSlots, consSlots, nightBase, NIGHTS, tableTarget } from '../game/engine';
+import { charmCard, charmTooltip, consCard, consTooltip, hostTooltip, tagToken, tagTooltip } from './art';
+import { h, div, fmtNum, fmtMult, clear, fmt, esc } from './dom';
+import { charmSlots, consSlots, getRules, NIGHTS } from '../game/engine';
 import { canUseCons, consNeeds, moveCharm, sellCharm, sellCons, useCons } from '../game/shop';
+import { gritCap, nodeTarget } from '../game/trail';
 import { sfx } from '../fx/audio';
 import { openRunInfo } from './screens/runinfo';
 import { openOptions } from './screens/options';
 import { pickTargets } from './picker';
 import { iconSvg } from './icons';
+import { portraitOf, townName } from './characters';
+
+const KIND_NAME: Record<string, string> = { paper: 'Saloon Game', silk: 'High Stakes', bank: 'Bank Job', host: 'Showdown' };
 
 export class Hud {
   el: HTMLElement;
-  side: HTMLElement;
-  tray: HTMLElement;
+  top: HTMLElement;
+  poster: HTMLElement;
+  gun: HTMLElement;
+  belt: HTMLElement;
+  satchel: HTMLElement;
   charmRow: HTMLElement;
   consRow: HTMLElement;
   charmCount: HTMLElement;
   consCount: HTMLElement;
+  /** The pot in the middle of the felt (attached by the table screen). */
+  pot: HTMLElement;
   refs: Record<string, HTMLElement> = {};
   charmEls = new Map<number, HTMLElement>();
   consEls = new Map<number, HTMLElement>();
   selected: { kind: 'charm' | 'cons'; uid: number } | null = null;
   onChange: () => void = () => {};
-  /** Can consumables be used right now? */
   canUse = true;
-  private shownChips = 0;
-  private shownMult = 0;
   private shownScore = 0;
   private scoreAnim = 0;
+  private posterKey = '';
 
   constructor() {
     this.el = div('hud');
-    this.side = div('sidebar');
-    this.tray = div('trays');
-    this.charmRow = div('charm-row');
-    this.consRow = div('cons-row');
-    this.charmCount = div('tray-count');
-    this.consCount = div('tray-count');
-    this.tray.append(
-      div('tray charms-tray', this.charmRow, this.charmCount),
-      div('tray cons-tray', this.consRow, this.consCount),
-    );
-    this.buildSide();
-    this.el.append(this.side, this.tray);
+    this.top = div('wall');
+    this.poster = div('poster');
+    this.gun = div('gun');
+    this.belt = div('belt');
+    this.satchel = div('satchel');
+    this.charmRow = div('belt-row');
+    this.consRow = div('satchel-row');
+    this.charmCount = div('belt-count');
+    this.consCount = div('satchel-count');
+    this.belt.append(div('belt-strap'), this.charmRow, this.charmCount);
+    this.satchel.append(div('satchel-flap', h('span', null, 'Satchel'), this.consCount), this.consRow);
+    this.pot = this.buildPot();
+    this.buildTop();
+    this.el.append(this.top, this.poster, this.gun, this.belt, this.satchel);
     app.stage.addEventListener('pointerdown', (e) => {
       const t = e.target as HTMLElement;
       if (!t.closest('.charm-slot') && !t.closest('.cons-slot') && this.selected) {
@@ -64,105 +74,171 @@ export class Hud {
     return app.run!;
   }
 
-  private buildSide() {
+  // -------------------------------------------------------------------------
+  // Building blocks
+  // -------------------------------------------------------------------------
+
+  private buildTop() {
     const r = this.refs;
-    r.banner = div('sb-banner');
-    r.bannerName = div('sb-banner-name');
-    r.bannerSub = div('sb-banner-sub');
-    r.bannerIcon = div('sb-banner-icon');
-    r.banner.append(r.bannerIcon, div('sb-banner-text', r.bannerName, r.bannerSub));
-    r.target = div('sb-target-val');
-    r.reward = div('sb-reward');
-    const targetBox = div('sb-box sb-target', div('sb-label', 'Score at least'), r.target, r.reward);
-    r.score = div('sb-score-val', '0');
-    r.scoreBar = div('sb-score-bar-fill');
-    const scoreBox = div('sb-box sb-score', div('sb-label', 'Winnings'), r.score, div('sb-score-bar', r.scoreBar));
-    r.handName = div('sb-hand-name', ' ');
-    r.handLevel = div('sb-hand-level');
-    r.chips = div('sb-chips', '0');
-    r.mult = div('sb-mult', '0');
-    r.calc = div('sb-calc', div('sb-chips-box', r.chips), div('sb-x', '×'), div('sb-mult-box', r.mult));
-    const handBox = div('sb-box sb-hand', div('sb-hand-head', r.handName, r.handLevel), r.calc);
-    r.hands = div('sb-stat-val chips');
-    r.folds = div('sb-stat-val mult');
-    r.money = div('sb-money-val');
-    r.night = div('sb-stat-val');
-    r.table = div('sb-stat-val');
-    const stats = div(
-      'sb-stats',
-      div('sb-stat', div('sb-label', 'Hands'), r.hands),
-      div('sb-stat', div('sb-label', 'Folds'), r.folds),
-      div('sb-stat wide money', div('sb-label', 'Bucks'), r.money),
-      div('sb-stat', div('sb-label', 'Town'), r.night),
-      div('sb-stat', div('sb-label', 'Table'), r.table),
-    );
-    r.tags = div('sb-tags');
-    r.runStrip = div('sb-run');
+    r.town = div('wall-town');
+    r.trailPips = div('wall-pips');
+    r.grit = div('wall-grit');
+    r.money = div('wall-money-val');
+    r.tags = div('wall-tags');
+    const money = div('wall-money', h('div', { class: 'wall-money-bag', html: iconSvg('moneybag') }), r.money);
+    tip(money, () => '<div class="tt-title">Bucks</div><div class="tt-body">Spend them at the General Store. You earn interest on every $5 you hold when you win a table.</div>', 'bottom');
+    tip(r.grit, () => `<div class="tt-title">Grit ${this.run.grit}/${gritCap(this.run)}</div><div class="tt-body">Your health for the whole run. Risky wagers cost Grit when you lose a hand, and falling short of a target costs more. At 0 Grit the run is over.</div>`, 'bottom');
     const btns = div(
-      'sb-buttons',
-      button('Run Info', 'small ghost', () => openRunInfo()),
-      button('Deck', 'small ghost', () => openRunInfo('deck')),
-      button('Options', 'small ghost', () => openOptions()),
+      'wall-btns',
+      button('Deck', 'plank', () => openRunInfo('deck')),
+      button('Info', 'plank', () => openRunInfo()),
+      button('Options', 'plank', () => openOptions()),
     );
-    this.side.append(r.banner, targetBox, scoreBox, handBox, stats, r.tags, r.runStrip, btns);
+    this.top.append(div('wall-left', r.town, r.trailPips), r.tags, div('wall-right', r.grit, money, btns));
   }
 
-  /** Refresh every number on the sidebar. */
+  private buildPot(): HTMLElement {
+    const r = this.refs;
+    r.handName = div('pot-hand', ' ');
+    r.handLevel = div('pot-level');
+    r.chips = div('pot-chips-val', '0');
+    r.mult = div('pot-odds-val', '0');
+    r.stacks = div('pot-stacks');
+    const pot = div(
+      'pot',
+      div('pot-head', r.handName, r.handLevel),
+      div(
+        'pot-body',
+        div('pot-chips', r.stacks, div('pot-chips-text', div('pot-label', 'Pot'), r.chips)),
+        div('pot-x', '×'),
+        div('pot-odds', div('pot-label', 'Odds'), r.mult),
+      ),
+    );
+    r.calc = pot;
+    return pot;
+  }
+
+  // -------------------------------------------------------------------------
+  // Updating
+  // -------------------------------------------------------------------------
+
   update() {
     const run = this.run;
     const r = this.refs;
-    const t = run.table;
-    const idx = run.phase === 'select' ? run.tableStatus.findIndex((s) => s === 'open') : run.tableIdx;
-    const kind = t?.kind ?? (idx === 2 ? 'host' : idx === 1 ? 'silk' : 'paper');
-    r.banner.className = `sb-banner kind-${kind}`;
-    clear(r.bannerIcon);
-    if (kind === 'host') {
-      const med = hostMedallion(t?.hostId ?? run.nightHost, 'sm');
-      tip(med, () => hostTooltip(t?.hostId ?? run.nightHost), 'right');
-      r.bannerIcon.appendChild(med);
-      const host = HOST[t?.hostId ?? run.nightHost];
-      r.bannerName.textContent = host?.name ?? 'Outlaw';
-      r.bannerSub.innerHTML = t?.hostDisabled ? '<s>Curse lifted</s>' : host?.title ?? '';
-    } else {
-      r.bannerIcon.innerHTML = `<div class="banner-ico ${kind}">${iconSvg(kind === 'silk' ? 'tophat' : 'saloon')}</div>`;
-      r.bannerName.textContent = kind === 'silk' ? 'High Roller Table' : 'Saloon Table';
-      r.bannerSub.textContent = run.phase === 'shop' ? 'Supplies & Sundries' : t ? 'Cards on the felt' : 'Choose your table';
+    r.town.innerHTML = `<span class="wall-town-num">Town ${run.night}<small>/${run.endless ? '∞' : NIGHTS}</small></span><span class="wall-town-name">${esc(townName(run.night))}</span>`;
+    // Trail progress pips: one per column.
+    clear(r.trailPips);
+    const at = run.trail.nodes.find((n) => n.id === run.trail.at);
+    const cols = Math.max(1, ...run.trail.nodes.map((n) => n.col + 1));
+    for (let c = 0; c < cols; c++) {
+      const done = at ? c < at.col || (c === at.col && !!at.done) : false;
+      const cur = at?.col === c && !at.done;
+      r.trailPips.appendChild(div(`pip${done ? ' done' : ''}${cur ? ' cur' : ''}${c === cols - 1 ? ' boss' : ''}`));
     }
-    if (run.phase === 'shop') {
-      r.banner.className = 'sb-banner kind-shop';
-      r.bannerIcon.innerHTML = `<div class="banner-ico shop">${iconSvg('duck')}</div>`;
-      r.bannerName.textContent = 'General Store';
-      r.bannerSub.textContent = 'Supplies & Sundries';
-    }
-    const target = t?.target ?? (idx >= 0 ? tableTarget(run, idx) : nightBase(run));
-    r.target.textContent = fmtNum(target);
-    r.reward.innerHTML = t ? `Reward: <span class="t-money">${'$'.repeat(Math.max(0, kind === 'host' ? 5 : kind === 'silk' ? 4 : run.stake >= 2 ? 0 : 3))}</span>` : '';
-    this.setScore(t?.score ?? 0, target);
-    r.hands.textContent = String(t?.handsLeft ?? '-');
-    r.folds.textContent = String(t?.foldsLeft ?? '-');
+    // Grit: horseshoes
+    const cap = gritCap(run);
+    r.grit.innerHTML = `<div class="grit-label">Grit <b>${run.grit}</b></div><div class="grit-shoes">${Array.from({ length: cap }, (_, i) => `<span class="gshoe${i < run.grit ? ' full' : ''}">${iconSvg('horseshoe')}</span>`).join('')}</div>`;
+    r.grit.classList.toggle('low', run.grit <= 3);
     r.money.textContent = `$${run.money}`;
     r.money.classList.toggle('neg', run.money < 0);
-    r.night.innerHTML = `${run.night}<small>/${NIGHTS}</small>`;
-    r.table.innerHTML = `${Math.max(1, idx + 1)}<small>/3</small>`;
-    const stake = STAKES[run.stake - 1];
-    r.runStrip.innerHTML = `<span class="moon-phase p${run.stake}" style="--c:${stake?.color}">${run.stake}</span><div><div class="sb-run-shoe">${SHOE[run.shoeId]?.name ?? ''}</div><div class="sb-run-stake" style="color:${stake?.color}">${stake?.name ?? ''}</div></div><div class="sb-run-deck">${run.deck.length}<small> cards</small></div>`;
     clear(r.tags);
     for (const tg of run.tags) {
       const tk = tagToken(tg.id);
-      tip(tk, () => tagTooltip(tg.id), 'right');
+      tip(tk, () => tagTooltip(tg.id), 'bottom');
       r.tags.appendChild(tk);
+    }
+    this.updatePoster();
+    this.updateGun();
+  }
+
+  private updatePoster() {
+    const run = this.run;
+    const t = run.table;
+    const outlawNode = run.trail.nodes.find((n) => n.kind === 'outlaw');
+    const hostId = t?.hostId ?? run.nightHost;
+    const host = HOST[hostId];
+    const key = t ? `${t.kind}:${t.hostId}:${t.target}:${t.hostDisabled}` : `town:${run.nightHost}:${run.night}`;
+    if (key !== this.posterKey) {
+      this.posterKey = key;
+      const p = this.poster;
+      clear(p);
+      const isOutlaw = t ? t.kind === 'host' : true;
+      const cursed = isOutlaw || t?.kind === 'bank';
+      const title = t ? (t.kind === 'host' ? 'Wanted' : KIND_NAME[t.kind]) : 'Wanted';
+      const face = div('poster-face');
+      if (cursed) face.innerHTML = portraitOf(isOutlaw ? hostId : 'banker', 'smug');
+      else face.innerHTML = `<div class="poster-icon">${iconSvg(t?.kind === 'silk' ? 'tophat' : 'saloon')}</div>`;
+      if (cursed && host) tip(face, () => hostTooltip(hostId), 'right');
+      const name = div('poster-name', isOutlaw ? host?.name ?? 'Outlaw' : t?.kind === 'bank' ? 'The Vault' : t?.kind === 'silk' ? 'High Rollers' : 'Saloon Regulars');
+      const curse = cursed && host ? h('div', { class: 'poster-curse', html: t?.hostDisabled ? '<s>Curse lifted</s>' : fmt(host.text) }) : null;
+      this.refs.target = div('poster-target-val');
+      this.refs.score = div('poster-score-val', '0');
+      this.refs.scoreBar = div('poster-bar-fill');
+      const reward = t ? { paper: 3, silk: 5, bank: 6, host: 6 }[t.kind] : 6;
+      p.append(
+        div('poster-head', title),
+        face,
+        name,
+        curse ?? '',
+        div('poster-row', div('poster-label', t ? 'Score at least' : 'Showdown target'), this.refs.target),
+        t ? div('poster-row', div('poster-label', 'Winnings'), this.refs.score) : '',
+        t ? div('poster-bar', this.refs.scoreBar) : '',
+        div('poster-reward', `Reward $${reward}${t?.kind === 'bank' ? ' + loot' : ''}`),
+        (this.refs.rules = div('poster-rules')),
+        div('poster-nail l'),
+        div('poster-nail r'),
+      );
+      p.className = `poster${isOutlaw ? ' outlaw' : ''}`;
+      this.shownScore = t?.score ?? 0;
+    }
+    const target = t?.target ?? (outlawNode ? nodeTarget(run, outlawNode) : 0);
+    this.refs.target.textContent = fmtNum(target);
+    if (t) {
+      const rules = getRules(run);
+      this.refs.rules.textContent = `Dealer ${rules.dealerStand > 17 ? `hits to ${rules.dealerStand}` : rules.dealerHitSoft17 ? 'hits soft 17' : 'stands on 17'} \u00b7 Bust over ${rules.bustLimit} \u00b7 Charley at ${rules.charlieSize}`;
+    } else this.refs.rules.textContent = 'Beat the Outlaw to ride on to the next town';
+    if (t) this.setScore(t.score, t.target);
+  }
+
+  private updateGun() {
+    const run = this.run;
+    const t = run.table;
+    if (!t) {
+      this.gun.style.display = 'none';
+      return;
+    }
+    this.gun.style.display = '';
+    const hands = t.handsLeft;
+    const chambers = Math.min(8, Math.max(6, hands));
+    const bullets = Array.from({ length: chambers }, (_, i) => {
+      const a = (i / chambers) * Math.PI * 2 - Math.PI / 2;
+      const x = 50 + Math.cos(a) * 28;
+      const y = 50 + Math.sin(a) * 28;
+      const full = i < hands;
+      return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="10" class="${full ? 'bullet' : 'empty'}"/>${full ? `<circle cx="${(x - 3).toFixed(1)}" cy="${(y - 3).toFixed(1)}" r="3" class="glint"/>` : ''}`;
+    }).join('');
+    this.gun.innerHTML = `<div class="gun-cyl"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" class="cyl"/><circle cx="50" cy="50" r="8" class="hub"/>${bullets}</svg></div>
+      <div class="gun-stats"><div class="gun-stat"><span class="gun-num chips">${hands}</span><span class="gun-lbl">Hands</span></div>
+      <div class="gun-stat"><span class="gun-num mult">${t.foldsLeft}</span><span class="gun-lbl">Folds</span></div></div>`;
+    if (!this.gun.dataset.tip) {
+      this.gun.dataset.tip = '1';
+      tip(this.gun, () => '<div class="tt-title">Hands & Folds</div><div class="tt-body">Each deal uses a hand (a bullet). Folding a bad hand gives the bullet back, but folds are limited.</div>', 'right');
     }
   }
 
   setScore(score: number, target: number, animate = false) {
     const r = this.refs;
+    if (!r.score) return;
     cancelAnimationFrame(this.scoreAnim);
     const from = this.shownScore;
     const to = score;
     const bar = () => {
       const k = Math.min(1, this.shownScore / Math.max(1, target));
-      r.scoreBar.style.width = `${k * 100}%`;
-      r.scoreBar.classList.toggle('full', k >= 1);
+      if (r.scoreBar) {
+        r.scoreBar.style.width = `${k * 100}%`;
+        r.scoreBar.classList.toggle('full', k >= 1);
+      }
+      this.poster.classList.toggle('claimed', k >= 1);
     };
     if (!animate || from === to) {
       this.shownScore = to;
@@ -199,16 +275,30 @@ export class Hud {
 
   setCalc(chips: number, mult: number, bump?: 'chips' | 'mult') {
     const r = this.refs;
-    this.shownChips = chips;
-    this.shownMult = mult;
     r.chips.textContent = fmtNum(Math.floor(chips));
     r.mult.textContent = fmtMult(mult);
-    if (bump === 'chips') jiggle(r.chips.parentElement, 'bump');
+    if (bump === 'chips') jiggle(r.chips.parentElement?.parentElement ?? null, 'bump');
     if (bump === 'mult') jiggle(r.mult.parentElement, 'bump');
+    this.renderStacks(chips);
     const total = chips * mult;
     const heat = Math.max(0, Math.min(3, Math.log10(Math.max(1, total)) - 2.4));
     r.calc.style.setProperty('--heat', String(heat));
     r.calc.classList.toggle('hot', heat > 0.5);
+  }
+
+  /** Poker-chip stacks that grow with the pot (log scale). */
+  private renderStacks(chips: number) {
+    const el = this.refs.stacks;
+    const n = chips <= 0 ? 0 : Math.min(28, Math.round(Math.log2(chips + 1) * 2.4));
+    const want = `${n}`;
+    if (el.dataset.n === want) return;
+    el.dataset.n = want;
+    const colors = ['#e8402c', '#3d8bd6', '#2fbf7c', '#f0b429', '#f7ecd2'];
+    const stacks = [0, 0, 0, 0];
+    for (let i = 0; i < n; i++) stacks[i % 4]++;
+    el.innerHTML = stacks
+      .map((cnt, s) => `<div class="stack s${s}">${Array.from({ length: cnt }, (_, j) => `<span class="chip" style="--c:${colors[(s + j) % colors.length]};--j:${j}"></span>`).join('')}</div>`)
+      .join('');
   }
 
   clearCalc() {
@@ -218,7 +308,7 @@ export class Hud {
   }
 
   // -------------------------------------------------------------------------
-  // Trays
+  // Bandolier & satchel
   // -------------------------------------------------------------------------
 
   renderTrays() {
@@ -228,6 +318,7 @@ export class Hud {
     clear(this.consRow);
     this.charmEls.clear();
     this.consEls.clear();
+    const slots = charmSlots(run);
     run.charms.forEach((k, i) => {
       const slot = div('charm-slot');
       const card = charmCard(k.id, k.finish);
@@ -236,9 +327,8 @@ export class Hud {
       card.style.setProperty('--i', String(i));
       slot.appendChild(card);
       this.charmEls.set(k.uid, card);
-      tip(card, () => charmTooltip(run, k.id, k), 'bottom');
-      const sel = this.selected?.kind === 'charm' && this.selected.uid === k.uid;
-      if (sel) {
+      tip(card, () => charmTooltip(run, k.id, k), 'top');
+      if (this.selected?.kind === 'charm' && this.selected.uid === k.uid) {
         slot.classList.add('selected');
         slot.appendChild(
           button(`Sell $${sellValue(k)}`, 'sell tiny', () => {
@@ -252,15 +342,15 @@ export class Hud {
       this.attachDrag(card, k.uid);
       this.charmRow.appendChild(slot);
     });
-    this.charmCount.textContent = `${run.charms.length}/${charmSlots(run)}`;
-    if (!run.charms.length) this.charmRow.appendChild(div('tray-empty', 'Doodads'));
+    for (let i = run.charms.length; i < slots; i++) this.charmRow.appendChild(div('charm-slot empty', div('loop')));
+    this.charmCount.textContent = `Posse ${run.charms.length}/${slots}`;
     run.consumables.forEach((k) => {
       const slot = div('cons-slot');
       const card = consCard(k.kind, k.id, k.finish);
       card.dataset.uid = String(k.uid);
       slot.appendChild(card);
       this.consEls.set(k.uid, card);
-      tip(card, () => consTooltip(run, k.kind, k.id), 'bottom');
+      tip(card, () => consTooltip(run, k.kind, k.id), 'left');
       card.addEventListener('click', () => {
         this.selected = this.selected?.uid === k.uid ? null : { kind: 'cons', uid: k.uid };
         sfx('select');
@@ -285,8 +375,8 @@ export class Hud {
       }
       this.consRow.appendChild(slot);
     });
+    for (let i = run.consumables.length; i < consSlots(run); i++) this.consRow.appendChild(div('cons-slot empty'));
     this.consCount.textContent = `${run.consumables.length}/${consSlots(run)}`;
-    if (!run.consumables.length) this.consRow.appendChild(div('tray-empty small', 'Satchel'));
   }
 
   private async useCons(uid: number) {
@@ -301,9 +391,9 @@ export class Hud {
       }
       const ids = await pickTargets(run, k.id, needs);
       if (!ids) return;
-      if (!useCons(run, uid, ids)) return toast('Cannot use that now', 'bad');
+      if (!useCons(run, uid, ids)) return toast('That won’t work right now', 'bad');
     } else if (!useCons(run, uid, [])) {
-      return toast('Cannot use that now', 'bad');
+      return toast('That won’t work right now', 'bad');
     }
     const def = CONS[k.id];
     sfx(k.kind === 'star' ? 'levelup' : k.kind === 'mask' ? 'gong' : 'buy');
@@ -350,8 +440,7 @@ export class Hud {
       dragging = false;
       card.classList.remove('dragging');
       card.style.transform = '';
-      // Find the new index from the drop x position.
-      const slots = [...this.charmRow.children] as HTMLElement[];
+      const slots = [...this.charmRow.querySelectorAll<HTMLElement>('.charm-slot:not(.empty)')];
       let to = slots.length - 1;
       for (let i = 0; i < slots.length; i++) {
         const r = slots[i].getBoundingClientRect();
@@ -360,8 +449,6 @@ export class Hud {
           break;
         }
       }
-      const from = this.run.charms.findIndex((k) => k.uid === uid);
-      if (to > from) to = Math.max(from, to - (e.clientX < slots[to].getBoundingClientRect().right ? 0 : 0));
       moveCharm(this.run, uid, to);
       sfx('deal');
       save();

@@ -5,12 +5,14 @@ import '@fontsource/m-plus-rounded-1c/latin-800.css';
 import './style/main.css';
 import './style/cards.css';
 import './style/screens.css';
+import './style/layout.css';
 
 import { app, mountShell, hideTip, closeAllModals } from './ui/app';
 import { clear, div } from './ui/dom';
 import { Hud } from './ui/hud';
 import { TableScreen } from './ui/screens/table';
-import { selectScreen } from './ui/screens/select';
+import { trailScreen } from './ui/screens/trail';
+import { eventScreen, docScreen, campScreen } from './ui/screens/stops';
 import { shopScreen } from './ui/screens/shop';
 import { packScreen } from './ui/screens/pack';
 import { titleScreen, gameOverScreen, victoryScreen } from './ui/screens/menus';
@@ -61,14 +63,21 @@ function render() {
   }
   hud = new Hud();
   const main = div('main-area');
-  screen.append(hud.el, main);
+  screen.append(main, hud.el);
+  screen.dataset.phase = run.phase;
   if (run.phase === 'table' || run.phase === 'cashout') {
     table = new TableScreen(hud);
     main.appendChild(table.el);
     table.mount();
     if (run.phase === 'cashout') table.showCashout();
-  } else if (run.phase === 'select') {
-    main.appendChild(selectScreen(hud));
+  } else if (run.phase === 'trail') {
+    main.appendChild(trailScreen(hud));
+  } else if (run.phase === 'event') {
+    main.appendChild(eventScreen(hud));
+  } else if (run.phase === 'doc') {
+    main.appendChild(docScreen(hud));
+  } else if (run.phase === 'camp') {
+    main.appendChild(campScreen(hud));
   } else if (run.phase === 'shop') {
     main.appendChild(shopScreen(hud));
   } else if (run.phase === 'pack') {

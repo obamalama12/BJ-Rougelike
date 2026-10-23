@@ -28,20 +28,20 @@ export function rankName(r: Rank): string {
 }
 
 export const INK_INFO: Record<InkId, { name: string; text: string }> = {
-  jade: { name: 'Greenback', text: '{c:+30} Chips when scored' },
-  crimson: { name: 'Red Hot', text: '{m:+4} Mult when scored' },
+  jade: { name: 'Greenback', text: '{c:+30} Pot when scored' },
+  crimson: { name: 'Red Hot', text: '{m:+4} Odds when scored' },
   gilded: { name: 'Gold Plated', text: 'Earn {$:3} when scored' },
-  glass: { name: 'Glass', text: '{x:X2} Mult when scored. {g:1 in 4} chance to shatter' },
-  stone: { name: 'Rock', text: '{c:+50} Chips. Worth {g:0} toward your total. No rank or suit' },
-  lucky: { name: 'Lucky', text: '{g:1 in 5} chance for {m:+20} Mult, {g:1 in 15} chance to earn {$:20}' },
+  glass: { name: 'Glass', text: '{x:X2} Odds when scored. {g:1 in 4} chance to shatter' },
+  stone: { name: 'Rock', text: '{c:+50} Pot. Worth {g:0} toward your total. No rank or suit' },
+  lucky: { name: 'Lucky', text: '{g:1 in 5} chance for {m:+20} Odds, {g:1 in 15} chance to earn {$:20}' },
   spirit: { name: 'Wild', text: 'Counts as every suit' },
   ash: { name: 'Rubber Ducky', text: 'If it would bust you, it is worth {g:0} instead, then pops' },
 };
 
 export const FINISH_INFO: Record<FinishId, { name: string; text: string; charmText: string }> = {
-  foil: { name: 'Shiny', text: '{c:+50} Chips', charmText: '{c:+50} Chips' },
-  holo: { name: 'Holographic', text: '{m:+10} Mult', charmText: '{m:+10} Mult' },
-  prism: { name: 'Prismatic', text: '{x:X1.5} Mult', charmText: '{x:X1.5} Mult' },
+  foil: { name: 'Shiny', text: '{c:+50} Pot', charmText: '{c:+50} Pot' },
+  holo: { name: 'Holographic', text: '{m:+10} Odds', charmText: '{m:+10} Odds' },
+  prism: { name: 'Prismatic', text: '{x:X1.5} Odds', charmText: '{x:X1.5} Odds' },
   phantom: { name: 'Ghostly', text: '{g:+1} slot', charmText: '{g:+1} Doodad slot' },
 };
 

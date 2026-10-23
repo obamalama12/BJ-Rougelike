@@ -9,7 +9,10 @@ import {
   type ScoreResult,
 } from '../../game/table';
 import { drainFx, getRules, currentHost, NIGHTS } from '../../game/engine';
-import { cashOut, winTable } from '../../game/shop';
+import { cashOut, failTable, winTable } from '../../game/shop';
+import { setWager } from '../../game/table';
+import { dealerId, line, nameOf, outlawIntro, portraitOf, type Mood } from '../characters';
+import type { Expression } from '../portraits';
 import { app, burstAt, button, center, jiggle, modal, popup, save, screenShake, tip, wait, hideTip } from '../app';
 import { cardTooltip, hostMedallion, hostTooltip, playingCard, cardBackHtml } from '../art';
 import { div, fmtNum, h, clear, fmt } from '../dom';
@@ -22,11 +25,11 @@ import { iconSvg } from '../icons';
 
 const CW = 112;
 const CH = 156;
-const SHOE_POS = { x: 1430, y: 330 };
-const DISCARD_POS = { x: 470, y: 330 };
-const DEALER_Y = 330;
-const PLAYER_Y = 595;
-const FELT_CX = 965;
+const SHOE_POS = { x: 1156, y: 364 };
+const DISCARD_POS = { x: 450, y: 364 };
+const DEALER_Y = 352;
+const PLAYER_Y = 628;
+const FELT_CX = 800;
 
 const OUTCOME_LABEL: Record<Outcome, string> = {
   blackjack: 'Quackjack!',
@@ -50,6 +53,12 @@ export class TableScreen {
   shoeEl: HTMLElement;
   shoeCount: HTMLElement;
   banner: HTMLElement;
+  dealerEl: HTMLElement;
+  dealerFace: HTMLElement;
+  bubble: HTMLElement;
+  wagerEl: HTMLElement;
+  private dealerChar = 'dealer_bart';
+  private moodTimer = 0;
   cards = new Map<number, HTMLElement>();
   handCx: number[] = [];
   private keyHandler: (e: KeyboardEvent) => void;
@@ -68,7 +77,11 @@ export class TableScreen {
     this.shoeEl = div('shoe', div('shoe-stack'), this.shoeCount);
     this.banner = div('outcome-banner');
     this.actions = div('action-bar');
-    this.el.append(this.felt, this.shoeEl, div('discard-spot'), this.dealerBadge, this.handBadges, this.cardLayer, this.banner, this.actions);
+    this.wagerEl = div('wager');
+    this.dealerFace = div('dealer-face');
+    this.bubble = div('bubble');
+    this.dealerEl = div('dealer', this.dealerFace, div('dealer-name'), this.bubble);
+    this.el.append(this.dealerEl, this.felt, this.shoeEl, div('discard-spot'), this.hud.pot, this.dealerBadge, this.handBadges, this.cardLayer, this.banner, this.wagerEl, this.actions);
     tip(this.shoeEl, () => this.shoeTip(), 'left');
     this.keyHandler = (e) => this.onKey(e);
     window.addEventListener('keydown', this.keyHandler);
@@ -91,12 +104,13 @@ export class TableScreen {
     audio.setMood(host ? 'host' : 'table');
     if (host && t.phase === 'ready' && t.dealt === 0) setTimeout(() => sfx('honk'), 300);
     this.el.classList.toggle('host-table', !!host);
-    if (host) {
-      const med = hostMedallion(host.id, 'lg');
-      tip(med, () => hostTooltip(host.id), 'right');
-      const plate = div('host-plate', med, div('host-plate-text', div('hp-name', host.name), h('div', { class: 'hp-curse', html: t.hostDisabled ? '<s>Curse lifted</s>' : fmt(host.text) })));
-      this.el.appendChild(plate);
-    }
+    this.el.classList.toggle('bank-table', t.kind === 'bank');
+    this.el.classList.toggle('silk-table', t.kind === 'silk');
+    this.dealerChar = dealerId(t);
+    (this.dealerEl.querySelector('.dealer-name') as HTMLElement).textContent = nameOf(this.dealerChar);
+    if (t.hostId) tip(this.dealerFace, () => hostTooltip(t.hostId!), 'bottom');
+    this.react('neutral');
+    if (t.phase === 'ready' && t.dealt === 0) setTimeout(() => this.say(t.kind === 'host' && t.hostId ? outlawIntro(t.hostId) : line('greet'), 'smug', 3800), 500);
     const rules = getRules(run);
     const rule = this.felt.querySelector('.felt-rule')!;
     rule.innerHTML = `<span>Dealer ${rules.dealerStand > 17 ? `hits to ${rules.dealerStand}` : rules.dealerHitSoft17 ? 'hits soft 17' : 'stands on 17'}</span><span class="dot">◆</span><span>Bust over ${rules.bustLimit}</span><span class="dot">◆</span><span>Charley Horse at ${rules.charlieSize}</span>`;
@@ -115,7 +129,7 @@ export class TableScreen {
     this.startFlameLoop();
     if (t.phase === 'dealer') void this.dealerAndResolve();
     else if (t.phase === 'won') void this.winSequence();
-    else if (t.phase === 'lost') void this.loseSequence();
+    else if (t.phase === 'lost') void (run.grit <= 0 ? this.loseSequence() : this.failSequence());
     else if (t.phase === 'resolved') {
       endFold(run);
       this.layout();
@@ -306,6 +320,7 @@ export class TableScreen {
     const run = this.run;
     const t = run.table!;
     clear(this.actions);
+    this.renderWager();
     if (t.phase === 'ready') {
       const deal = button('Deal', 'primary big deal-btn', () => void this.deal(), { sub: 'Space' });
       this.actions.append(deal);
@@ -326,6 +341,67 @@ export class TableScreen {
       mk('Split', 'P', 'split', a.split, () => void this.doSplit(), a.reasons.split, `P${rules.splitCost ? ' · 1 hand' : ''}`),
       mk('Fold', 'F', 'fold', a.fold, () => void this.doFold(), a.reasons.fold, `F · ${t.foldsLeft} left`),
     );
+  }
+
+  /** Penny / Dollar / Bankroll wager picker, shown between hands. */
+  private renderWager() {
+    const run = this.run;
+    const t = run.table!;
+    const el = this.wagerEl;
+    clear(el);
+    el.classList.toggle('locked', t.phase !== 'ready');
+    el.appendChild(div('wager-title', 'Wager'));
+    const opts: [number, string, string][] = [
+      [1, 'Penny', 'Safe. Score as normal'],
+      [2, 'Dollar', 'Score X2. Lose 1 Grit if you lose the hand'],
+      [3, 'Bankroll', 'Score X3. Lose 2 Grit if you lose the hand'],
+    ];
+    for (const [w, name, desc] of opts) {
+      const b = h('button', { class: `wager-opt w${w}${t.wager === w ? ' on' : ''}`, type: 'button', disabled: t.phase !== 'ready' });
+      b.innerHTML = `<span class="wager-chips">${'<i></i>'.repeat(w)}</span><span class="wager-name">${name}</span><span class="wager-x">X${w}</span>`;
+      tip(b, () => `<div class="tt-title">${name}</div><div class="tt-body">${desc}</div>`, 'left');
+      b.addEventListener('click', () => {
+        if (t.phase !== 'ready' || app.busy) return;
+        setWager(run, w);
+        sfx(w === 1 ? 'coin' : 'money');
+        if (w > 1) this.say(line('wager'), 'smug');
+        save();
+        this.renderWager();
+      });
+      el.appendChild(b);
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // The dealer
+  // -------------------------------------------------------------------------
+
+  /** Change the dealer's face (and return to neutral after a while). */
+  react(expr: Expression, hold = 2600) {
+    this.dealerFace.innerHTML = portraitOf(this.dealerChar, expr);
+    this.dealerFace.classList.remove('bob');
+    void this.dealerFace.offsetWidth;
+    this.dealerFace.classList.add('bob');
+    clearTimeout(this.moodTimer);
+    if (expr !== 'neutral') this.moodTimer = window.setTimeout(() => (this.dealerFace.innerHTML = portraitOf(this.dealerChar, 'neutral')), hold);
+  }
+
+  say(text: string, expr?: Expression, hold = 2600) {
+    if (expr) this.react(expr, hold);
+    this.bubble.textContent = text;
+    this.bubble.classList.remove('show');
+    void this.bubble.offsetWidth;
+    this.bubble.classList.add('show');
+    clearTimeout((this.bubble as any)._t);
+    (this.bubble as any)._t = setTimeout(() => this.bubble.classList.remove('show'), hold);
+  }
+
+  private mood(m: Mood, expr: Expression, chance = 1) {
+    if (Math.random() > chance) {
+      this.react(expr);
+      return;
+    }
+    this.say(line(m), expr);
   }
 
   private onKey(e: KeyboardEvent) {
@@ -374,6 +450,7 @@ export class TableScreen {
     clear(this.actions);
     beginHand(run);
     this.hud.update();
+    if (Math.random() < 0.25) this.say(line('deal'));
     for (const who of ['player', 'dealer', 'player', 'dealer'] as const) {
       dealTo(run, who);
       sfx('deal');
@@ -486,6 +563,7 @@ export class TableScreen {
     const first = this.cardLayer.querySelector('.table-card');
     fold(run);
     sfx('shuffle');
+    this.mood('fold', 'smug', 0.6);
     if (first) popup(first, 'Folded', 'pop-info');
     this.flushFx();
     await wait(200);
@@ -526,6 +604,7 @@ export class TableScreen {
         burstAt(el, { n: 18, color: ['#ffe27a', '#ffb03d'] });
       }
       sfx('win');
+      this.mood('dealerBust', 'sweating');
       await wait(450);
     }
     await this.resolveAll();
@@ -569,7 +648,8 @@ export class TableScreen {
     this.banner.className = 'outcome-banner';
     await wait(380);
     if (state === 'won') await this.winSequence();
-    else if (state === 'lost') await this.loseSequence();
+    else if (state === 'dead') await this.loseSequence();
+    else if (state === 'lost') await this.failSequence();
     else this.unlock();
   }
 
@@ -595,6 +675,7 @@ export class TableScreen {
         sfx('bust');
         screenShake(1.2);
         card?.classList.add('burn');
+        this.mood('playerBust', 'laughing');
         break;
       case 'blackjack':
         popup(el, 'Quackjack!', 'pop-big pop-gold');
@@ -602,6 +683,7 @@ export class TableScreen {
         burstAt(el, { n: 40, color: ['#ffe27a', '#ffb03d', '#fff6e0'], speed: 420 });
         particles.ring(center(el).x, center(el).y, '#ffd23f', 160);
         background.bump(1.5);
+        this.mood('playerBlackjack', 'shocked');
         break;
       case 'charlie':
         popup(el, 'Charley Horse!', 'pop-big pop-gold');
@@ -639,8 +721,14 @@ export class TableScreen {
     if (!ht) {
       const tone = o === 'push' ? 'info' : 'bad';
       this.showBanner(res.blocked ? `Blocked: ${res.blocked}` : OUTCOME_LABEL[o], tone);
-      if (o === 'lose') sfx('lose');
-      if (o === 'push') sfx('push');
+      if (o === 'lose') {
+        sfx('lose');
+        this.mood('playerLose', 'smug', 0.7);
+      }
+      if (o === 'push') {
+        sfx('push');
+        this.mood('push', 'neutral', 0.5);
+      }
       if (o === 'lose' || o === 'bust') {
         for (const id of hand.cards) this.cards.get(id)?.classList.add('dim');
       }
@@ -659,7 +747,7 @@ export class TableScreen {
     const totalEl = div('score-total', `+${fmtNum(res.total)}`);
     this.el.appendChild(totalEl);
     totalEl.style.left = `${FELT_CX}px`;
-    totalEl.style.top = `${PLAYER_Y - 150}px`;
+    totalEl.style.top = `${PLAYER_Y - 128}px`;
     const big = res.total >= t.target * 0.5;
     sfx(big ? 'gong' : 'money');
     background.bump(big ? 2 : 1);
@@ -669,6 +757,8 @@ export class TableScreen {
       burstAt(totalEl, { n: 60, color: ['#ff5b2a', '#ffb03d', '#ffe27a'], speed: 520 });
     }
     this.hud.setScore(t.score, t.target, true);
+    if (big) this.mood('bigScore', 'shocked');
+    else if (ht !== 'push' && o !== 'blackjack') this.mood('playerWin', Math.random() < 0.5 ? 'angry' : 'sad', 0.6);
     await wait(900);
     totalEl.classList.add('out');
     setTimeout(() => totalEl.remove(), 500);
@@ -710,7 +800,7 @@ export class TableScreen {
         case 'mult':
           if (el) {
             jiggle(el);
-            popup(el, `+${fmtNum(e.v)} Mult`, 'pop-mult');
+            popup(el, `+${fmtNum(e.v)} Odds`, 'pop-mult');
           }
           this.hud.setCalc(e.chips, e.mult, 'mult');
           sfx('mult', multN++);
@@ -718,7 +808,7 @@ export class TableScreen {
         case 'xmult':
           if (el) {
             jiggle(el, 'jiggle-big');
-            popup(el, `X${Math.round(e.v * 100) / 100} Mult`, 'pop-xmult');
+            popup(el, `X${Math.round(e.v * 100) / 100} Odds`, 'pop-xmult');
             burstAt(el, { n: 12, color: ['#ff3d2a', '#ffcf3d'] });
           }
           this.hud.setCalc(e.chips, e.mult, 'mult');
@@ -797,6 +887,7 @@ export class TableScreen {
     sfx('blackjack');
     particles.petals(60);
     background.bump(2);
+    this.say(line('tableWon'), 'sad', 4000);
     const lit = div('lantern-lit', div('ll-lantern', div('ll-glow'), h('div', { class: 'll-body', html: iconSvg('badge') })), div('ll-text', t.kind === 'host' ? 'Run Outta Town!' : 'Cleaned Out!'));
     this.el.appendChild(lit);
     if (run.flags.savedBy) {
@@ -819,10 +910,11 @@ export class TableScreen {
     const co = run.cashout;
     if (!co) return;
     app.busy = false;
-    const panel = div('cashout');
+    const panel = div(`cashout${co.failed ? ' failed' : ''}`);
     const list = div('co-lines');
-    panel.append(div('co-title', 'Collect Your Winnings'), list);
-    const btn = button(`Cash Out: $${co.total}`, 'primary big', () => {
+    panel.append(div('co-title', co.failed ? 'Busted Out' : 'Collect Your Winnings'), list);
+    if (co.gritLost) panel.appendChild(div('co-grit', `-${co.gritLost} Grit`, h('span', { class: 'co-grit-shoe', html: iconSvg('horseshoe') })));
+    const btn = button(co.failed ? 'Dust Yourself Off' : `Cash Out: $${co.total}`, 'primary big', () => {
       sfx('money');
       burstAt(btn, { n: 20, kind: 'coin', color: '#ffd23f', up: 260 });
       cashOut(run);
@@ -837,6 +929,26 @@ export class TableScreen {
     });
     panel.appendChild(btn);
     this.el.appendChild(panel);
+  }
+
+  /** Ran out of hands short of the target: lose Grit, keep riding. */
+  private async failSequence() {
+    const run = this.run;
+    this.lock();
+    clear(this.actions);
+    sfx('lose');
+    this.say(line('tableLost'), 'laughing', 4000);
+    screenShake(1.2);
+    await wait(900);
+    failTable(run);
+    save();
+    if (run.phase === 'gameover') {
+      app.busy = false;
+      app.render();
+      return;
+    }
+    this.hud.update();
+    this.showCashout();
   }
 
   private async loseSequence() {
@@ -858,7 +970,7 @@ export class TableScreen {
       const heat = Number(calc.style.getPropertyValue('--heat') || 0);
       if (heat > 0.5 && Math.random() < 0.5) particles.flames(calc.getBoundingClientRect(), heat);
       const t = this.run?.table;
-      if (t && t.score >= t.target && Math.random() < 0.4) particles.flames(this.hud.refs.score.getBoundingClientRect(), 1.2, ['#ffd23f', '#ff8a3d']);
+      if (t && t.score >= t.target && Math.random() < 0.4 && this.hud.refs.score) particles.flames(this.hud.refs.score.getBoundingClientRect(), 1.2, ['#ffd23f', '#ff8a3d']);
     };
     this.flameTimer = requestAnimationFrame(tick);
   }

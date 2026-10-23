@@ -21,10 +21,10 @@ import {
   has,
   hasVoucher,
   rng,
-  tableTarget,
   type ScoreSink,
 } from './engine';
 import type { Ctx } from './api';
+import { hurt } from './trail';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -61,13 +61,14 @@ export function activeHand(run: Run): PlayerHand | null {
 // Table lifecycle
 // ---------------------------------------------------------------------------
 
-export function startTable(run: Run, idx: number) {
-  const kind: TableKind = idx === 0 ? 'paper' : idx === 1 ? 'silk' : 'host';
+export function startTable(run: Run, kind: TableKind, target: number, hostId?: string) {
   const r = rng(run);
   const table: TableState = {
     kind,
-    hostId: kind === 'host' ? run.nightHost : undefined,
-    target: tableTarget(run, idx),
+    hostId,
+    target,
+    wager: 1,
+    gritLost: 0,
     score: 0,
     handsLeft: 0,
     foldsLeft: 0,
@@ -88,7 +89,7 @@ export function startTable(run: Run, idx: number) {
     drawn: 0,
   };
   run.table = table;
-  run.tableIdx = idx;
+  run.tableIdx = kind === 'host' ? 2 : kind === 'paper' ? 0 : 1;
   run.phase = 'table';
   table.handsLeft = handsPerTable(run);
   table.foldsLeft = foldsPerTable(run);
@@ -520,6 +521,7 @@ export interface ScoreResult {
   blocked?: string;
   shattered: number[];
   crumbled: number[];
+  gritLost?: number;
 }
 
 export function scoreHand(run: Run, hi: number): ScoreResult {
@@ -670,6 +672,10 @@ export function scoreHand(run: Run, hi: number): ScoreResult {
     }
     (c as any)._src = { kind: 'hand' };
     if (h.doubled) c.xmult(rules.doubleX);
+    if (t.wager > 1) {
+      sink.events.push({ t: 'msg', text: t.wager === 2 ? 'Dollar wager!' : 'Bankroll wager!', color: '#ffd23f', src: { kind: 'hand' } });
+      c.xmult(t.wager);
+    }
     if (run.shoeId === 'balance') {
       const avg = (sink.chips + sink.mult) / 2;
       sink.chips = avg;
@@ -698,6 +704,16 @@ export function scoreHand(run: Run, hi: number): ScoreResult {
     }
   } else if (!scoring) {
     t.streak = 0;
+    // Risky wagers cost Grit when the hand is lost.
+    if ((outcome === 'lose' || outcome === 'bust') && t.wager > 1) {
+      const n = t.wager - 1;
+      const before = run.grit;
+      hurt(run, n);
+      const lost = before - run.grit;
+      t.gritLost += lost;
+      result.gritLost = lost;
+      if (lost) sink.events.push({ t: 'msg', text: `-${lost} Grit`, color: '#ff4b3a', src: { kind: 'hand' } });
+    }
   }
 
   // Resolve hooks for every outcome.
@@ -729,7 +745,7 @@ function createConsForHand(run: Run, ht: HandTypeId): boolean {
 }
 
 /** Clean up after all hands were scored. Returns the next state. */
-export function endRound(run: Run, results: ScoreResult[]): 'ready' | 'won' | 'lost' {
+export function endRound(run: Run, results: ScoreResult[]): 'ready' | 'won' | 'lost' | 'dead' {
   const t = run.table!;
   for (const r of results) {
     for (const id of r.shattered) {
@@ -756,6 +772,10 @@ export function endRound(run: Run, results: ScoreResult[]): 'ready' | 'won' | 'l
   if (t.score >= t.target) {
     t.phase = 'won';
     return 'won';
+  }
+  if (run.grit <= 0) {
+    t.phase = 'lost';
+    return 'dead';
   }
   if (t.handsLeft <= 0) {
     const c = ctx(run);
@@ -793,3 +813,10 @@ export function isHidden(run: Run, id: number): boolean {
 }
 
 export { fire };
+
+/** Choose the wager for the next hand: 1 = Penny (safe), 2 = Dollar, 3 = Bankroll. */
+export function setWager(run: Run, w: number) {
+  const t = run.table;
+  if (!t || t.phase !== 'ready') return;
+  t.wager = Math.max(1, Math.min(3, Math.round(w)));
+}

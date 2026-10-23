@@ -2,7 +2,7 @@
 
 import type { Run, ShopItem } from '../../core/types';
 import { CONS } from '../../content/consumables';
-import { buyItem, buyPack, buyVoucher, leaveShop, reroll, rerollPrice, voucherPrice, canAfford } from '../../game/shop';
+import { buyItem, buyPack, buyVoucher, leaveShop, reroll, rerollPrice, voucherPrice, canAfford, useCons } from '../../game/shop';
 import { drainFx } from '../../game/engine';
 import { app, burstAt, button, jiggle, popup, save, tip, toast, hideTip } from '../app';
 import { cardTooltip, charmCard, charmTooltip, consCard, consTooltip, packCard, packTooltip, playingCard, voucherCard, voucherTooltip } from '../art';
@@ -11,6 +11,7 @@ import type { Hud } from '../hud';
 import { background } from '../../fx/background';
 import { audio, sfx } from '../../fx/audio';
 import { iconSvg } from '../icons';
+import { portraitOf } from '../characters';
 
 const QUIPS = [
   'Howdy, partner! All sales final. All refunds imaginary.',
@@ -37,11 +38,11 @@ export function shopScreen(hud: Hud): HTMLElement {
     const quip = QUIPS[(run.night * 3 + run.tableIdx + s.rerollsDone) % QUIPS.length];
     const head = div(
       'shop-head',
-      div('merchant', h('div', { class: 'merchant-face', html: iconSvg('duck') }), div('merchant-bubble', quip)),
+      div('merchant', h('div', { class: 'merchant-face', html: portraitOf('shopkeeper', 'smug') }), div('merchant-bubble', quip)),
       div(
         'shop-buttons',
-        button('Next Table', 'primary big', () => {
-          sfx('gong');
+        button('Back on the Trail', 'primary big', () => {
+          sfx('quack');
           leaveShop(run);
           drainFx();
           save();
@@ -158,7 +159,7 @@ function itemSlot(run: Run, it: ShopItem, hud: Hud, rerender: () => void): HTMLE
         const r = buyItem(run, it.uid, true);
         if (!r.ok) return toast(r.reason, 'bad');
         const inst = run.consumables[run.consumables.length - 1];
-        const { useCons } = await import('../../game/shop');
+
         if (!useCons(run, inst.uid, [])) toast('Kept for later', 'info');
         else sfx(it.cons === 'star' ? 'levelup' : 'buy');
         drainFx();
