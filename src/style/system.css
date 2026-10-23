@@ -1,0 +1,239 @@
+/* ==========================================================================
+   Buck Ducks design system
+   Everything is drawn in the language of the playing cards: cream card stock
+   with paper fibre and specks, a 1.5px key-ink line, an inner double rule
+   printed in one colour plate, cream tabs, ink name plates, bookmark ribbons,
+   double-ring medallions and halftone shading. Dark surfaces are ink boards
+   (the same construction inverted) or polished wood with grain.
+   Use these tokens and components; don't invent new materials per screen.
+   ========================================================================== */
+
+:root {
+  /* Card stock and key ink (match cards.css) */
+  --stock: #f5e8cb;
+  --stock-2: #ecdcb6;
+  --stock-3: #dfc996;
+  --key: #2a1408;
+  --key-2: #4a2a14;
+  /* Colour plates */
+  --plate-denim: #2f5d8a;
+  --plate-sage: #557a46;
+  --plate-verm: #c8402a;
+  --plate-gold: #d99a22;
+  --plate-plum: #6a3d6e;
+  --plate-leather: #7a4a26;
+  /* Board (dark surfaces) */
+  --board: #2b1709;
+  --board-2: #3a2010;
+  --wood-a: #8a4a22;
+  --wood-b: #5e2e12;
+  /* Paper and wood textures */
+  --fibre: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.035 .8' numOctaves='2' seed='4'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .3 0 0 0 0 .15 0 0 0 .2 0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23p)'/%3E%3C/svg%3E");
+  --speck: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90'%3E%3Cfilter id='s'%3E%3CfeTurbulence baseFrequency='.9' numOctaves='1' seed='9'/%3E%3CfeColorMatrix values='0 0 0 0 .2 0 0 0 0 .1 0 0 0 0 .05 14 0 0 0 -9.9'/%3E%3C/filter%3E%3Crect width='90' height='90' filter='url(%23s)'/%3E%3C/svg%3E");
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='60'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.004 .25' numOctaves='3' seed='4'/%3E%3CfeColorMatrix values='0 0 0 0 .25 0 0 0 0 .12 0 0 0 0 .04 0 0 0 .7 0'/%3E%3C/filter%3E%3Crect width='400' height='60' filter='url(%23g)'/%3E%3C/svg%3E");
+  /* Elevation */
+  --lift-1: 0 1px 2px rgba(10, 4, 0, 0.35), 0 4px 10px rgba(10, 4, 0, 0.28);
+  --lift-2: 0 2px 4px rgba(10, 4, 0, 0.35), 0 10px 24px rgba(10, 4, 0, 0.38);
+  --lift-3: 0 4px 8px rgba(10, 4, 0, 0.35), 0 18px 44px rgba(10, 4, 0, 0.48);
+  /* Legacy aliases still used around the code */
+  --wood-1: #8a5228;
+  --wood-2: #5e3618;
+  --wood-3: #3a1c08;
+  --parch-1: #f6e7c4;
+  --parch-2: #e2c98f;
+  --parch-ink: #2a1408;
+  --brass: #e0a83a;
+}
+
+/* --- Sheet: a panel of card stock with the printed double rule ----------------
+   <div class="sheet">...</div>   set --plate to change the rule colour
+   .sheet.dark  an ink board with a cream rule (for dark panels) */
+.sheet {
+  --plate: var(--plate-leather);
+  --sheet-bg: var(--stock);
+  position: relative;
+  color: var(--key);
+  background: var(--speck), var(--fibre), var(--sheet-bg);
+  border: 1.5px solid var(--key);
+  border-radius: 12px;
+  box-shadow: var(--lift-2);
+}
+.sheet::before {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border-radius: 8px;
+  border: 2px solid var(--plate);
+  box-shadow: inset 0 0 0 2px var(--sheet-bg), inset 0 0 0 3px var(--plate);
+  pointer-events: none;
+}
+.sheet.dark {
+  --plate: #c9a46a;
+  --sheet-bg: var(--board);
+  color: var(--stock);
+  background: var(--fibre), var(--board);
+  background-blend-mode: overlay, normal;
+}
+
+/* Ink name plate: dark band with cream display type (like card names) */
+.nameplate {
+  display: inline-grid;
+  place-items: center;
+  padding: 4px 16px 6px;
+  font-family: var(--f-display);
+  color: var(--stock);
+  background: var(--key);
+  border-radius: 6px;
+  letter-spacing: 0.03em;
+}
+/* Cream index tab (like card corners) */
+.tabchip {
+  display: inline-grid;
+  place-items: center;
+  padding: 1px 8px 2px;
+  font-family: var(--f-display);
+  color: var(--key);
+  background: var(--stock);
+  border: 1.5px solid var(--key);
+  border-radius: 6px;
+}
+/* Bookmark ribbon hanging from a top edge: position it yourself */
+.ribbon {
+  width: 18px;
+  height: 30px;
+  background: var(--plate, var(--plate-verm));
+  border: 1.5px solid var(--key);
+  border-top: none;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 74%, 0 100%);
+}
+/* Double-ring medallion (like the Doodad art) */
+.medallion {
+  --plate: var(--plate-denim);
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #f8eed6;
+  border: 3px solid var(--key);
+  box-shadow: inset 0 0 0 3px #f8eed6, inset 0 0 0 4.5px var(--plate), var(--lift-1);
+}
+/* Halftone shading behind art, masked into a soft spot */
+.halftone-spot {
+  background: radial-gradient(circle, color-mix(in srgb, var(--plate, #c8402a) 70%, #241208) 0 1.2px, transparent 1.7px) 0 0 / 5px 5px;
+  -webkit-mask-image: radial-gradient(circle, #000 0 38%, rgba(0, 0, 0, 0.55) 52%, transparent 68%);
+  mask-image: radial-gradient(circle, #000 0 38%, rgba(0, 0, 0, 0.55) 52%, transparent 68%);
+}
+/* Engraved divider: rule, diamond, rule */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--plate, var(--key));
+}
+.divider::before, .divider::after { content: ''; flex: 1; height: 0; border-top: 1.5px solid currentColor; box-shadow: 0 2px 0 -0.5px currentColor; }
+/* Polished wood */
+.wood {
+  background:
+    linear-gradient(180deg, rgba(255, 220, 170, 0.22), rgba(255, 220, 170, 0) 22%, rgba(0, 0, 0, 0) 70%, rgba(0, 0, 0, 0.3)),
+    var(--grain),
+    linear-gradient(180deg, var(--wood-a), var(--wood-b));
+  border: 1.5px solid var(--key);
+  box-shadow: inset 0 1px 0 rgba(255, 220, 170, 0.35), var(--lift-2);
+}
+/* Small caps label */
+.label {
+  font-family: var(--f-body);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+/* --- Buttons: card-stock plates -------------------------------------------------
+   A solid colour plate with fibre texture, key-ink edge, a cream inner rule,
+   a lit top edge and a lip that presses down. */
+.btn {
+  --bc: var(--plate-leather);
+  --fg: var(--stock);
+  --lip: color-mix(in srgb, var(--bc) 50%, #140700);
+  position: relative;
+  font-family: var(--f-display);
+  font-weight: 400;
+  font-size: 18px;
+  color: var(--fg);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0) 45%, rgba(0, 0, 0, 0.1)),
+    var(--fibre),
+    var(--bc);
+  border: 1.5px solid var(--key);
+  border-radius: 9px;
+  padding: 9px 22px 10px;
+  cursor: pointer;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    0 4px 0 var(--lip),
+    0 4px 0 1.5px var(--key),
+    0 8px 16px rgba(10, 4, 0, 0.4);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
+  transition: transform 0.08s, box-shadow 0.08s, filter 0.12s;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.1;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+.btn::after {
+  /* printed inner rule */
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border: 1px solid color-mix(in srgb, var(--fg) 45%, transparent);
+  border-radius: 6px;
+  pointer-events: none;
+}
+.btn:hover:not(:disabled) {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 5px 0 var(--lip), 0 5px 0 1.5px var(--key), 0 11px 20px rgba(10, 4, 0, 0.42);
+}
+.btn:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2), 0 1px 0 var(--lip), 0 1px 0 1.5px var(--key), 0 3px 6px rgba(10, 4, 0, 0.35);
+}
+.btn:disabled {
+  --bc: #7d6a55;
+  --fg: #d6c8ad;
+  cursor: default;
+  filter: saturate(0.5);
+}
+.btn .btn-sub {
+  font-family: var(--f-body);
+  font-size: 12px;
+  font-weight: 700;
+  opacity: 0.85;
+  margin-top: 2px;
+  letter-spacing: 0.02em;
+}
+.btn.primary { --bc: var(--plate-verm); }
+.btn.big { font-size: 24px; padding: 13px 34px 14px; border-radius: 11px; }
+.btn.big::after { border-radius: 8px; inset: 4px; }
+.btn.small { font-size: 15px; padding: 6px 14px 7px; border-radius: 7px; }
+.btn.tiny { font-size: 13px; padding: 3px 10px 5px; border-radius: 6px; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 3px 0 var(--lip), 0 3px 0 1.5px var(--key), 0 5px 10px rgba(10, 4, 0, 0.35); }
+.btn.tiny::after, .btn.small::after { border-radius: 4px; inset: 2px; }
+.btn.ghost { --bc: #5a3a20; }
+.btn.buy { --bc: var(--plate-sage); }
+.btn.sell { --bc: var(--plate-gold); --fg: var(--key); }
+.btn.use { --bc: var(--plate-denim); }
+.btn.danger { --bc: #8a1e14; }
+.btn.reroll { --bc: var(--plate-sage); font-size: 20px; padding: 11px 22px; }
+.btn.arrow { font-size: 34px; padding: 4px 18px 10px; --bc: #5a3a20; }
+.btn.act { min-width: 118px; font-size: 22px; padding: 11px 18px 10px; }
+.btn.act.hit { --bc: var(--plate-denim); }
+.btn.act.stand { --bc: var(--plate-verm); }
+.btn.act.double { --bc: var(--plate-gold); --fg: var(--key); }
+.btn.act.split { --bc: var(--plate-sage); }
+.btn.act.fold { --bc: var(--plate-leather); }
+
+/* Shared animations */
+@keyframes panelIn { from { opacity: 0; transform: translateY(30px) scale(0.9); } }
+@keyframes sway { 0%, 100% { transform: rotate(-2deg); } 50% { transform: rotate(2deg); } }

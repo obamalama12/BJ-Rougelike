@@ -1,0 +1,294 @@
+/* HUD: saloon wall (top bar), wanted poster, revolver, bandolier of Doodads, satchel. */
+
+.main-area { position: absolute; inset: 0; z-index: 1; }
+.hud { position: absolute; inset: 0; pointer-events: none; z-index: 20; }
+.hud > * { pointer-events: auto; }
+
+/* --- The saloon wall (top bar) ------------------------------------------- */
+
+.wall {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 84px;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background:
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.18) 0 2px, transparent 2px 28px),
+    repeating-linear-gradient(90deg, rgba(255, 220, 160, 0.05) 0 3px, transparent 3px 41px),
+    linear-gradient(180deg, #7a4620, #4e2a10);
+  border-bottom: 4px solid var(--wood-3);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45), inset 0 -2px 0 rgba(255, 210, 150, 0.15);
+}
+.wall-left { display: flex; align-items: center; gap: 22px; }
+.wall-town { display: flex; flex-direction: column; line-height: 1.05; }
+.wall-town-num { font-family: var(--f-display); font-size: 24px; color: #ffe9b0; text-shadow: 0 3px 0 rgba(0, 0, 0, 0.45); }
+.wall-town-num small { font-size: 15px; opacity: 0.7; }
+.wall-town-name { font-size: 13px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: #f0c98a; }
+.wall-pips { display: flex; align-items: center; gap: 6px; }
+.wall-pips .pip {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.35);
+  border: 2px solid rgba(255, 220, 160, 0.35);
+}
+.wall-pips .pip + .pip { position: relative; }
+.wall-pips .pip.done { background: #ffcf3d; border-color: #ffe9b0; }
+.wall-pips .pip.cur { background: var(--verm); border-color: var(--paper); animation: pulse 1s ease-in-out infinite alternate; }
+.wall-pips .pip.boss { width: 20px; height: 20px; border-radius: 4px; transform: rotate(45deg); border-color: #ff4b3a; }
+@keyframes pulse { to { transform: scale(1.25); } }
+.wall-tags { display: flex; gap: 6px; }
+.wall-tags .token { width: 40px; height: 40px; }
+.wall-right { display: flex; align-items: center; gap: 18px; }
+.wall-grit { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; cursor: help; }
+.grit-label { font-size: 12px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: #f0c98a; }
+.grit-label b { color: #fff3d0; font-size: 14px; }
+.grit-shoes { display: flex; gap: 2px; }
+.grit-shoes .gshoe { display: block; width: 22px; height: 22px; opacity: 0.25; filter: grayscale(1); transition: opacity 0.3s, transform 0.3s; }
+.grit-shoes .gshoe.full { opacity: 1; filter: none; }
+.grit-shoes .gshoe .icon { width: 22px; height: 22px; --i1: #c9cdd6; --i4: #ffcf3d; color: #2a1408; }
+.wall-grit.low .gshoe.full { animation: gritLow 0.8s ease-in-out infinite alternate; }
+.wall-grit.low .gshoe.full .icon { --i1: #ff6a5a; }
+@keyframes gritLow { to { transform: translateY(-2px) scale(1.12); } }
+.wall-money { display: flex; align-items: center; gap: 6px; cursor: help; }
+.wall-money-bag .icon { width: 46px; height: 46px; --i1: #c9a46a; --i2: #fff3d0; --i4: #ffcf3d; color: #2a1408; filter: drop-shadow(0 3px 0 rgba(0, 0, 0, 0.35)); }
+.wall-money-val { font-family: var(--f-display); font-size: 32px; color: var(--gold); text-shadow: 3px 3px 0 var(--ink); min-width: 70px; }
+.wall-money-val.neg { color: #ff6a5a; }
+.wall-btns { display: flex; gap: 6px; }
+.btn.plank {
+  --bc: #a8682e;
+  --bs: #3a1c08;
+  font-size: 14px;
+  padding: 7px 13px 8px;
+  border-radius: 6px;
+}
+.btn.plank::after { display: none; }
+
+/* --- Wanted poster (left column) ----------------------------------------- */
+
+.poster {
+  position: absolute;
+  left: 22px;
+  top: 104px;
+  width: 256px;
+  padding: 16px 16px 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  color: var(--parch-ink);
+  text-align: center;
+  background:
+    radial-gradient(ellipse at 20% 10%, rgba(255, 255, 255, 0.4), transparent 55%),
+    radial-gradient(ellipse at 80% 90%, rgba(120, 70, 20, 0.25), transparent 60%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.05 .6' numOctaves='3' seed='9'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .35 0 0 0 0 .15 0 0 0 .25 0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23p)'/%3E%3C/svg%3E"),
+    linear-gradient(170deg, var(--parch-1), var(--parch-2));
+  clip-path: polygon(0 2%, 6% 0, 40% 1.5%, 70% 0, 100% 1.5%, 99% 30%, 100% 62%, 98.5% 100%, 60% 98.5%, 25% 100%, 1% 98.5%, 0 60%, 1.5% 30%);
+  filter: drop-shadow(0 4px 18px rgba(10, 4, 0, 0.5));
+  transform: rotate(-1.5deg);
+  transition: transform 0.3s;
+}
+.poster:hover { transform: rotate(0deg) scale(1.01); }
+.poster-head {
+  font-family: var(--f-display);
+  font-size: 34px;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  color: #5a2008;
+  border-bottom: 3px double rgba(58, 28, 8, 0.6);
+  padding-bottom: 6px;
+  width: 100%;
+}
+.poster.outlaw .poster-head { color: #8a1a0a; font-size: 40px; }
+.poster-face {
+  width: 150px;
+  height: 150px;
+  border: 2px solid var(--ink-line);
+  background: radial-gradient(circle at 50% 40%, #fff6e0, #e9cf98);
+  overflow: hidden;
+  filter: sepia(0.3) contrast(1.05);
+}
+.poster-face .portrait { width: 100%; height: 100%; display: block; }
+.poster-icon { display: grid; place-items: center; width: 100%; height: 100%; }
+.poster-icon .icon { width: 110px; height: 110px; --i1: #c2502a; --i4: #e0a83a; color: var(--parch-ink); }
+.poster-name { font-family: var(--f-display); font-size: 21px; line-height: 1.1; }
+.poster-curse { font-size: 13px; font-weight: 800; line-height: 1.25; padding: 6px 8px; border: 2px dashed rgba(138, 26, 10, 0.5); border-radius: 4px; color: #6a1a08; }
+.poster-curse .t-suit { filter: brightness(0.75); }
+.poster-curse .t-hand, .poster-curse .t-hl { color: #8a1a0a; }
+.poster-curse .t-money { color: #8a5a0a; }
+.poster-row { width: 100%; display: flex; justify-content: space-between; align-items: baseline; }
+.poster-label { font-size: 11px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.75; }
+.poster-target-val { font-family: var(--f-display); font-size: 28px; color: #8a1a0a; }
+.poster-score-val { font-family: var(--f-display); font-size: 24px; }
+.poster-bar { width: 100%; height: 10px; border: 2px solid var(--parch-ink); border-radius: 2px; background: rgba(58, 28, 8, 0.12); overflow: hidden; }
+.poster-bar-fill { height: 100%; width: 0; background: repeating-linear-gradient(90deg, #8a1a0a 0 8px, #b8261a 8px 16px); transition: width 0.25s; }
+.poster-bar-fill.full { background: repeating-linear-gradient(90deg, #2f8f4e 0 8px, #3fbf6a 8px 16px); }
+.poster-reward { font-family: var(--f-display); font-size: 20px; color: #2f6a20; }
+.poster-rules { font-size: 11px; font-weight: 800; letter-spacing: 0.04em; opacity: 0.7; line-height: 1.3; }
+.poster-nail {
+  position: absolute;
+  top: 10px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #d8d8d8, #555 60%, #222);
+}
+.poster-nail.l { left: 12px; }
+.poster-nail.r { right: 12px; }
+.poster.claimed::after {
+  content: 'PAID';
+  position: absolute;
+  left: 50%;
+  top: 44%;
+  transform: translate(-50%, -50%) rotate(-18deg);
+  font-family: var(--f-display);
+  font-size: 64px;
+  color: rgba(47, 143, 78, 0.85);
+  border: 6px solid rgba(47, 143, 78, 0.85);
+  padding: 0 14px;
+  border-radius: 8px;
+  animation: stampIn 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.6);
+  pointer-events: none;
+}
+@keyframes stampIn { from { transform: translate(-50%, -50%) rotate(-18deg) scale(2.2); opacity: 0; } }
+
+/* --- Revolver of hands ------------------------------------------------ */
+
+.gun {
+  position: absolute;
+  left: 22px;
+  bottom: 22px;
+  width: 256px;
+  height: 128px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 14px;
+  border-radius: 4px;
+  background: var(--halftone), #2e1a0c;
+  border: 2px solid var(--ink-line);
+  outline: 1.5px solid rgba(242, 193, 78, 0.45);
+  outline-offset: -8px;
+  box-shadow: var(--lift-2);
+}
+.gun-cyl { width: 104px; height: 104px; flex: none; animation: cylIn 0.5s ease-out; }
+@keyframes cylIn { from { transform: rotate(-120deg); } }
+.gun-cyl svg { width: 100%; height: 100%; }
+.gun-cyl .cyl { fill: #6a6e78; stroke: #2a2420; stroke-width: 3; }
+.gun-cyl .hub { fill: #3a3e48; stroke: #2a2420; stroke-width: 2; }
+.gun-cyl .bullet { fill: #e0a83a; stroke: #6a4410; stroke-width: 2; }
+.gun-cyl .empty { fill: #1b1814; stroke: #2a2420; stroke-width: 2; }
+.gun-cyl .glint { fill: #fff3d0; opacity: 0.7; }
+.gun-stats { display: flex; flex-direction: column; gap: 6px; }
+.gun-stat { display: flex; align-items: baseline; gap: 8px; }
+.gun-num { font-family: var(--f-display); font-size: 34px; line-height: 1; }
+.gun-num.chips { color: var(--gold); text-shadow: 2px 2px 0 var(--ink); }
+.gun-num.mult { color: var(--mult-2); text-shadow: 2px 2px 0 var(--ink); }
+.gun-lbl { font-size: 12px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.7; }
+
+/* --- Bandolier of Doodads (bottom) ---------------------------------------- */
+
+.belt {
+  position: absolute;
+  left: 300px;
+  width: 1000px;
+  bottom: 8px;
+  height: 150px;
+}
+.belt-strap {
+  position: absolute;
+  left: -10px;
+  right: -10px;
+  top: 52px;
+  height: 58px;
+  border-radius: 10px;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 18px, rgba(0, 0, 0, 0.2) 18px 20px),
+    linear-gradient(180deg, #8a5228, #5e3018 60%, #4a2410);
+  border-top: 3px dashed rgba(255, 210, 150, 0.35);
+  border-bottom: 3px dashed rgba(255, 210, 150, 0.35);
+  box-shadow: 0 6px 0 rgba(20, 8, 2, 0.5);
+  border-left: 3px solid var(--ink);
+  border-right: 3px solid var(--ink);
+  transform: rotate(-0.6deg);
+}
+.belt-row {
+  position: absolute;
+  inset: 0 0 0 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+}
+.belt-count {
+  position: absolute;
+  left: -2px;
+  top: 64px;
+  z-index: 2;
+  font-family: var(--f-display);
+  font-size: 15px;
+  color: var(--ink);
+  background: var(--gold);
+  border: 2px solid var(--ink);
+  border-radius: 2px;
+  padding: 1px 9px 2px;
+  box-shadow: var(--lift-1);
+  transform: rotate(-3deg);
+}
+.charm-slot { position: relative; display: flex; flex-direction: column; align-items: center; transition: transform 0.2s; margin: 0 4px; }
+.charm-slot.empty { width: 92px; height: 128px; }
+.charm-slot.empty .loop {
+  position: absolute;
+  inset: 34px 18px;
+  border-radius: 3px;
+  border: 3px dashed rgba(246, 234, 208, 0.35);
+  background: rgba(20, 8, 2, 0.35);
+}
+.charm-slot .card.charm { --cw: 92px; --ch: 128px; }
+.charm-slot .card.charm .ch-art { width: 66px; height: 66px; margin: -33px 0 0 -33px; }
+.charm-slot .card.charm .ch-art .icon { width: 50px; height: 50px; }
+.belt-row:has(.charm-slot:nth-child(8)) .charm-slot { margin: 0 -8px; }
+.belt-row:has(.charm-slot:nth-child(10)) .charm-slot { margin: 0 -18px; }
+.charm-slot.selected { transform: translateY(-40px); z-index: 5; }
+.charm-slot .btn { position: absolute; bottom: -34px; z-index: 6; }
+.charm-slot .card.dragging { z-index: 30; transition: none; filter: drop-shadow(0 18px 18px rgba(0, 0, 0, 0.5)); }
+
+/* --- Satchel of consumables (top right) -------------------------------------- */
+
+.satchel {
+  position: absolute;
+  right: 22px;
+  top: 104px;
+  width: 256px;
+  min-height: 176px;
+  padding: 10px 12px 26px;
+  border-radius: 14px 14px 30px 30px;
+  background:
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.08) 0 2px, transparent 2px 9px),
+    linear-gradient(180deg, #8a5a30, #5a3416);
+  border: 2px solid var(--ink-line);
+  box-shadow: var(--lift-2), inset 0 0 0 3px rgba(255, 210, 150, 0.12);
+}
+.satchel-flap {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 0 4px 8px;
+  margin-bottom: 8px;
+  border-bottom: 3px dashed rgba(255, 210, 150, 0.35);
+  font-family: var(--f-display);
+  color: #ffe9b0;
+  font-size: 18px;
+}
+.satchel-count { font-family: var(--f-body); font-weight: 800; font-size: 13px; opacity: 0.75; }
+.satchel-row { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+.cons-slot { position: relative; display: flex; flex-direction: column; align-items: center; transition: transform 0.2s; }
+.cons-slot.empty { width: 84px; height: 118px; border-radius: 10px; border: 2px dashed rgba(255, 210, 150, 0.25); background: rgba(0, 0, 0, 0.15); }
+.cons-slot .card.cons { --cw: 84px; --ch: 118px; }
+.cons-slot.selected { transform: translateY(-8px); z-index: 5; }
+.cons-actions { position: absolute; bottom: -16px; display: flex; gap: 4px; z-index: 6; }

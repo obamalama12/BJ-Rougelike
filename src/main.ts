@@ -3,9 +3,14 @@ import '@fontsource/zilla-slab/latin-500.css';
 import '@fontsource/zilla-slab/latin-600.css';
 import '@fontsource/zilla-slab/latin-700.css';
 import './style/main.css';
+import './style/system.css';
 import './style/cards.css';
-import './style/screens.css';
-import './style/layout.css';
+import './style/hud.css';
+import './style/table.css';
+import './style/trail.css';
+import './style/stops.css';
+import './style/shop.css';
+import './style/menus.css';
 
 import { app, mountShell, hideTip, closeAllModals } from './ui/app';
 import { clear, div } from './ui/dom';
