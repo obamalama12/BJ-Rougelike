@@ -21,6 +21,7 @@ import { HERO, HEROES, applyHero } from '../../content/heroes';
 import { HOST } from '../../content/hosts';
 import { openHowToPlay } from '../coach';
 import { suitSvg } from '../suits';
+import { version as APP_VERSION } from '../../../package.json';
 
 /** Wanted Level plates: the deck's own print colours rather than screen colours. */
 const STAKE_PLATE = ['#6e6250', '#c8402a', '#557a46', '#2f5d8a', '#6a3d6e', '#c9692a', '#8a1e14', '#d99a22'];
@@ -30,6 +31,18 @@ export function titleScreen(): HTMLElement {
   background.setPalette('menu', 1);
   audio.setMood('menu');
   const el = div('title-screen');
+  // A standoff: you versus this week's most wanted.
+  const rivals = ['chochin_o', 'ubume', 'tsukuyomi', 'kitsunebi', 'otakemaru', 'baku'];
+  const rival = rivals[Math.floor(Date.now() / 86400000) % rivals.length];
+  const hero = div('title-hero', h('div', { class: 'tc-body', html: portraitOf(HERO[profile.lastHero ?? '']?.portrait ?? 'hero_kid', 'smug') }));
+  const villain = div('title-villain', h('div', { class: 'tc-body', html: portraitOf(rival, 'smug') }));
+  const bounty = div(
+    'title-bounty',
+    div('tb-kicker', 'Most Wanted'),
+    div('tb-name', nameOf(rival)),
+    div('tb-reward', h('span', null, 'Reward'), h('b', null, '$5,000')),
+  );
+  tip(bounty, () => `<div class="tt-title">${nameOf(rival)}</div><div class="tt-sub2">Wanted</div><div class="tt-body">${fmt(HOST[rival]?.text ?? '')}</div>`, 'left');
   const fan = div('title-fan');
   const fanCards: [Rank, Suit][] = [[14, 'moon'], [13, 'flame'], [12, 'leaf'], [11, 'bell'], [10, 'flame']];
   fanCards.forEach(([r, s], i) => {
@@ -38,42 +51,89 @@ export function titleScreen(): HTMLElement {
     card.style.setProperty('--i', String(i - 2));
     fan.appendChild(card);
   });
-  // A standoff: you versus this week's most wanted.
-  const rivals = ['chochin_o', 'ubume', 'tsukuyomi', 'kitsunebi', 'otakemaru', 'baku'];
-  const rival = rivals[Math.floor(Date.now() / 86400000) % rivals.length];
-  const hero = h('div', { class: 'title-hero', html: portraitOf(HERO[profile.lastHero ?? '']?.portrait ?? 'hero_kid', 'smug') });
-  const villain = h('div', { class: 'title-villain', html: portraitOf(rival, 'smug') });
-  tip(villain, () => `<div class="tt-title">${nameOf(rival)}</div><div class="tt-sub2">Wanted</div><div class="tt-body">${fmt(HOST[rival]?.text ?? '')}</div>`);
   const logo = div(
     'logo',
+    fan,
     div('logo-top', h('span', null, 'The Legend of')),
-    div('logo-main', 'Buck Ducks'),
+    div('logo-main', h('span', { class: 'logo-word' }, 'Buck'), ' ', h('span', { class: 'logo-word' }, 'Ducks')),
     h('div', {
       class: 'logo-sub',
       html: `<span class="logo-suits">${suitSvg('moon')}${suitSvg('flame')}</span><span>Blackjack on the Duck Frontier</span><span class="logo-suits">${suitSvg('leaf')}${suitSvg('bell')}</span>`,
     }),
-    h('div', { class: 'logo-seal', html: iconSvg('badge') }),
   );
-  const menu = div('title-menu');
-  const primary = div('tm-primary');
+
+  // The menu: one column of big entries and a revolver cylinder that slides to the one in focus.
+  const items: { label: string; sub: string; act: () => void }[] = [];
   if (hasSavedRun()) {
-    primary.appendChild(
-      button('Continue', 'primary big', () => {
+    items.push({
+      label: 'Continue',
+      sub: 'Pick up the trail where you left it',
+      act: () => {
         app.run = loadRun();
         app.render();
-      }),
-    );
+      },
+    });
   }
-  primary.appendChild(button('New Run', hasSavedRun() ? 'big' : 'primary big', () => openNewRun()));
-  menu.append(
-    primary,
-    div(
-      'tm-bar',
-      button('How to Play', 'tm-link', () => openHowToPlay()),
-      button('Collection', 'tm-link', () => openCollection()),
-      button('Options', 'tm-link', () => openOptions()),
-    ),
+  items.push(
+    { label: 'New Run', sub: 'Saddle up with a fresh deck', act: () => openNewRun() },
+    { label: 'How to Play', sub: 'Blackjack, the frontier way', act: () => openHowToPlay() },
+    { label: 'Collection', sub: 'Doodads, decks and every bird you\u2019ve met', act: () => openCollection() },
+    { label: 'Options', sub: 'Sound, speed and motion', act: () => openOptions() },
   );
+  const cursor = h('div', { class: 'tm-cursor', html: iconSvg('badge') });
+  const sub = div('tm-sub');
+  const list = div('tm-list', cursor);
+  let focus = 0;
+  const entries = items.map((it, i) => {
+    const b = h('button', { class: `tm-item${i === 0 ? ' lead' : ''}`, type: 'button' }, h('span', { class: 'tm-label' }, it.label));
+    b.style.setProperty('--n', String(i));
+    b.addEventListener('pointerenter', () => setFocus(i));
+    b.addEventListener('focus', () => setFocus(i, true));
+    b.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (app.busy) return;
+      sfx('click');
+      it.act();
+    });
+    list.appendChild(b);
+    return b;
+  });
+  const setFocus = (i: number, quiet = false) => {
+    if (i === focus && entries[i].classList.contains('on')) return;
+    entries[focus]?.classList.remove('on');
+    focus = i;
+    const b = entries[i];
+    b.classList.add('on');
+    cursor.style.transform = `translateY(${b.offsetTop + b.offsetHeight / 2 - 22}px)`;
+    sub.textContent = items[i].sub;
+    sub.classList.remove('swap');
+    void sub.offsetWidth;
+    sub.classList.add('swap');
+    if (!quiet) sfx('hover');
+  };
+  requestAnimationFrame(() => setFocus(0, true));
+  const menu = div('title-menu', list, sub);
+
+  const onKey = (e: KeyboardEvent) => {
+    if (!el.isConnected) return window.removeEventListener('keydown', onKey);
+    if (app.modalLayer.childElementCount || e.metaKey || e.ctrlKey || e.altKey) return;
+    const k = e.key.toLowerCase();
+    if (k === 'arrowdown' || k === 's') setFocus((focus + 1) % items.length);
+    else if (k === 'arrowup' || k === 'w') setFocus((focus + items.length - 1) % items.length);
+    else if (k === 'enter' || k === ' ') entries[focus].click();
+    else return;
+    e.preventDefault();
+  };
+  window.addEventListener('keydown', onKey);
+
+  // Layers drift against the pointer for a little depth.
+  const onMove = (e: PointerEvent) => {
+    if (!el.isConnected) return window.removeEventListener('pointermove', onMove);
+    el.style.setProperty('--px', ((e.clientX / window.innerWidth) * 2 - 1).toFixed(3));
+    el.style.setProperty('--py', ((e.clientY / window.innerHeight) * 2 - 1).toFixed(3));
+  };
+  window.addEventListener('pointermove', onMove);
+
   const stat = (label: string, val: string) => div('ts-cell', div('ts-val', val), div('ts-label', label));
   const stats = div(
     'title-stats',
@@ -82,8 +142,9 @@ export function titleScreen(): HTMLElement {
     stat('Best hand', fmtNum(profile.bestHand)),
     stat('Furthest town', `${profile.bestNight} of ${NIGHTS}`),
   );
-  const hint = keyHint('title-hint', [['H', 'Hit'], ['S', 'Stand'], ['D', 'Double'], ['P', 'Split'], ['F', 'Fold'], ['1-3', 'Wager'], ['Q W E', 'Side bet'], ['Space', 'Deal']]);
-  el.append(div('title-ground'), hero, villain, fan, logo, menu, stats, hint);
+  const hint = keyHint('title-hint', [['\u2191 \u2193', 'Choose'], ['Enter', 'Confirm']]);
+  const versionTag = div('title-version', `v${APP_VERSION}`);
+  el.append(div('title-scrim'), villain, hero, div('title-floor'), div('title-dust'), bounty, logo, menu, stats, hint, versionTag);
   return el;
 }
 

@@ -45,42 +45,183 @@
   margin-bottom: 14px;
 }
 
-/* Title -------------------------------------------------------------------- */
+/* Title --------------------------------------------------------------------
+   A game front end: the lock-up and a column of menu entries down the left over a
+   dark scrim, the standoff filling the right, the whole scene drifting against the
+   pointer (--px / --py run -1..1). */
 
 .title-screen {
+  --px: 0;
+  --py: 0;
   position: absolute;
   inset: 0;
+}
+/* The scrims run past the stage so they never end in a seam when the window letterboxes. */
+.title-scrim {
+  position: absolute;
+  top: -100vh;
+  bottom: -100vh;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(20, 8, 2, 0.9) 0%, rgba(20, 8, 2, 0.74) 30%, rgba(20, 8, 2, 0.28) 50%, rgba(20, 8, 2, 0) 62%);
+}
+.title-scrim::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 100%;
+  width: 100vw;
+  background: rgba(20, 8, 2, 0.9);
+}
+.title-floor {
+  position: absolute;
+  top: 560px;
+  bottom: -100vh;
+  left: -100vw;
+  right: -100vw;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(20, 8, 2, 0), rgba(20, 8, 2, 0.72) 340px);
+}
+/* motes of dust caught in the sunset */
+.title-dust {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.7;
+  background:
+    radial-gradient(circle, rgba(255, 220, 160, 0.55) 0 1.4px, transparent 2px) 0 0 / 230px 190px,
+    radial-gradient(circle, rgba(255, 220, 160, 0.35) 0 1px, transparent 1.6px) 60px 90px / 170px 150px,
+    radial-gradient(circle, rgba(255, 200, 140, 0.25) 0 2px, transparent 3px) 120px 30px / 310px 260px;
+  -webkit-mask-image: linear-gradient(90deg, transparent 30%, #000 60%);
+  mask-image: linear-gradient(90deg, transparent 30%, #000 60%);
+  animation: dust 40s linear infinite;
+  translate: calc(var(--px) * -26px) calc(var(--py) * -14px);
+  transition: translate 0.8s ease-out;
+}
+@keyframes dust {
+  to { background-position: 230px -190px, 230px -210px, 430px -490px; }
+}
+
+/* The standoff ------------------------------------------------------------- */
+.title-hero, .title-villain {
+  position: absolute;
+  bottom: -36px;
+  filter: drop-shadow(0 8px 30px rgba(10, 4, 0, 0.55));
+  transition: translate 0.7s ease-out;
+}
+.title-hero {
+  left: 610px;
+  width: 490px;
+  height: 490px;
+  translate: calc(var(--px) * -18px) calc(var(--py) * -8px);
+  animation: heroIn 1s 0.15s cubic-bezier(0.2, 0.9, 0.3, 1.1) both;
+}
+.title-villain {
+  right: -70px;
+  width: 550px;
+  height: 550px;
+  translate: calc(var(--px) * -9px) calc(var(--py) * -4px);
+  filter: drop-shadow(0 8px 30px rgba(10, 4, 0, 0.55)) brightness(0.9) saturate(0.92);
+  animation: villainIn 1s 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.1) both;
+}
+.tc-body { width: 100%; height: 100%; transform-origin: 50% 100%; animation: breathe 4.2s ease-in-out infinite; }
+.title-villain .tc-body { animation-duration: 5s; animation-delay: -1.7s; }
+.tc-body .portrait { width: 100%; height: 100%; }
+.title-villain .portrait { transform: scaleX(-1); }
+@keyframes breathe { 50% { transform: scale(1.012, 1.022); } }
+@keyframes heroIn { from { opacity: 0; transform: translateX(-160px); } }
+@keyframes villainIn { from { opacity: 0; transform: translateX(160px); } }
+
+/* This week's rival, on a wanted tag swinging from a nail. */
+.title-bounty {
+  position: absolute;
+  top: 118px;
+  right: 150px;
+  width: 210px;
+  padding: 16px 16px 14px;
+  text-align: center;
+  color: var(--key);
+  background: var(--fibre), #efdcb2;
+  background-blend-mode: multiply, normal;
+  border: 1.5px solid var(--key);
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 4px #efdcb2, inset 0 0 0 5.5px var(--plate-verm), var(--lift-2);
+  transform-origin: 50% -26px;
+  translate: calc(var(--px) * -12px) calc(var(--py) * -6px);
+  transition: translate 0.7s ease-out;
+  animation: tagIn 0.9s 0.7s cubic-bezier(0.3, 1.4, 0.5, 1) both, swing 6s 1.6s ease-in-out infinite;
+  cursor: help;
+}
+.title-bounty::before {
+  /* the string */
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: -26px;
+  width: 52px;
+  height: 28px;
+  margin-left: -26px;
+  background: linear-gradient(to top right, transparent calc(50% - 1px), #2a1408 50%, transparent calc(50% + 1px)) left / 50% 100% no-repeat,
+    linear-gradient(to top left, transparent calc(50% - 1px), #2a1408 50%, transparent calc(50% + 1px)) right / 50% 100% no-repeat;
+}
+.title-bounty::after {
+  /* the nail */
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: -31px;
+  width: 9px;
+  height: 9px;
+  margin-left: -4.5px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #b9a68a, #4a3a2a);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+.tb-kicker {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--plate-verm);
+}
+.tb-name { margin: 6px 0 8px; font-family: var(--f-display); font-size: 25px; line-height: 1.05; text-wrap: balance; }
+.tb-reward {
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  gap: 8px;
+  padding-top: 7px;
+  border-top: 1px dashed rgba(42, 20, 8, 0.45);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+.tb-reward b { font-family: var(--f-display); font-size: 20px; letter-spacing: 0.02em; color: var(--plate-verm); }
+@keyframes tagIn { from { opacity: 0; transform: translateY(-60px) rotate(-12deg); } }
+@keyframes swing { 0%, 100% { transform: rotate(3deg); } 50% { transform: rotate(-2.5deg); } }
+
+/* Lock-up: free-standing type with a fan of cards rising behind it. --------- */
+.logo {
+  --foil: #d9ad5c;
+  position: absolute;
+  top: 236px;
+  left: 96px;
+  width: 620px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  text-align: center;
+  color: var(--stock);
+  translate: calc(var(--px) * 6px) calc(var(--py) * 4px);
+  transition: translate 0.8s ease-out;
 }
-.title-hero, .title-villain {
-  position: absolute;
-  bottom: -20px;
-  width: 400px;
-  height: 400px;
-  filter: drop-shadow(0 6px 24px rgba(10, 4, 0, 0.5));
-  animation: heroIn 0.9s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
-}
-.title-hero { left: 30px; animation-delay: 0.1s; }
-.title-villain { right: 30px; transform: scaleX(-1); animation-name: villainIn; animation-delay: 0.25s; }
-.title-hero .portrait, .title-villain .portrait { width: 100%; height: 100%; }
-@keyframes heroIn { from { opacity: 0; transform: translateX(-200px); } }
-@keyframes villainIn { from { opacity: 0; transform: scaleX(-1) translateX(-200px); } }
-.title-ground {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 230px;
-  background: linear-gradient(180deg, rgba(22, 8, 2, 0), rgba(22, 8, 2, 0.78));
-}
-
-/* The fan of cards rises out of the top of the lock-up, like a deck from its tuck box. */
 .title-fan {
   position: absolute;
   left: 50%;
-  top: 70px;
+  top: -212px;
   width: 0;
   height: 200px;
 }
@@ -91,55 +232,25 @@
   transform-origin: 50% 160%;
   transform: rotate(calc(var(--i) * 13deg)) translateY(calc(abs(var(--i)) * 8px));
   animation: fanIn 0.8s cubic-bezier(0.2, 0.9, 0.3, 1.3) both;
-  animation-delay: calc((var(--i) + 2) * 0.08s);
+  animation-delay: calc(0.35s + (var(--i) + 2) * 0.07s);
 }
 @keyframes fanIn {
   from { opacity: 0; transform: rotate(0deg) translateY(80px); }
 }
-
-/* Lock-up: an ink plaque with a gold double rule, the name in cream Rye with a
-   vermilion second-plate offset, a seal medallion on the bottom edge. */
-.logo {
-  --foil: #d9ad5c;
-  position: absolute;
-  top: 232px;
-  left: 50%;
-  width: 820px;
-  margin-left: -410px;
-  padding: 26px 40px 40px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  color: var(--stock);
-  background: var(--fibre), var(--board);
-  background-blend-mode: overlay, normal;
-  border: 2px solid var(--key);
-  border-radius: 18px;
-  box-shadow: inset 0 1px 0 rgba(255, 226, 180, 0.14), var(--lift-3);
-  animation: logoIn 0.7s cubic-bezier(0.2, 0.9, 0.3, 1.15) both;
-}
-.logo::before,
-.logo::after {
-  content: '';
-  position: absolute;
-  pointer-events: none;
-  border: 2px solid var(--foil);
-}
-.logo::before { inset: 9px; border-radius: 11px; }
-.logo::after { inset: 14px; border-radius: 7px; border-width: 1px; opacity: 0.75; }
-@keyframes logoIn { from { opacity: 0; transform: translateY(18px); } }
 .logo-top {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   gap: 14px;
-  width: 460px;
+  width: 440px;
   font-family: var(--f-body);
   font-weight: 700;
   font-size: 15px;
   letter-spacing: 0.42em;
   text-transform: uppercase;
   color: var(--foil);
+  animation: fadeUp 0.6s 0.25s both;
 }
 .logo-top::before,
 .logo-top::after {
@@ -150,15 +261,29 @@
   border-bottom: 0.75px solid currentColor;
 }
 .logo-top > span { margin-right: -0.42em; }
+/* The name: cream with a travelling glint, printed over a vermilion plate and a key line. */
 .logo-main {
-  margin: 4px 0 2px;
+  margin: 2px 0 6px;
   font-family: var(--f-display);
-  font-size: 108px;
-  line-height: 1.04;
+  font-size: 110px;
+  line-height: 1.02;
   letter-spacing: 0.01em;
-  color: var(--stock);
-  text-shadow: 4px 4px 0 var(--plate-verm), 5.5px 5.5px 0 var(--key);
   white-space: nowrap;
+  filter: drop-shadow(4px 4px 0 var(--plate-verm)) drop-shadow(2px 2px 0 var(--key)) drop-shadow(0 10px 22px rgba(10, 4, 0, 0.6));
+}
+.logo-word {
+  display: inline-block;
+  color: transparent;
+  background: linear-gradient(105deg, var(--stock) 42%, #fffaf0 49%, #ffe7a8 51%, var(--stock) 58%) 120% 0 / 300% 100% no-repeat, var(--stock);
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: stampIn 0.55s cubic-bezier(0.2, 1.3, 0.4, 1) both, glint 7s 1.6s ease-in-out infinite;
+}
+.logo-word + .logo-word { animation-delay: 0.12s, 1.75s; }
+@keyframes stampIn { from { opacity: 0; transform: scale(1.5) rotate(-3deg); } }
+@keyframes glint {
+  0% { background-position: 120% 0, 0 0; }
+  18%, 100% { background-position: -20% 0, 0 0; }
 }
 .logo-sub {
   display: flex;
@@ -167,111 +292,133 @@
   padding-top: 12px;
   font-family: var(--f-body);
   font-weight: 700;
-  font-size: 15px;
+  font-size: 14px;
   letter-spacing: 0.3em;
   text-transform: uppercase;
   color: rgba(245, 232, 203, 0.86);
   border-top: 1px solid rgba(217, 173, 92, 0.45);
+  animation: fadeUp 0.6s 0.45s both;
 }
 .logo-sub > span:nth-child(2) { margin-right: -0.3em; }
 .logo-suits { display: inline-flex; gap: 4px; }
-.logo-suits .suit { width: 22px; height: 22px; }
+.logo-suits .suit { width: 20px; height: 20px; }
 .logo-suits .suit-moon { color: #4a7fb8; }
 .logo-suits .suit-flame { color: #e0503a; }
 .logo-suits .suit-leaf { color: #6f9e5c; }
 .logo-suits .suit-bell { color: #e2a62e; }
-/* seal on the bottom edge */
-.logo-seal {
+@keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } }
+
+/* Menu ----------------------------------------------------------------------- */
+.title-menu {
   position: absolute;
-  left: 50%;
-  bottom: -30px;
-  width: 58px;
-  height: 58px;
-  margin-left: -29px;
+  top: 466px;
+  left: 120px;
+  width: 560px;
+}
+.tm-list { position: relative; display: flex; flex-direction: column; align-items: flex-start; }
+.tm-item {
+  position: relative;
+  padding: 6px 18px 6px 70px;
+  font-family: var(--f-display);
+  font-size: 36px;
+  line-height: 1.2;
+  color: rgba(245, 232, 203, 0.62);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-shadow: 0 2px 0 rgba(20, 8, 2, 0.6);
+  transition: color 0.18s, transform 0.25s cubic-bezier(0.2, 0.9, 0.3, 1.3), text-shadow 0.2s;
+  animation: itemIn 0.5s both;
+  animation-delay: calc(0.55s + var(--n) * 0.07s);
+}
+.tm-item.lead { font-size: 42px; }
+.tm-item.on {
+  color: #f6cf72;
+  transform: translateX(14px);
+  text-shadow: 0 2px 0 var(--key), 3px 3px 0 var(--plate-verm), 0 0 26px rgba(246, 190, 90, 0.45);
+}
+/* an engraved rule that draws out under the entry in focus */
+.tm-item::after {
+  content: '';
+  position: absolute;
+  left: 70px;
+  right: 18px;
+  bottom: 4px;
+  height: 2px;
+  background: linear-gradient(90deg, #d9ad5c, rgba(217, 173, 92, 0));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease-out;
+}
+.tm-item.on::after { transform: scaleX(1); }
+.tm-item:focus-visible { outline: none; }
+@keyframes itemIn { from { opacity: 0; transform: translateX(-40px); } }
+/* the sheriff's star rides up and down to the entry in focus, turning as it goes */
+.tm-cursor {
+  position: absolute;
+  left: 12px;
+  top: 0;
+  width: 44px;
+  height: 44px;
   display: grid;
   place-items: center;
   border-radius: 50%;
   background: #f8eed6;
   border: 2px solid var(--key);
-  box-shadow: inset 0 0 0 3px #f8eed6, inset 0 0 0 4.5px var(--plate-verm), 0 3px 0 var(--key), var(--lift-1);
-  z-index: 1;
+  box-shadow: inset 0 0 0 2.5px #f8eed6, inset 0 0 0 4px var(--plate-verm), 0 3px 0 var(--key), 0 0 22px rgba(246, 190, 90, 0.4);
+  transition: transform 0.32s cubic-bezier(0.25, 1.25, 0.4, 1);
+  animation: fadeUp 0.5s 0.9s both;
 }
-.logo-seal .icon { width: 38px; height: 38px; --i1: var(--plate-verm); --i4: var(--plate-gold); }
+.tm-cursor .icon { width: 30px; height: 30px; --i1: var(--plate-verm); --i4: var(--plate-gold); animation: spin 12s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.tm-sub {
+  margin: 10px 0 0 74px;
+  min-height: 32px;
+  font-family: var(--f-hand);
+  font-weight: 600;
+  font-size: 27px;
+  line-height: 1.1;
+  color: #d9ad5c;
+}
+.tm-sub.swap { animation: subIn 0.28s ease-out; }
+@keyframes subIn { from { opacity: 0; transform: translateX(-10px); } }
 
-.title-menu {
-  position: absolute;
-  top: 572px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 22px;
-}
-.tm-primary { display: flex; gap: 16px; }
-.tm-primary .btn.big { min-width: 230px; font-size: 26px; }
-/* Secondary actions share one ink plate, divided by rules */
-.tm-bar {
-  display: flex;
-  padding: 4px;
-  background: var(--fibre), var(--board);
-  background-blend-mode: overlay, normal;
-  border: 1.5px solid var(--key);
-  border-radius: 11px;
-  box-shadow: inset 0 0 0 3px var(--board), inset 0 0 0 4px rgba(201, 164, 106, 0.5), 0 3px 0 var(--key), var(--lift-2);
-}
-.tm-bar .btn {
-  --fg: var(--stock);
-  font-size: 17px;
-  padding: 9px 24px 10px;
-  background: none;
-  border: none;
-  border-radius: 7px;
-  box-shadow: none;
-  text-shadow: none;
-}
-.tm-bar .btn::after { display: none; }
-.tm-bar .btn + .btn { border-radius: 0 7px 7px 0; }
-.tm-bar .btn + .btn::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 9px;
-  bottom: 9px;
-  border-left: 1px solid rgba(201, 164, 106, 0.45);
-}
-.tm-bar .btn:hover:not(:disabled) {
-  filter: none;
-  transform: none;
-  color: #f2c870;
-  box-shadow: none;
-  background: rgba(245, 232, 203, 0.06);
-}
-.tm-bar .btn:active:not(:disabled) { transform: translateY(1px); box-shadow: none; }
-
-/* Ledger of profile stats */
+/* Footer: the ledger on the left, controls and build on the right ----------- */
 .title-stats {
   position: absolute;
-  bottom: 54px;
+  left: 124px;
+  bottom: 34px;
   display: flex;
-  padding: 8px 6px 9px;
-  background: var(--fibre), rgba(30, 14, 5, 0.86);
-  background-blend-mode: overlay, normal;
-  border: 1.5px solid var(--key);
-  border-radius: 10px;
-  box-shadow: inset 0 0 0 3px rgba(30, 14, 5, 0.86), inset 0 0 0 4px rgba(201, 164, 106, 0.38), var(--lift-1);
+  gap: 30px;
+  animation: fadeUp 0.6s 1s both;
 }
-.ts-cell {
-  min-width: 128px;
-  padding: 0 18px;
-  text-align: center;
-}
-.ts-cell + .ts-cell { border-left: 1px solid rgba(201, 164, 106, 0.35); }
-.ts-val { font-family: var(--f-display); font-size: 20px; line-height: 1.15; color: var(--stock); }
+.ts-cell { display: flex; flex-direction: column; }
+.ts-cell + .ts-cell { padding-left: 30px; border-left: 1px solid rgba(201, 164, 106, 0.3); }
+.ts-val { font-family: var(--f-display); font-size: 22px; line-height: 1.1; color: var(--stock); }
 .ts-label { margin-top: 2px; font-size: 10.5px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: #c9a46a; }
 .title-hint {
   position: absolute;
-  bottom: 18px;
-  color: rgba(245, 232, 203, 0.62);
+  right: 40px;
+  bottom: 40px;
+  color: rgba(245, 232, 203, 0.72);
+  animation: fadeUp 0.6s 1.1s both;
 }
+.title-version {
+  position: absolute;
+  right: 40px;
+  bottom: 16px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: rgba(245, 232, 203, 0.4);
+}
+
+.reduce-motion .tc-body,
+.reduce-motion .title-bounty,
+.reduce-motion .title-dust,
+.reduce-motion .tm-cursor .icon { animation: none; }
+.reduce-motion .logo-word { animation: stampIn 0.55s both; }
+.reduce-motion .title-screen { --px: 0 !important; --py: 0 !important; }
 
 /* New run ------------------------------------------------------------------ */
 
