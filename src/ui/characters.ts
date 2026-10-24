@@ -4,12 +4,28 @@ import type { Expression } from './portraits';
 import { CHARACTERS, portrait } from './portraits';
 import type { TableState } from '../core/types';
 
-export function dealerId(t: Pick<TableState, 'kind' | 'hostId'>): string {
+export function dealerId(t: Pick<TableState, 'kind' | 'hostId' | 'goonId'>): string {
   if (t.kind === 'host' && t.hostId) return CHARACTERS[t.hostId] ? t.hostId : 'dealer_bart';
-  if (t.kind === 'gang' && t.hostId) return CHARACTERS[t.hostId] ? t.hostId : 'dealer_bart';
+  if (t.kind === 'gang') return goonFace(t.goonId);
   if (t.kind === 'bank') return 'banker';
   if (t.kind === 'silk') return 'dealer_lola';
   return 'dealer_bart';
+}
+
+/** A henchman's portrait id (older saves have none, so they get the first goon). */
+export function goonFace(id: string | undefined): string {
+  return id && CHARACTERS[id] ? id : 'goon_sid';
+}
+
+const GOON_LINES = [
+  'Boss says you don’t leave this town.',
+  'You want the boss? You go through me.',
+  'The boss taught me a trick or two.',
+  'Nothing personal. Boss’s orders.',
+  'Ride on, stranger. Or don’t.',
+];
+export function goonLine(): string {
+  return GOON_LINES[Math.floor(Math.random() * GOON_LINES.length)];
 }
 
 /** Portrait preset standing in for 'player' (set from the current run's gunslinger). */

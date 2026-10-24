@@ -1265,6 +1265,14 @@ export const CHARACTERS: Record<string, PortraitOpts & { name: string }> = {
   tango: { name: 'Tango the Toucan', species: 'toucan', hat: 'cowboy', accent: '#c8642a', accessory: 'bandana', accent2: '#2a8a5a', seed: 57 },
   dot: { name: 'Dot the Dodo', species: 'dodo', plumage: '#c9a47a', hat: 'feathered', accent: '#6a3d6e', accessory: 'scar', seed: 58 },
 
+  // --- the Outlaw's gang (henchmen, no curse of their own)
+  goon_sid: { name: 'Snake-Eye Sid', species: 'crow', hat: 'bandit', accent: '#2a2430', accessory: 'bandana', accent2: '#8a2a1e', seed: 71 },
+  goon_clem: { name: 'Crooked Clem', species: 'vulture', hat: 'cowboy', accent: '#5a4030', accessory: 'eyepatch', seed: 72 },
+  goon_ted: { name: 'Two-Bit Ted', species: 'pigeon', hat: 'derby', accent: '#3a3a3a', accessory: 'toothpick', seed: 73 },
+  goon_mabel: { name: 'Mean Mabel', species: 'goose', plumage: '#8a7a6a', hat: 'bandit', accessory: 'bandana', accent2: '#3a5a2a', seed: 74 },
+  goon_dusty: { name: 'Dusty Dan', species: 'roadrunner', hat: 'cowboy', accent: '#7a5a3a', accessory: 'scar', seed: 75 },
+  goon_ike: { name: 'Ironbill Ike', species: 'turkey', plumage: '#6a5040', hat: 'bowler', accessory: 'bandana', accent2: '#2a2a3a', seed: 76 },
+
   // Playable gunslingers (the player's portrait is whichever one the run uses)
   hero_kid: { name: 'The Kid', species: 'duck', hat: 'cowboy', accessory: 'bandana', accent2: '#c8302a', extras: ['toothpick'], seed: 42 },
   hero_belle: { name: 'Belle Starling', species: 'swan', hat: 'cowboy', accent: '#7a2a4a', accessory: 'bandana', accent2: '#2a5a9a', seed: 61 },

@@ -11,6 +11,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "sim": "vite-node scripts/simulate.ts",
+    "balance": "vite-node scripts/balance.ts",
+    "probe": "vite-node scripts/probe-hosts.ts",
     "build:single": "node scripts/build-artifact.mjs"
   },
   "devDependencies": {

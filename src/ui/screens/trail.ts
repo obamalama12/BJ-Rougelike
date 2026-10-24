@@ -13,7 +13,7 @@ import type { Hud } from '../hud';
 import { background } from '../../fx/background';
 import { audio, sfx } from '../../fx/audio';
 import { iconSvg } from '../icons';
-import { portraitOf, townName } from '../characters';
+import { portraitOf, townName, nameOf, goonFace } from '../characters';
 
 // Map area inside the stage (between the poster column and the satchel).
 const MAP = { x: 300, y: 104, w: 1000, h: 640 };
@@ -170,9 +170,9 @@ export function trailScreen(hud: Hud): HTMLElement {
       node.innerHTML = `<div class="tn-seal">${SEAL}<div class="tn-face">${portraitOf(n.hostId ?? run.nightHost, open ? 'smug' : 'neutral')}</div></div>
         <div class="tn-label boss"><span class="tn-kicker">Showdown</span><span class="tn-name">${name}</span></div>`;
     } else if (n.kind === 'gang') {
-      // A smaller seal for the Outlaw's gang, with the member's face and target.
-      const name = HOST[n.hostId ?? '']?.name ?? info.name;
-      node.innerHTML = `<div class="tn-seal gang">${SEAL}<div class="tn-face">${portraitOf(n.hostId ?? run.nightHost, open ? 'angry' : 'neutral')}</div>${n.done ? '<span class="tn-check"></span>' : ''}</div>
+      // A smaller seal for the Outlaw's gang, with the henchman's face and target.
+      const name = nameOf(goonFace(n.goonId));
+      node.innerHTML = `<div class="tn-seal gang">${SEAL}<div class="tn-face">${portraitOf(goonFace(n.goonId), open ? 'angry' : 'neutral')}</div>${n.done ? '<span class="tn-check"></span>' : ''}</div>
         <div class="tn-label boss gang"><span class="tn-kicker">Gang · ${fmtNum(nodeTarget(run, n))}</span><span class="tn-name">${name}</span></div>`;
     } else {
       const shape = shapeOf(n.kind);
@@ -253,9 +253,10 @@ function nodeTip(run: Run, n: TrailNode): string {
   if (isTableNode(n)) extra += `<br>Score at least <span class="t-hl">${fmtNum(nodeTarget(run, n))}</span>`;
   if ((n.kind === 'bank' || n.kind === 'gang' || n.kind === 'outlaw') && n.hostId) {
     const host = HOST[n.hostId];
-    extra += `<br><br><b>${host?.name}</b>: ${fmt(host?.text ?? '')}`;
+    extra += `<br><br><b>${n.kind === 'outlaw' ? host?.name : `${host?.name}’s curse`}</b>: ${fmt(host?.text ?? '')}`;
   }
-  return `<div class="tt-title">${n.kind === 'outlaw' || n.kind === 'gang' ? HOST[n.hostId ?? '']?.name ?? info.name : info.name}</div><div class="tt-body">${info.blurb}${extra}</div>`;
+  const title = n.kind === 'outlaw' ? HOST[n.hostId ?? '']?.name ?? info.name : n.kind === 'gang' ? nameOf(goonFace(n.goonId)) : info.name;
+  return `<div class="tt-title">${title}</div><div class="tt-body">${info.blurb}${extra}</div>`;
 }
 
 /** Sideways scrolling: start with the player in view, let the wheel and a drag pan the trail. */

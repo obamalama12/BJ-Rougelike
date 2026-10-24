@@ -65,7 +65,14 @@ function playHand(run: Run): 'ready' | 'won' | 'lost' | 'dead' {
     endFold(run);
     return 'ready';
   }
-  while (dealerShouldHit(run)) dealerHit(run);
+  let dg = 0;
+  while (dealerShouldHit(run)) {
+    dealerHit(run);
+    if (++dg > 60) {
+      const tb = run.table!;
+      throw new Error(`stuck dealer: town ${run.night} ${tb.kind}/${tb.hostId} dealer ${tb.dealer.length} shoe ${tb.shoe.length} discard ${tb.discard.length} deck ${run.deck.length}`);
+    }
+  }
   settleOutcomes(run);
   const results = t.hands.map((_, i) => scoreHand(run, i));
   return endRound(run, results);
@@ -116,16 +123,23 @@ function packBot(run: Run) {
   }
 }
 
-export interface TableLog { night: number; kind: string; target: number; score: number; hands: number; won: boolean; grit: number; gritAfter: number; money: number; charms: number; best: number }
+export interface TableLog { night: number; kind: string; host?: string; target: number; score: number; hands: number; won: boolean; grit: number; gritAfter: number; money: number; charms: number; best: number }
 export interface StopLog { night: number; kind: string; grit: number; money: number }
 
-export function simulate(seed: string, shoe = 'paper', stake = 1) {
+export function simulate(seed: string, shoe = 'paper', stake = 1, forceHost?: string) {
   const run = newRun(seed, shoe, stake);
+  let forcedTown = 0;
   const tables: TableLog[] = [];
   const stops: StopLog[] = [];
   (run as any).__log = { tables, stops };
   let guard = 0;
   while (guard++ < 4000) {
+    if (forceHost && run.phase === 'trail' && forcedTown !== run.night && run.night >= 2 && run.night <= 5) {
+      // Balance probe: put one Outlaw (and their curse) on every cursed stop of this town.
+      forcedTown = run.night;
+      run.nightHost = forceHost;
+      for (const n of run.trail.nodes) if (n.kind === 'outlaw' || n.kind === 'gang' || n.kind === 'bank') n.hostId = forceHost;
+    }
     if (run.phase === 'trail') {
       if (maybeOpenTagPack(run)) { packBot(run); continue; }
       const opts = reachable(run);
@@ -148,10 +162,14 @@ export function simulate(seed: string, shoe = 'paper', stake = 1) {
         const before = run.table!.score;
         r = playHand(run);
         hands++;
+        if (hands > 500) {
+          const tb = run.table!;
+          throw new Error(`stuck table: ${seed} town ${run.night} ${tb.kind}/${tb.hostId} handsLeft ${tb.handsLeft} folds ${tb.foldsLeft} phase ${tb.phase} outcome ${tb.hands.map((h) => h.outcome)}`);
+        }
         if (run.table) best = Math.max(best, run.table.score - before);
       }
       const t = run.table!;
-      const log: TableLog = { night: run.night, kind: t.kind, target: t.target, score: t.score, hands, won: r === 'won', grit: grit0, gritAfter: run.grit, money: run.money, charms: run.charms.length, best };
+      const log: TableLog = { night: run.night, kind: t.kind, host: t.hostId, target: t.target, score: t.score, hands, won: r === 'won', grit: grit0, gritAfter: run.grit, money: run.money, charms: run.charms.length, best };
       tables.push(log);
       if (r === 'dead') return { night: run.night, won: false, run };
       if (r === 'won') winTable(run);
@@ -185,7 +203,8 @@ export function simulate(seed: string, shoe = 'paper', stake = 1) {
   return { night: run.night, won: false, run };
 }
 
-if (!process.env.VITEST) main();
+// Other scripts import simulate() and set SIM_LIB so this file's own report doesn't run.
+if (!process.env.VITEST && !process.env.SIM_LIB) main();
 
 function main() {
   const N = Number(process.argv[2] ?? 200);

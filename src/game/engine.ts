@@ -17,7 +17,7 @@ import type {
   Suit,
 } from '../core/types';
 import { HAND_TYPES, RANKS, SUITS, newDeck } from '../core/cards';
-import type { CharmDef, Ctx } from './api';
+import type { CharmDef, Ctx, HostDef } from './api';
 import { CHARM, CHARMS, charmSlotsFree } from '../content/charms';
 import { CONS, FORTUNES, MASKS, STARS } from '../content/consumables';
 import { VOUCHER } from '../content/vouchers';
@@ -199,7 +199,7 @@ export function currentHost(run: Run) {
   return HOST[t.hostId] ?? null;
 }
 
-const NIGHT_BASE = [160, 450, 1050, 2300, 4600, 8600, 15000];
+const NIGHT_BASE = [160, 450, 760, 1450, 2700, 4000, 11000];
 
 export function nightBase(run: Run, night = run.night): number {
   let base: number;
@@ -538,16 +538,24 @@ export function availableVouchers(run: Run): string[] {
     .map((v) => v.id);
 }
 
+/** Outlaws who may run the current town: showdown bosses every 7th town, otherwise the tier
+ *  matching the town (tiers 4-6 once the run goes endless). Prefers ones not met this run. */
+export function outlawPool(run: Run, exclude: string[] = []): HostDef[] {
+  const showdown = run.night % NIGHTS === 0;
+  const fits = (h: HostDef) =>
+    !!h.showdown === showdown && (showdown || (run.night < NIGHTS ? h.minNight === Math.min(run.night, 6) : h.minNight >= 4));
+  const all = Object.values(HOST).filter((h) => fits(h) && !exclude.includes(h.id));
+  const fresh = all.filter((h) => !run.hostsSeen.includes(h.id));
+  return fresh.length ? fresh : all;
+}
+
 export function rerollHost(run: Run) {
   const r = rng(run);
-  const showdown = run.night % NIGHTS === 0;
-  const pool = Object.values(HOST).filter(
-    (h) => !!h.showdown === showdown && h.minNight <= Math.max(run.night, showdown ? 7 : 1) && h.id !== run.nightHost,
-  );
+  const pool = outlawPool(run, [run.nightHost]);
   if (!pool.length) return;
   run.nightHost = r.pick(pool).id;
   if (!run.hostsSeen.includes(run.nightHost)) run.hostsSeen.push(run.nightHost);
-  for (const n of run.trail.nodes) if (n.kind === 'outlaw') n.hostId = run.nightHost;
+  for (const n of run.trail.nodes) if (!n.done && (n.kind === 'outlaw' || n.kind === 'gang' || n.kind === 'bank')) n.hostId = run.nightHost;
 }
 
 // ---------------------------------------------------------------------------

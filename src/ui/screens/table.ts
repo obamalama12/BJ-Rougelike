@@ -21,7 +21,7 @@ import { drainFx, getRules, currentHost, NIGHTS } from '../../game/engine';
 import { cashOut, failTable, winTable } from '../../game/shop';
 import { setWager, placeSideBet, hotStreakX, SIDE_BETS } from '../../game/table';
 import type { SideBetId } from '../../core/types';
-import { dealerId, line, nameOf, outlawIntro, portraitOf, type Mood } from '../characters';
+import { dealerId, line, nameOf, outlawIntro, portraitOf, type Mood, goonLine } from '../characters';
 import type { Expression } from '../portraits';
 import { app, burstAt, button, center, jiggle, modal, popup, save, screenShake, tip, toast, wait, hideTip } from '../app';
 import { cardTooltip, hostMedallion, hostTooltip, playingCard, cardBackHtml } from '../art';
@@ -127,7 +127,7 @@ export class TableScreen {
     (this.dealerEl.querySelector('.dealer-name') as HTMLElement).textContent = nameOf(this.dealerChar);
     if (t.hostId) tip(this.dealerFace, () => hostTooltip(t.hostId!), 'bottom');
     this.react('neutral');
-    const greet = () => this.say((t.kind === 'host' || t.kind === 'gang') && t.hostId ? outlawIntro(t.hostId) : line('greet'), 'smug', 3800);
+    const greet = () => this.say(t.kind === 'host' && t.hostId ? outlawIntro(t.hostId) : t.kind === 'gang' ? goonLine() : line('greet'), 'smug', 3800);
     // The first time you sit down with a town's Outlaw, they get an entrance.
     if (t.kind === 'host' && t.hostId && t.phase === 'ready' && t.dealt === 0 && run.flags.introTown !== run.night) {
       run.flags.introTown = run.night;

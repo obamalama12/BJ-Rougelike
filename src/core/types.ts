@@ -79,6 +79,8 @@ export type TablePhase = 'ready' | 'player' | 'dealer' | 'resolved' | 'won' | 'l
 export interface TableState {
   kind: TableKind;
   hostId?: string;
+  /** Gang tables: which of the Outlaw's henchmen is dealing. */
+  goonId?: string;
   hostDisabled?: boolean;
   target: number;
   score: number;
@@ -129,8 +131,10 @@ export interface TrailNode {
   kind: NodeKind;
   next: number[];
   done?: boolean;
-  /** Curse for Bank Jobs, the Outlaw for the showdown. */
+  /** The town's Outlaw, whose curse rides on the showdown, the gang and Bank Jobs. */
   hostId?: string;
+  /** Gang stops: which henchman sits at the table. */
+  goonId?: string;
   eventId?: string;
 }
 

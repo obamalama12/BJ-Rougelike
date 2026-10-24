@@ -32,7 +32,7 @@ export function titleScreen(): HTMLElement {
   audio.setMood('menu');
   const el = div('title-screen');
   // A standoff: you versus this week's most wanted.
-  const rivals = ['chochin_o', 'ubume', 'tsukuyomi', 'kitsunebi', 'otakemaru', 'baku'];
+  const rivals = ['chochin_o', 'tsukuyomi', 'tamamo', 'otakemaru', 'daitengu', 'orochi'];
   const rival = rivals[Math.floor(Date.now() / 86400000) % rivals.length];
   const hero = div('title-hero', h('div', { class: 'tc-body', html: portraitOf(HERO[profile.lastHero ?? '']?.portrait ?? 'hero_kid', 'smug') }));
   const villain = div('title-villain', h('div', { class: 'tc-body', html: portraitOf(rival, 'smug') }));

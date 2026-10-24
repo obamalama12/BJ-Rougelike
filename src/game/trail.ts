@@ -1,10 +1,10 @@
 // The trail: a branching map per Town, Grit, and the non-table stops along the way.
 
 import type { NodeKind, Run, TableKind, TrailNode } from '../core/types';
-import { HOST } from '../content/hosts';
+import { GOONS, HOST } from '../content/hosts';
 import { EVENT, EVENTS } from '../content/events';
 import { HAND_TYPES } from '../core/cards';
-import { NIGHTS, ctx, discover, fire, has, nightBase, rerollHost, rng, availableVouchers } from './engine';
+import { NIGHTS, outlawPool, ctx, discover, fire, has, nightBase, rerollHost, rng, availableVouchers } from './engine';
 import { startTable } from './table';
 import { openShop } from './shop';
 
@@ -24,12 +24,12 @@ export const TABLE_INFO: Record<'saloon' | 'highstakes' | 'bank' | 'gang' | 'out
 export const NODE_INFO: Record<NodeKind, { name: string; icon: string; blurb: string }> = {
   saloon: { name: 'Saloon Game', icon: 'saloon', blurb: 'A regular card table. Low target, small purse' },
   highstakes: { name: 'High Stakes', icon: 'tophat', blurb: 'Bigger target, bigger purse' },
-  bank: { name: 'Bank Job', icon: 'moneybag', blurb: 'A cursed table with a rare Doodad as the prize' },
+  bank: { name: 'Bank Job', icon: 'moneybag', blurb: 'A table under the Outlaw’s curse, with a rare Doodad as the prize' },
   store: { name: 'General Store', icon: 'crate', blurb: 'Doodads, Tonics, Crates and Deeds' },
   doc: { name: 'Doc Hoot', icon: 'tonic', blurb: 'Patch up your Grit, or have a card removed' },
   camp: { name: 'Campfire', icon: 'campfire', blurb: 'Rest, or spin a yarn to level up a hand' },
   event: { name: 'Strange Happenings', icon: 'wanted', blurb: 'A random encounter. Could help, could cost you' },
-  gang: { name: 'Gang Member', icon: 'wanted', blurb: 'One of the Outlaw’s gang, with a curse of their own. Beat them for a Bounty: pick 1 of 3 Doodads' },
+  gang: { name: 'Gang Member', icon: 'wanted', blurb: 'One of the Outlaw’s gang, carrying the boss’s curse. Beat them for a Bounty: pick 1 of 3 Doodads' },
   outlaw: { name: 'Showdown', icon: 'revolver', blurb: 'The boss of this town. Win to ride on to the next one' },
 };
 
@@ -85,13 +85,12 @@ export function generateTrail(run: Run) {
       }
     }
   }
-  // Curses and encounters
-  const regular = Object.values(HOST).filter((h) => !h.showdown && h.minNight <= Math.max(1, town));
-  // Gang members are different birds from the Outlaw and from each other.
-  const gang = r.shuffle(regular.filter((h) => h.id !== run.nightHost));
+  // One boss per town: the gang and the Bank Jobs all carry the Outlaw's curse.
+  const goons = r.shuffle([...GOONS]);
+  let goon = 0;
   for (const n of nodes) {
-    if (n.kind === 'bank') n.hostId = r.pick(regular).id;
-    if (n.kind === 'gang') n.hostId = (gang.shift() ?? r.pick(regular)).id;
+    if (n.kind === 'bank' || n.kind === 'gang') n.hostId = run.nightHost;
+    if (n.kind === 'gang') n.goonId = goons[goon++ % goons.length];
     if (n.kind === 'event') {
       // Prefer events this run hasn't met yet, then any not already on this map.
       const seen: string[] = run.flags.eventsSeen ?? [];
@@ -170,6 +169,7 @@ export function travel(run: Run, id: number) {
       const info = TABLE_INFO[n.kind];
       if (n.hostId) discover(run, 'host', n.hostId);
       startTable(run, info.kind, nodeTarget(run, n), n.hostId);
+      if (n.goonId) run.table!.goonId = n.goonId;
       break;
     }
     case 'store':
@@ -226,12 +226,7 @@ export function nextTown(run: Run) {
 /** Pick the Outlaw, the shop's Deed and lay out the trail for the current town. */
 export function startTownState(run: Run) {
   const r = rng(run);
-  const showdown = run.night % NIGHTS === 0;
-  const all = Object.values(HOST);
-  let pool = all.filter((h) => !!h.showdown === showdown && h.minNight <= Math.max(run.night, showdown ? 7 : 1) && !run.hostsSeen.includes(h.id));
-  if (!pool.length) pool = all.filter((h) => !!h.showdown === showdown && h.minNight <= Math.max(run.night, 7));
-  if (!pool.length) pool = all.filter((h) => !h.showdown);
-  run.nightHost = r.pick(pool).id;
+  run.nightHost = r.pick(outlawPool(run)).id;
   run.hostsSeen.push(run.nightHost);
   run.flags.hostRerolls = 0;
   run.flags.wantedPoster = false;

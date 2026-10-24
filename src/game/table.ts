@@ -103,10 +103,14 @@ export function startTable(run: Run, kind: TableKind, target: number, hostId?: s
   for (const id of table.discard.splice(0)) table.shoe.splice(r.int(0, table.shoe.length), 0, id);
 }
 
+function inPlay(t: TableState): Set<number> {
+  return new Set([...t.dealer, ...t.hands.flatMap((h) => h.cards)]);
+}
+
 function reshuffle(run: Run) {
   const t = run.table!;
-  const inPlay = new Set([...t.dealer, ...t.hands.flatMap((h) => h.cards)]);
-  const back = t.discard.filter((id) => !inPlay.has(id) && run.deck.some((k) => k.id === id));
+  const live = inPlay(t);
+  const back = t.discard.filter((id) => !live.has(id) && run.deck.some((k) => k.id === id));
   t.discard = [];
   t.shoe = rng(run).shuffle(back);
   fxQueue.push({ t: 'msg', text: 'Reshuffle!', color: '#ffd23f', src: { kind: 'deck' } });
@@ -488,6 +492,8 @@ export function dealerShouldHit(run: Run): boolean {
   const rules = getRules(run);
   const dt = handTotal(cardsOf(run, t.dealer), rules, 21, true);
   if (dt.bust) return false;
+  // With the deck run dry the dealer would only draw conjured stones (worth 0) forever: stand.
+  if (!t.shoe.length && !t.discard.some((id) => !inPlay(t).has(id))) return false;
   if (dt.total < rules.dealerStand) return true;
   if (dt.total === 17 && dt.soft && rules.dealerHitSoft17 && rules.dealerStand <= 17) return true;
   return false;

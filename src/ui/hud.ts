@@ -18,7 +18,7 @@ import { openRunInfo } from './screens/runinfo';
 import { openOptions } from './screens/options';
 import { pickTargets } from './picker';
 import { iconSvg } from './icons';
-import { portraitOf, townName } from './characters';
+import { portraitOf, townName, nameOf, goonFace } from './characters';
 
 const KIND_NAME: Record<string, string> = { paper: 'Saloon Game', silk: 'High Stakes', bank: 'Bank Job', gang: 'Wanted', host: 'Showdown' };
 
@@ -189,10 +189,10 @@ export class Hud {
       const cursed = isOutlaw || isGang || t?.kind === 'bank';
       const title = t ? (t.kind === 'host' ? 'Wanted' : KIND_NAME[t.kind]) : 'Wanted';
       const face = div('poster-face');
-      if (cursed) face.innerHTML = portraitOf(isOutlaw || isGang ? hostId : 'banker', 'smug');
+      if (cursed) face.innerHTML = portraitOf(isOutlaw ? hostId : isGang ? goonFace(t?.goonId) : 'banker', 'smug');
       else face.innerHTML = `<div class="poster-icon">${iconSvg(t?.kind === 'silk' ? 'tophat' : 'saloon')}</div>`;
       if (cursed && host) tip(face, () => hostTooltip(hostId), 'right');
-      const name = div('poster-name', isOutlaw || isGang ? host?.name ?? 'Outlaw' : t?.kind === 'bank' ? 'The Vault' : t?.kind === 'silk' ? 'High Rollers' : 'Saloon Regulars');
+      const name = div('poster-name', isOutlaw ? host?.name ?? 'Outlaw' : isGang ? nameOf(goonFace(t?.goonId)) : t?.kind === 'bank' ? 'The Vault' : t?.kind === 'silk' ? 'High Rollers' : 'Saloon Regulars');
       const curse = cursed && host ? h('div', { class: 'poster-curse', html: t?.hostDisabled ? '<s>Curse lifted</s>' : fmt(host.text) }) : null;
       this.refs.target = div('poster-target-val');
       this.refs.score = div('poster-score-val', '0');

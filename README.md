@@ -23,15 +23,17 @@ npm run build:single  # one self-contained HTML file in dist-single/
 - **The trail.** Pick your next stop each step:
   - **Saloon Game** and **High Stakes** tables. High Stakes has a bigger target and a
     bigger payout.
-  - **Bank Job**: a harder table with an Outlaw's curse and a rare Doodad as the prize.
+  - **Bank Job**: a harder table under the town Outlaw's curse, with a rare Doodad as the prize.
   - **General Store** (the shop), **Doc Hoot** (heal, or remove cards from your deck),
     **Campfire** (rest, level up a hand type, or polish a Doodad).
   - **Gang Members**: twice in every town, a whole column of the map is the Outlaw's gang, so
-    every route meets two of them. Each is a named bird with their own curse; beat one for a **Bounty** (pick 1 of
-    3 Doodads, one of them rare) and 1 Grit.
+    every route meets two of them. They're the Outlaw's henchmen and carry the boss's curse, so
+    you get a taste of the showdown on the way. Beat one for a **Bounty** (pick 1 of 3 Doodads,
+    one of them rare) and 1 Grit.
   - **Strange Happenings**: 34 encounters with choices, including a quick-draw duel. You won't
     meet the same one twice in a run until you've seen them all.
-  - The **Outlaw** at the end of the town. If you lose, you can try again as long as you
+  - The **Outlaw** at the end of the town: the only boss you meet there, shown on the Wanted
+    poster. Outlaws come in tiers, and each town draws from a nastier tier than the last. If you lose, you can try again as long as you
     have Grit left, and each retry's target is 15% lower.
 - **A table** is blackjack against a dealer. You have a number of **Hands** and **Folds**.
   Reach the target score before you run out of hands, or you lose Grit.
@@ -103,4 +105,6 @@ Tall Tales level these up.
 - Audio is synthesised with WebAudio: banjo plucks, woodblock hoofbeats, an Outlaw whistle,
   and quacks and goose honks. There are no audio files.
 - `npm test` runs unit tests plus dozens of headless seeded runs; `npm run sim -- 400`
-  plays 400 bot runs and prints how far they got (used for balancing).
+  plays 400 bot runs and prints how far they got (used for balancing). `npm run balance -- 2000`
+  breaks the same bot runs down by town, table kind and Outlaw, and `npm run probe` ranks every
+  Outlaw's curse under identical conditions (that ranking sets the tiers in `content/hosts.ts`).
