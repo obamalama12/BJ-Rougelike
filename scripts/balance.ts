@@ -7,6 +7,9 @@ import { HOST } from '../src/content/hosts';
 
 process.env.SIM_LIB = '1';
 const { simulate } = await import('./simulate');
+const { smartStrategy } = await import('./smartbot');
+/** BOT=smart plays with the Doodad-testing bot instead of the basic one. */
+const bot = process.env.BOT === 'smart' ? smartStrategy : undefined;
 
 const N = Number(process.argv[2] ?? 1000);
 const shoe = process.argv[3] ?? 'paper';
@@ -20,7 +23,7 @@ const byHost: Record<string, { n: number; won: number; town: number[] }> = {};
 const killers: Record<string, number> = {};
 
 for (let i = 0; i < N; i++) {
-  const r = simulate(`BAL${i}`, shoe, stake);
+  const r = simulate(`BAL${i}`, shoe, stake, undefined, bot);
   if (r.won) wins++;
   for (let t = 1; t <= Math.min(r.night, NIGHTS); t++) reached[t]++;
   if (!r.won) died[r.night]++;
@@ -43,7 +46,7 @@ for (let i = 0; i < N; i++) {
 }
 
 const pct = (a: number, b: number) => (b ? ((100 * a) / b).toFixed(0).padStart(3) + '%' : '   -');
-console.log(`${N} runs (${shoe}, stake ${stake}): ${wins} wins = ${((100 * wins) / N).toFixed(1)}%`);
+console.log(`${N} runs (${process.env.BOT === 'smart' ? 'smart' : 'basic'} bot, ${shoe}, stake ${stake}): ${wins} wins = ${((100 * wins) / N).toFixed(1)}%`);
 console.log('\nTown  reached  died-here  (death rate)');
 for (let t = 1; t <= NIGHTS; t++) console.log(`  ${t}   ${String(reached[t]).padStart(6)}  ${String(died[t]).padStart(8)}   ${pct(died[t], reached[t])}`);
 console.log('\nTable win rate by town (score/target avg)');

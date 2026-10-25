@@ -111,3 +111,6 @@ Tall Tales level these up.
   plays 400 bot runs and prints how far they got (used for balancing). `npm run balance -- 2000`
   breaks the same bot runs down by town, table kind and Outlaw, and `npm run probe` ranks every
   Outlaw's curse under identical conditions (that ranking sets the tiers in `content/hosts.ts`).
+  `BOT=smart npm run balance -- 200` uses the smarter bot in `scripts/smartbot.ts`, which tests
+  every Doodad with practice hands before buying it, orders its belt, saves for interest and only
+  wagers big when it's behind. It's much slower (about a second per run).

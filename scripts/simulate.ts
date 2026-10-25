@@ -12,10 +12,10 @@ import { EVENT } from '../src/content/events';
 import { CHARM } from '../src/content/charms';
 import { charmSlots } from '../src/game/engine';
 import { handTotal } from '../src/core/cards';
-import type { Run } from '../src/core/types';
+import type { Run, TrailNode } from '../src/core/types';
 import { CONS } from '../src/content/consumables';
 
-function botTurn(run: Run) {
+export function botTurn(run: Run) {
   const t = run.table!;
   let guard = 0;
   while (t.phase === 'player' && guard++ < 50) {
@@ -52,7 +52,7 @@ function botTurn(run: Run) {
   }
 }
 
-function playHand(run: Run): 'ready' | 'won' | 'lost' | 'dead' {
+export function playHand(run: Run): 'ready' | 'won' | 'lost' | 'dead' {
   beginHand(run);
   dealTo(run, 'player');
   dealTo(run, 'dealer');
@@ -78,7 +78,7 @@ function playHand(run: Run): 'ready' | 'won' | 'lost' | 'dead' {
   return endRound(run, results);
 }
 
-function shopBot(run: Run) {
+export function shopBot(run: Run) {
   const s = run.shop!;
   const rar = (id: string) => CHARM[id]?.rarity ?? 1;
   for (let pass = 0; pass < 3; pass++) {
@@ -108,7 +108,7 @@ function shopBot(run: Run) {
   for (const k of [...run.consumables]) if (k.kind === 'star') useCons(run, k.uid);
 }
 
-function packBot(run: Run) {
+export function packBot(run: Run) {
   let g = 0;
   while (run.pack && g++ < 10) {
     const p = run.pack;
@@ -123,10 +123,35 @@ function packBot(run: Run) {
   }
 }
 
+/** The decisions a bot makes outside the hand-by-hand blackjack play. */
+export interface Strategy {
+  pickNode(run: Run, opts: TrailNode[]): TrailNode;
+  /** Called before every hand to set the wager. */
+  wager(run: Run): number;
+  shop(run: Run): void;
+  pack(run: Run): void;
+  camp(run: Run): void;
+}
+
+/** The original bot: basic blackjack, buys the rarest Doodads it can afford, rests at camp. */
+export const basicStrategy: Strategy = {
+  pickNode: (run, opts) =>
+    // Prefer: store when rich, doc/camp when hurt, otherwise card games.
+    (run.grit <= 5 && opts.find((n) => n.kind === 'doc' || n.kind === 'camp')) ||
+    (run.money >= 12 && opts.find((n) => n.kind === 'store')) ||
+    opts.find((n) => isTableNode(n)) ||
+    opts[0],
+  // Wager boldly while healthy.
+  wager: (run) => (process.env.WAGER ? Number(process.env.WAGER) : run.grit >= 7 ? 2 : 1),
+  shop: shopBot,
+  pack: packBot,
+  camp: campRest,
+};
+
 export interface TableLog { night: number; kind: string; host?: string; target: number; score: number; hands: number; won: boolean; grit: number; gritAfter: number; money: number; charms: number; best: number }
 export interface StopLog { night: number; kind: string; grit: number; money: number }
 
-export function simulate(seed: string, shoe = 'paper', stake = 1, forceHost?: string) {
+export function simulate(seed: string, shoe = 'paper', stake = 1, forceHost?: string, bot: Strategy = basicStrategy) {
   const run = newRun(seed, shoe, stake);
   let forcedTown = 0;
   const tables: TableLog[] = [];
@@ -141,14 +166,8 @@ export function simulate(seed: string, shoe = 'paper', stake = 1, forceHost?: st
       for (const n of run.trail.nodes) if (n.kind === 'outlaw' || n.kind === 'gang' || n.kind === 'bank') n.hostId = forceHost;
     }
     if (run.phase === 'trail') {
-      if (maybeOpenTagPack(run)) { packBot(run); continue; }
-      const opts = reachable(run);
-      // Prefer: store when rich, doc/camp when hurt, otherwise card games.
-      const pick =
-        (run.grit <= 5 && opts.find((n) => n.kind === 'doc' || n.kind === 'camp')) ||
-        (run.money >= 12 && opts.find((n) => n.kind === 'store')) ||
-        opts.find((n) => isTableNode(n)) ||
-        opts[0];
+      if (maybeOpenTagPack(run)) { bot.pack(run); continue; }
+      const pick = bot.pickNode(run, reachable(run));
       stops.push({ night: run.night, kind: pick.kind, grit: run.grit, money: run.money });
       travel(run, pick.id);
     } else if (run.phase === 'table') {
@@ -157,8 +176,7 @@ export function simulate(seed: string, shoe = 'paper', stake = 1, forceHost?: st
       let hands = 0;
       let best = 0;
       while (r === 'ready') {
-        // Wager boldly while healthy.
-        run.table!.wager = process.env.WAGER ? Number(process.env.WAGER) : run.grit >= 7 ? 2 : 1;
+        run.table!.wager = bot.wager(run);
         const before = run.table!.score;
         r = playHand(run);
         hands++;
@@ -181,7 +199,7 @@ export function simulate(seed: string, shoe = 'paper', stake = 1, forceHost?: st
       docPatch(run);
       finishNode(run);
     } else if (run.phase === 'camp') {
-      campRest(run);
+      bot.camp(run);
       finishNode(run);
     } else if (run.phase === 'event') {
       const def = EVENT[run.event!.id];
@@ -192,10 +210,10 @@ export function simulate(seed: string, shoe = 'paper', stake = 1, forceHost?: st
     } else if (run.phase === 'victory') {
       return { night: NIGHTS, won: true, run };
     } else if (run.phase === 'shop') {
-      shopBot(run);
+      bot.shop(run);
       leaveShop(run);
     } else if (run.phase === 'pack') {
-      packBot(run);
+      bot.pack(run);
     } else if (run.phase === 'gameover') {
       return { night: run.night, won: false, run };
     } else break;
