@@ -24,7 +24,7 @@ import type { SideBetId } from '../../core/types';
 import { dealerId, line, nameOf, outlawIntro, portraitOf, type Mood, goonLine } from '../characters';
 import type { Expression } from '../portraits';
 import { app, burstAt, button, center, jiggle, modal, popup, save, screenShake, tip, toast, wait, hideTip } from '../app';
-import { cardTooltip, hostMedallion, hostTooltip, playingCard, cardBackHtml } from '../art';
+import { cardTooltip, hostMedallion, hostTooltip, playingCard, cardBackHtml, hiddenCard, revealCard } from '../art';
 import { div, fmtNum, h, clear, fmt } from '../dom';
 import { Hud } from '../hud';
 import { sfx, audio } from '../../fx/audio';
@@ -175,8 +175,8 @@ export class TableScreen {
     let el = this.cards.get(id);
     if (el) return el;
     const run = this.run;
-    const card = cardById(run, id);
-    el = playingCard(card, run.shoeId, true);
+    // Every card leaves the shoe face down and only gets its face printed when it turns over.
+    el = hiddenCard(id, run.shoeId);
     el.classList.add('table-card');
     if (fromShoe) {
       el.style.transition = 'none';
@@ -205,6 +205,7 @@ export class TableScreen {
       el.style.transform = `translate(${x - CW / 2}px, ${y - CH / 2 - lift}px) rotate(${rot}deg)`;
       el.style.zIndex = String(z);
       const hidden = this.isHidden(id);
+      if (!hidden) revealCard(el, cardById(run, id));
       if (el.classList.contains('down') !== hidden) {
         el.classList.toggle('down', hidden);
         if (!hidden) sfx('flip');

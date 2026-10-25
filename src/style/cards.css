@@ -37,6 +37,9 @@
   filter: drop-shadow(0 3px 3px rgba(10, 4, 0, 0.35)) drop-shadow(0 10px 14px rgba(10, 4, 0, 0.3));
 }
 .card.down .card-inner { transform: rotateX(var(--rx)) rotateY(calc(180deg + var(--ry))); }
+/* A filter flattens the 3D flip, which would turn a face-down card's front towards you: never on face-down cards. */
+.card.down .card-inner,
+.card.down:hover .card-inner { filter: none; }
 .face {
   position: absolute;
   inset: 0;

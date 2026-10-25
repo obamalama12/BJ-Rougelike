@@ -179,6 +179,22 @@ export function playingCard(c: Card, shoeId: string, faceDown = false): HTMLElem
   return el;
 }
 
+/** A card dealt face down: the back and a blank front, so nothing on the page gives the card away
+ *  (not a hover effect, not a glitchy 3D flip, not the page source). */
+export function hiddenCard(id: number, shoeId: string): HTMLElement {
+  const el = shell('pcard down', '<div class="pc-body blank"></div>', cardBackHtml(shoeId));
+  el.dataset.id = String(id);
+  return el;
+}
+
+/** Print the real face onto a card from hiddenCard() just before it turns over. */
+export function revealCard(el: HTMLElement, c: Card) {
+  if (el.dataset.faced) return;
+  el.dataset.faced = '1';
+  el.querySelector('.face.front')!.innerHTML = `${playingCardFront(c)}<div class="shine"></div><div class="finish-layer"></div>`;
+  if (c.finish) el.classList.add(`fin-${c.finish}`);
+}
+
 export function cardTooltip(c: Card, debuffed = false): string {
   const lines: string[] = [];
   lines.push(`<div class="tt-title">${esc(cardName(c))}</div>`);
