@@ -147,8 +147,12 @@ H({ id: 'woodgas', name: 'Woodgas', title: 'Doesn’t Know the Rules', icon: 'mo
   text: 'Doesn’t know how to play: the dealer keeps hitting until he busts',
   rules: (r) => { r.dealerHitsToBust = true; } });
 
-/** Chance that a town's Outlaw is swapped for Woodgas. */
-export const RARE_OUTLAW_CHANCE = 0.05;
+/** Chance that a town's Outlaw is swapped for Woodgas, by town. He gets rarer as the run goes on,
+ *  so an easy final showdown stays a real fluke; endless towns keep the last town's odds. */
+export const RARE_OUTLAW_CHANCE = [0.05, 0.04, 0.03, 0.02, 0.015, 0.01, 0.005];
+export function rareOutlawChance(town: number): number {
+  return RARE_OUTLAW_CHANCE[Math.min(town, RARE_OUTLAW_CHANCE.length) - 1];
+}
 
 /** The Outlaw's henchmen: nameless muscle who carry their boss's curse to the gang stops. */
 export const GOONS = ['goon_sid', 'goon_clem', 'goon_ted', 'goon_mabel', 'goon_dusty', 'goon_ike'];
