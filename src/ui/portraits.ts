@@ -174,7 +174,7 @@ const scallops = (col: string, x0: number, y0: number, cols: number, rows: numbe
   P(col, scallopD(x0, y0, cols, rows, s, slope, w), NS);
 
 // ------------------------------------------------------------------ species model
-type BillType = 'duck' | 'goose' | 'point' | 'hook' | 'pelican' | 'toucan' | 'flamingo' | 'muzzle';
+type BillType = 'duck' | 'goose' | 'point' | 'hook' | 'pelican' | 'toucan' | 'flamingo';
 interface Bill { t: BillType; x: number; y: number; a: number; L: number; hu: number; hl: number; c: string; c2?: string }
 interface K {
   o: PortraitOpts;
@@ -209,7 +209,9 @@ interface Sp {
   lashes?: boolean;
   /** colour of eyelids (defaults to plumage) */
   lid?: (k: K) => string;
-  bill: (k: K) => Bill;
+  /** Birds have a bill; a species without one draws its own `mouth` instead. */
+  bill?: (k: K) => Bill;
+  mouth?: (k: K) => string;
   /** hat: x, y-nudge (y is derived from the eyes), scale, tilt */
   hatA: [number, number, number, number];
   /** neckwear anchor: x, y, half width */
@@ -435,14 +437,6 @@ const billShapes = (b: Bill): BillShapes => {
         l: d`M-4,0L${l * 0.9},0Q${l * 0.6},${hl * 1.2} -6,${hl}Z`, lc: c2,
         lx: P('#2a2026', d`M${l * 0.78},0L${l * 0.9},0Q${l * 0.84},${hl * 0.5} ${l * 0.74},${hl * 0.62}Z`, NS),
       };
-    case 'muzzle':
-      // not a bill at all: a rounded snout with nostrils over a lip and chin that drops open
-      return {
-        u: d`M-10,${-hu}C${l * 0.4},${-hu * 1.25} ${l * 1.05},${-hu * 0.95} ${l},${-hu * 0.3}Q${l * 0.98},3 ${l * 0.7},3L-6,3Z`, uc: c,
-        ux: C(INK, l * 0.62, -hu * 0.38, 2.6, NS) + C(INK, l * 0.84, -hu * 0.42, 2.2, NS) +
-          lens(GOUGE, l * 0.08, -hu * 0.9, l * 0.4, -hu * 1.08, l * 0.72, -hu * 0.88, 2.6),
-        l: d`M-6,0L${l * 0.74},0Q${l * 0.8},${hl * 0.9} ${l * 0.42},${hl}Q${l * 0.02},${hl * 1.1} -8,${hl * 0.5}Z`, lc: c2,
-      };
     case 'flamingo':
       // bent bill: straight then kinks down at ~55%, black tip
       return {
@@ -468,13 +462,14 @@ const CURL: Record<Expression, number> = { neutral: 0.3, smug: 1, angry: -1, sho
 
 /** Halftone occlusion on the face where the bill joins it. */
 const billAO = (k: K): string => {
-  const b = k.sp.bill(k);
-  if (!k.headD) return '';
+  const b = k.sp.bill?.(k);
+  if (!b || !k.headD) return '';
   const r = (b.a * Math.PI) / 180;
   return clip(k, k.headD, scr(k, 'd', ellD(b.x - Math.sin(r) * b.hu * 0.1, b.y - Math.cos(r) * b.hu * 0.3, b.hu * 0.95 + 3, b.hu * 1.15 + 4)));
 };
 
 const drawBill = (k: K): string => {
+  if (!k.sp.bill) return k.sp.mouth?.(k) ?? '';
   const b = k.sp.bill(k);
   const sh = billShapes(b);
   const [a1, a2, teeth] = MOUTH[k.ex];
@@ -860,6 +855,41 @@ const STD = { h: [108, 114, 62, 58] as [number, number, number, number], e: [112
 /** Red fleshy bits (wattles, combs). */
 const flesh = (k: K, D: string, sil = false): string => (sil ? S(k, '#d0382e', D) : P('#d0382e', D)) + shade(k, D, 6, 2) ;
 
+/** A monkey's nose and mouth, centred on its muzzle at (x, y); the shape follows the expression. */
+const monkeyMouth = (k: K, x: number, y: number): string => {
+  let s = C(INK, x - 5, y - 9, 2.2, NS) + C(INK, x + 5, y - 9, 2.2, NS) + L(d`M${x},${y - 6}V${y}`, 1.6, '#b8885a');
+  switch (k.ex) {
+    case 'smug':
+      s += L(d`M${x - 14},${y + 4}Q${x},${y + 8} ${x + 15},${y - 1}`, 2.6) + L(d`M${x + 13},${y - 3}L${x + 17},${y + 1}`, 2);
+      break;
+    case 'angry':
+      s += P(WHITE, d`M${x - 14},${y + 2}L${x + 14},${y + 2}L${x + 12},${y + 11}L${x - 12},${y + 11}Z`, sw(2.2)) +
+        L(d`M${x - 13},${y + 6.5}H${x + 13}M${x - 6},${y + 2}V${y + 11}M${x + 1},${y + 2}V${y + 11}M${x + 8},${y + 2}V${y + 11}`, 1.4);
+      break;
+    case 'shocked':
+      s += E('#5a1612', x, y + 9, 7, 9, sw(2.4)) + E('#d8606a', x, y + 14, 4, 3, NS);
+      break;
+    case 'laughing':
+      s += P('#5a1612', d`M${x - 16},${y + 1}Q${x},${y + 4} ${x + 16},${y + 1}Q${x + 13},${y + 20} ${x},${y + 20}Q${x - 13},${y + 20} ${x - 16},${y + 1}Z`, sw(2.4)) +
+        P(WHITE, d`M${x - 13},${y + 2.5}Q${x},${y + 5} ${x + 13},${y + 2.5}L${x + 12},${y + 6}Q${x},${y + 8} ${x - 12},${y + 6}Z`, NS) +
+        P('#d8606a', d`M${x - 7},${y + 17}Q${x},${y + 11} ${x + 7},${y + 17}Q${x},${y + 21} ${x - 7},${y + 17}Z`, NS);
+      break;
+    case 'sad':
+      s += L(d`M${x - 12},${y + 9}Q${x},${y + 1} ${x + 12},${y + 9}`, 2.6);
+      break;
+    case 'sweating':
+      s += L(d`M${x - 13},${y + 5}Q${x - 6},${y + 1} ${x},${y + 5}Q${x + 6},${y + 9} ${x + 13},${y + 4}`, 2.4);
+      break;
+    default:
+      s += L(d`M${x - 13},${y + 3}Q${x},${y + 9} ${x + 13},${y + 3}`, 2.6);
+  }
+  // lower lip
+  if (k.ex !== 'shocked' && k.ex !== 'laughing') s += lens('#c99a6a', x - 7, y + 11, x, y + 14, x + 7, y + 11, 2);
+  if (k.acc.has('toothpick'))
+    s += P('#e9c98a', lensD(x + 10, y + 4, x + 24, y + 8, x + 38, y + 16, 4.6), sw(1.8)) + lens(GOUGE, x + 14, y + 5, x + 22, y + 8, x + 30, y + 12, 1.2);
+  return s;
+};
+
 const SPECIES: Record<Species, Sp> = {
   duck: {
     main: '#3f8a4c', hat: 'cowboy',
@@ -1169,22 +1199,26 @@ const SPECIES: Record<Species, Sp> = {
     head: k => headForm(k, k.M, k.sp.h),
   },
   monkey: {
+    // A flat, forward-facing face: no bill, a bare heart-shaped face with a rounded muzzle,
+    // two little nostrils and a lipped mouth, and round ears out on both sides.
     main: '#7a5232', hat: 'none', iris: '#5a3418',
-    h: [108, 112, 60, 56], e: [114, 106, 17, 32],
-    hb: [-30, -0.04, 22, 30, 0.04, 26, 150, -0.02, 24],
+    h: [116, 112, 60, 56], e: [104, 106, 15, 34, 0.98],
+    hb: [-90, 0.04, 40, 90, 0.05, 40],
     lid: () => '#e6c49a',
-    bill: () => ({ t: 'muzzle', x: 116, y: 140, a: 4, L: 50, hu: 20, hl: 14, c: '#e6c49a', c2: '#d4a878' }),
-    hatA: [112, 0, 0.9, -6], neck: [110, 178, 40], chest: [60, 216],
-    body: k => mantle(k, k.M, 186) + bib(k, '#e6c49a', 154, 38, 112, 60) +
-      P(dk(k.M, 0.25), [[20, 214], [40, 204], [182, 204], [204, 214]].map(([x, y]) => lensD(x, y, x + 3, y + 8, x + 2, y + 16, 2.4)).join(''), NS),
+    mouth: (k) => monkeyMouth(k, 121, 140),
+    hatA: [116, 0, 0.9, -4], neck: [116, 178, 40], chest: [64, 216],
+    body: k => mantle(k, k.M, 172, 116) + bib(k, '#e6c49a', 160, 40, 116, 46) +
+      P(dk(k.M, 0.25), [[22, 204], [42, 194], [190, 194], [210, 204]].map(([x, y]) => lensD(x, y, x + 3, y + 8, x + 2, y + 16, 2.4)).join(''), NS),
     head: k => {
-      // the ear on the near side, the far one peeking past the crown, then the bare face
-      const earN = ellD(50, 118, 19, 21), earF = ellD(164, 84, 12, 14);
-      const face = 'M86,108Q84,80 108,80Q122,74 136,80Q164,78 162,106Q164,128 148,140Q128,162 104,150Q86,140 86,108Z';
-      return S(k, k.M, earF) + P('#d8957a', ellD(165, 85, 6, 8), NS) +
-        S(k, k.M, earN) + P('#d8957a', ellD(52, 118, 11, 13), NS) + shade(k, earN, 6, 4) +
+      const earL = ellD(56, 116, 17, 20), earR = ellD(176, 116, 17, 20);
+      const face = 'M121,92Q108,78 94,82Q76,90 82,112Q74,128 84,142Q98,162 121,162Q144,162 158,142Q168,128 160,112Q166,90 148,82Q134,78 121,92Z';
+      const muzzle = ellD(121, 140, 30, 20);
+      return S(k, k.M, earL) + P('#d8957a', ellD(58, 117, 9, 12), NS) + shade(k, earL, 5, 4) +
+        S(k, k.M, earR) + P('#d8957a', ellD(174, 117, 9, 12), NS) + shade(k, earR, 5, 4) +
         headForm(k, k.M, k.sp.h) + P('#e6c49a', face, sw(1.8)) + shade(k, face, 10, 8) +
-        tuft(k, 104, 60, k.M, 3, 12);
+        P('#efd4ae', muzzle, NS) + shade(k, muzzle, 6, 6, 'd') +
+        L('M100,124Q106,120 112,123M130,123Q136,120 142,124', 1.6, '#b8885a') +
+        tuft(k, 116, 58, k.M, 3, 12);
     },
   },
   magpie: {
