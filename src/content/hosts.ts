@@ -143,7 +143,7 @@ H({ id: 'dot', name: 'Dot the Dodo', title: 'Last of Her Kind', icon: 'dodo', hu
   rules: (r) => { r.firstCardDown = true; r.dealerWinsTies = true; } });
 
 // --- The rare one: once in a while he turns up instead of a town's Outlaw ----------
-H({ id: 'woodgas', name: 'Woodgas', title: 'Doesn’t Know the Rules', icon: 'dodo', hue: '#a8c46a', scale: 1, minNight: 0, rare: true,
+H({ id: 'woodgas', name: 'Woodgas', title: 'Doesn’t Know the Rules', icon: 'monkey', hue: '#a8c46a', scale: 1, minNight: 0, rare: true,
   text: 'Doesn’t know how to play: the dealer keeps hitting until he busts',
   rules: (r) => { r.dealerHitsToBust = true; } });
 

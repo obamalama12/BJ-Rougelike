@@ -1,4 +1,4 @@
-// Character portraits for Buck Ducks: bird busts (head + neck + shoulders) drawn as
+// Character portraits for Buck Ducks: bird busts (and one monkey) (head + neck + shoulders) drawn as
 // self-contained SVG strings in the same engraved-print language as the face cards
 // (src/ui/suits.ts): a warm key-ink line, flat colour plates, form shading cut with
 // hatch and halftone screens, and crisp cream "gouge" highlights.
@@ -16,7 +16,8 @@
 
 export type Species =
   | 'duck' | 'goose' | 'swan' | 'turkey' | 'vulture' | 'pelican' | 'owl' | 'crow' | 'penguin' | 'chicken'
-  | 'ostrich' | 'heron' | 'toucan' | 'eagle' | 'pigeon' | 'roadrunner' | 'loon' | 'dodo' | 'flamingo' | 'magpie';
+  | 'ostrich' | 'heron' | 'toucan' | 'eagle' | 'pigeon' | 'roadrunner' | 'loon' | 'dodo' | 'flamingo' | 'magpie'
+  | 'monkey';
 export type Expression = 'neutral' | 'smug' | 'angry' | 'shocked' | 'sweating' | 'laughing' | 'sad';
 export type Hat =
   | 'none' | 'cowboy' | 'tophat' | 'sheriff' | 'bowler'
@@ -173,7 +174,7 @@ const scallops = (col: string, x0: number, y0: number, cols: number, rows: numbe
   P(col, scallopD(x0, y0, cols, rows, s, slope, w), NS);
 
 // ------------------------------------------------------------------ species model
-type BillType = 'duck' | 'goose' | 'point' | 'hook' | 'pelican' | 'toucan' | 'flamingo';
+type BillType = 'duck' | 'goose' | 'point' | 'hook' | 'pelican' | 'toucan' | 'flamingo' | 'muzzle';
 interface Bill { t: BillType; x: number; y: number; a: number; L: number; hu: number; hl: number; c: string; c2?: string }
 interface K {
   o: PortraitOpts;
@@ -433,6 +434,14 @@ const billShapes = (b: Bill): BillShapes => {
           P('none', d`M-6,${-hu}C${l * 0.3},${-hu * 1.5} ${l * 0.92},${-hu * 1.2} ${l},${-hu * 0.05}Q${l * 1.01},${hu * 0.4} ${l * 0.93},${hu * 0.42}`),
         l: d`M-4,0L${l * 0.9},0Q${l * 0.6},${hl * 1.2} -6,${hl}Z`, lc: c2,
         lx: P('#2a2026', d`M${l * 0.78},0L${l * 0.9},0Q${l * 0.84},${hl * 0.5} ${l * 0.74},${hl * 0.62}Z`, NS),
+      };
+    case 'muzzle':
+      // not a bill at all: a rounded snout with nostrils over a lip and chin that drops open
+      return {
+        u: d`M-10,${-hu}C${l * 0.4},${-hu * 1.25} ${l * 1.05},${-hu * 0.95} ${l},${-hu * 0.3}Q${l * 0.98},3 ${l * 0.7},3L-6,3Z`, uc: c,
+        ux: C(INK, l * 0.62, -hu * 0.38, 2.6, NS) + C(INK, l * 0.84, -hu * 0.42, 2.2, NS) +
+          lens(GOUGE, l * 0.08, -hu * 0.9, l * 0.4, -hu * 1.08, l * 0.72, -hu * 0.88, 2.6),
+        l: d`M-6,0L${l * 0.74},0Q${l * 0.8},${hl * 0.9} ${l * 0.42},${hl}Q${l * 0.02},${hl * 1.1} -8,${hl * 0.5}Z`, lc: c2,
       };
     case 'flamingo':
       // bent bill: straight then kinks down at ~55%, black tip
@@ -1159,6 +1168,25 @@ const SPECIES: Record<Species, Sp> = {
       neckTube(k, k.M, [104, 256, 30, 196, 168, 150, 120, 104], 20, 15, 16) + P(eng(k.M), lensD(76, 240, 56, 210, 70, 180, 1.8), NS),
     head: k => headForm(k, k.M, k.sp.h),
   },
+  monkey: {
+    main: '#7a5232', hat: 'none', iris: '#5a3418',
+    h: [108, 112, 60, 56], e: [114, 106, 17, 32],
+    hb: [-30, -0.04, 22, 30, 0.04, 26, 150, -0.02, 24],
+    lid: () => '#e6c49a',
+    bill: () => ({ t: 'muzzle', x: 116, y: 140, a: 4, L: 50, hu: 20, hl: 14, c: '#e6c49a', c2: '#d4a878' }),
+    hatA: [112, 0, 0.9, -6], neck: [110, 178, 40], chest: [60, 216],
+    body: k => mantle(k, k.M, 186) + bib(k, '#e6c49a', 154, 38, 112, 60) +
+      P(dk(k.M, 0.25), [[20, 214], [40, 204], [182, 204], [204, 214]].map(([x, y]) => lensD(x, y, x + 3, y + 8, x + 2, y + 16, 2.4)).join(''), NS),
+    head: k => {
+      // the ear on the near side, the far one peeking past the crown, then the bare face
+      const earN = ellD(50, 118, 19, 21), earF = ellD(164, 84, 12, 14);
+      const face = 'M86,108Q84,80 108,80Q122,74 136,80Q164,78 162,106Q164,128 148,140Q128,162 104,150Q86,140 86,108Z';
+      return S(k, k.M, earF) + P('#d8957a', ellD(165, 85, 6, 8), NS) +
+        S(k, k.M, earN) + P('#d8957a', ellD(52, 118, 11, 13), NS) + shade(k, earN, 6, 4) +
+        headForm(k, k.M, k.sp.h) + P('#e6c49a', face, sw(1.8)) + shade(k, face, 10, 8) +
+        tuft(k, 104, 60, k.M, 3, 12);
+    },
+  },
   magpie: {
     main: '#22232c', hat: 'bowler', ...STD,
     lid: k => lt(k.M, 0.12),
@@ -1265,7 +1293,7 @@ export const CHARACTERS: Record<string, PortraitOpts & { name: string }> = {
   tango: { name: 'Tango the Toucan', species: 'toucan', hat: 'cowboy', accent: '#c8642a', accessory: 'bandana', accent2: '#2a8a5a', seed: 57 },
   dot: { name: 'Dot the Dodo', species: 'dodo', plumage: '#c9a47a', hat: 'feathered', accent: '#6a3d6e', accessory: 'scar', seed: 58 },
 
-  woodgas: { name: 'Woodgas', species: 'dodo', plumage: '#a89a7a', hat: 'derby', accent: '#7a8a3a', accessory: 'toothpick', extras: ['glasses'], seed: 77 },
+  woodgas: { name: 'Woodgas', species: 'monkey', hat: 'derby', accent: '#7a8a3a', accessory: 'toothpick', extras: ['glasses'], seed: 77 },
 
   // --- the Outlaw's gang (henchmen, no curse of their own)
   goon_sid: { name: 'Snake-Eye Sid', species: 'crow', hat: 'bandit', accent: '#2a2430', accessory: 'bandana', accent2: '#8a2a1e', seed: 71 },
