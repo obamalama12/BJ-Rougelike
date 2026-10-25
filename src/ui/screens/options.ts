@@ -15,6 +15,7 @@ export function applySettings() {
   particles.enabled = s.particles;
   document.body.classList.toggle('no-grain', !s.grain);
   document.body.classList.toggle('reduce-motion', !s.motion);
+  document.documentElement.classList.toggle('mono', s.mono);
 }
 
 export function openOptions() {
@@ -95,6 +96,7 @@ export function openOptions() {
             seg('Screen shake', [[1, 'On'], [0, 'Off']], s.shake ? 1 : 0, (v) => (s.shake = !!v)),
             seg('Paper grain', [[1, 'On'], [0, 'Off']], s.grain ? 1 : 0, (v) => (s.grain = !!v)),
             seg('Motion', [[1, 'Full'], [0, 'Reduced']], s.motion ? 1 : 0, (v) => (s.motion = !!v)),
+            seg('Colour', [[0, 'Full colour'], [1, 'Black & white']], s.mono ? 1 : 0, (v) => (s.mono = !!v)),
           ),
         ),
       ),

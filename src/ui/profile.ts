@@ -12,6 +12,8 @@ export interface Settings {
   shake: boolean;
   grain: boolean;
   motion: boolean;
+  /** Draw the whole game in black and white. */
+  mono: boolean;
   /** Show the first-time coaching notes. */
   tips: boolean;
 }
@@ -40,7 +42,7 @@ const RUN_KEY = 'tol.run.v1';
 
 function defaults(): Profile {
   return {
-    settings: { speed: 1.5, music: 0.5, sfx: 0.7, shader: 'high', particles: true, shake: true, grain: true, motion: true, tips: true },
+    settings: { speed: 1.5, music: 0.5, sfx: 0.7, shader: 'high', particles: true, shake: true, grain: true, motion: true, mono: false, tips: true },
     runs: 0,
     wins: 0,
     bestHand: 0,
