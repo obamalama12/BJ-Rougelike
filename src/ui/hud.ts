@@ -22,6 +22,9 @@ import { portraitOf, townName, nameOf, goonFace } from './characters';
 
 const KIND_NAME: Record<string, string> = { paper: 'Saloon Game', silk: 'High Stakes', bank: 'Bank Job', gang: 'Wanted', host: 'Showdown' };
 
+let activeHud: Hud | null = null;
+let stageHooked = false;
+
 export class Hud {
   el: HTMLElement;
   top: HTMLElement;
@@ -61,13 +64,23 @@ export class Hud {
     this.pot = this.buildPot();
     this.buildTop();
     this.el.append(this.top, this.poster, this.gun, this.belt, this.satchel);
-    app.stage.addEventListener('pointerdown', (e) => {
-      const t = e.target as HTMLElement;
-      if (!t.closest('.charm-slot') && !t.closest('.cons-slot') && this.selected) {
-        this.selected = null;
-        this.renderTrays();
-      }
-    });
+    // A new HUD is built on every screen change, so the stage gets one listener for good that talks
+    // to whichever HUD is current. (One listener per HUD kept every old HUD alive, portraits and
+    // all, until phones ran out of memory and reloaded the page.)
+    activeHud = this;
+    if (!stageHooked) {
+      stageHooked = true;
+      app.stage.addEventListener('pointerdown', (e) => activeHud?.deselectOnStage(e));
+    }
+  }
+
+  /** Clicking anywhere off the belt and satchel drops the selected Doodad or Tonic. */
+  private deselectOnStage(e: PointerEvent) {
+    const t = e.target as HTMLElement;
+    if (!t.closest('.charm-slot') && !t.closest('.cons-slot') && this.selected) {
+      this.selected = null;
+      this.renderTrays();
+    }
   }
 
   get run(): Run {
