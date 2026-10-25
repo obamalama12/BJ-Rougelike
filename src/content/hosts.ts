@@ -148,9 +148,9 @@ H({ id: 'woodgas', name: 'Woodgas', title: 'Doesn’t Know the Rules', icon: 'mo
   rules: (r) => { r.dealerHitsToBust = true; } });
 
 /** Chance that a town's Outlaw is swapped for Woodgas: 5% in town 1, halving every town after
- *  (2.5%, 1.25%, ...), so an easy final showdown stays a real fluke. */
+ *  (2.5%, 1.25%, ...), so an easy final showdown stays a real fluke. Endless towns keep town 7's odds. */
 export function rareOutlawChance(town: number): number {
-  return 0.05 / 2 ** (town - 1);
+  return 0.05 / 2 ** (Math.min(town, 7) - 1);
 }
 
 /** The Outlaw's henchmen: nameless muscle who carry their boss's curse to the gang stops. */

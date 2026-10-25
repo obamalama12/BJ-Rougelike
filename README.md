@@ -36,7 +36,7 @@ npm run build:single  # one self-contained HTML file in dist-single/
     poster. Outlaws come in tiers, and each town draws from a nastier tier than the last. Once in a
     while the Outlaw is **Woodgas** instead, who doesn't know how to play and keeps hitting until
     he busts. He's a 5% chance in town 1 and the chance halves every town (2.5%, 1.25%, ...),
-    down to about 0.08% for the final showdown. If you lose, you can try again as long as you
+    down to about 0.08% for the final showdown, and stays at 0.08% in endless mode. If you lose, you can try again as long as you
     have Grit left, and each retry's target is 15% lower.
 - **A table** is blackjack against a dealer. You have a number of **Hands** and **Folds**.
   Reach the target score before you run out of hands, or you lose Grit.
