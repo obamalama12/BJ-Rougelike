@@ -7,7 +7,7 @@ import { HAND_TYPE } from '../core/cards';
 import { CHARM, sellValue } from '../content/charms';
 import { CONS, consSellValue } from '../content/consumables';
 import { HOST } from '../content/hosts';
-import { app, button, jiggle, modal, popup, save, tip, toast, hideTip } from './app';
+import { app, button, jiggle, modal, popup, save, tip, toast, hideTip, endingHold } from './app';
 import { charmCard, charmTooltip, consCard, consTooltip, hostTooltip, tagToken, tagTooltip } from './art';
 import { h, div, fmtNum, fmtMult, clear, fmt, esc } from './dom';
 import { charmSlots, consSlots, getRules, NIGHTS } from '../game/engine';
@@ -516,6 +516,8 @@ export class Hud {
       window.removeEventListener('pointermove', onMove);
       window.removeEventListener('pointerup', onUp);
       if (!dragging) {
+        // Letting go of a press-and-hold (which showed the Doodad's tooltip) isn't a tap.
+        if (endingHold()) return;
         this.selected = this.selected?.uid === uid ? null : { kind: 'charm', uid };
         sfx('select');
         this.renderTrays();

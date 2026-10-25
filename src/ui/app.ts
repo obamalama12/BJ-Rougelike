@@ -140,17 +140,72 @@ export function burstAt(el: Element, opts: Parameters<typeof particles.burst>[2]
 
 let tipOwner: Element | null = null;
 
+// Touch screens have no hover, so holding a finger on something for a moment shows its tooltip
+// instead. The tooltip stays up after the finger lifts and closes on the next touch, and the tap
+// that ends the hold is swallowed so holding a Doodad or a shop item never buys or selects it.
+const HOLD_MS = 380;
+let holdTimer = 0;
+let heldOpen = false;
+/** True between a hold opening a tooltip and the tap that ends it (for handlers that act on release). */
+export function endingHold(): boolean {
+  return heldOpen;
+}
+document.addEventListener('pointerdown', (e) => {
+  if (e.pointerType !== 'touch') return;
+  heldOpen = false;
+  if (tipOwner) hideTip();
+}, { capture: true });
+document.addEventListener('click', (e) => {
+  if (!heldOpen) return;
+  heldOpen = false;
+  e.preventDefault();
+  e.stopImmediatePropagation();
+}, { capture: true });
+// No long-press menus or text callouts over the game.
+document.addEventListener('contextmenu', (e) => {
+  if ((e.target as Element | null)?.closest?.('.stage')) e.preventDefault();
+});
+
 export function tip(el: HTMLElement, content: () => string, side: 'top' | 'bottom' | 'right' | 'left' = 'top') {
-  el.addEventListener('pointerenter', () => {
+  el.addEventListener('pointerenter', (e) => {
+    if (e.pointerType === 'touch') return;
     tipOwner = el;
     showTip(el, content(), side);
     sfx('hover');
   });
-  el.addEventListener('pointerleave', () => {
+  el.addEventListener('pointerleave', (e) => {
+    if (e.pointerType === 'touch') return;
     if (tipOwner === el) hideTip();
   });
-  el.addEventListener('pointerdown', () => {
-    if (tipOwner === el) hideTip();
+  el.addEventListener('pointerdown', (e) => {
+    if (e.pointerType !== 'touch') {
+      if (tipOwner === el) hideTip();
+      return;
+    }
+    const sx = e.clientX;
+    const sy = e.clientY;
+    const cancel = () => {
+      clearTimeout(holdTimer);
+      el.removeEventListener('pointermove', onMove);
+      el.removeEventListener('pointerup', cancel);
+      el.removeEventListener('pointercancel', cancel);
+    };
+    const onMove = (m: PointerEvent) => {
+      if (Math.hypot(m.clientX - sx, m.clientY - sy) > 10) cancel();
+    };
+    clearTimeout(holdTimer);
+    holdTimer = window.setTimeout(() => {
+      cancel();
+      if (!el.isConnected) return;
+      tipOwner = el;
+      heldOpen = true;
+      showTip(el, content(), side);
+      sfx('hover');
+      navigator.vibrate?.(8);
+    }, HOLD_MS);
+    el.addEventListener('pointermove', onMove);
+    el.addEventListener('pointerup', cancel);
+    el.addEventListener('pointercancel', cancel);
   });
 }
 
