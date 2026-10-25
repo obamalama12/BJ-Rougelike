@@ -269,6 +269,8 @@ export interface Rules {
   bustLimit: number;
   dealerStand: number;
   dealerHitSoft17: boolean;
+  /** Woodgas: the dealer hits until he busts, even on 21. */
+  dealerHitsToBust: boolean;
   charlieSize: number;
   canDouble: boolean;
   canSplit: boolean;

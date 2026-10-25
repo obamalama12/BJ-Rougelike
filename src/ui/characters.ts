@@ -64,6 +64,7 @@ const LINES: Record<Mood, string[]> = {
 };
 
 const OUTLAW_INTROS: Record<string, string> = {
+  woodgas: 'Blackjack, huh? So I just keep takin’ cards, right? Hit me. Hit me again.',
   kappa: 'No folding at my table. You sat down, you play it out.',
   tsuchinoko: 'Toll road. A buck a card.',
   ubume: 'No doubling, no splitting. One bet per hand, like decent folk.',

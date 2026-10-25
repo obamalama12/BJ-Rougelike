@@ -221,7 +221,7 @@ export class Hud {
     this.refs.target.classList.toggle('xlong', this.refs.target.textContent.length > 7);
     if (t) {
       const rules = getRules(run);
-      this.refs.rules.textContent = `Dealer draws to ${rules.dealerStand}${rules.dealerHitSoft17 ? ' (hits soft 17)' : ''} \u00b7 Over ${rules.bustLimit} busts \u00b7 ${rules.charlieSize} cards without busting wins`;
+      this.refs.rules.textContent = `${rules.dealerHitsToBust ? 'Dealer hits until he busts' : `Dealer draws to ${rules.dealerStand}${rules.dealerHitSoft17 ? ' (hits soft 17)' : ''}`} \u00b7 Over ${rules.bustLimit} busts \u00b7 ${rules.charlieSize} cards without busting wins`;
     } else this.refs.rules.textContent = 'Beat the Outlaw to ride on to the next town';
     if (t) this.setScore(t.score, t.target);
   }

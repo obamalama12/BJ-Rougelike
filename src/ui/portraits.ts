@@ -1265,6 +1265,8 @@ export const CHARACTERS: Record<string, PortraitOpts & { name: string }> = {
   tango: { name: 'Tango the Toucan', species: 'toucan', hat: 'cowboy', accent: '#c8642a', accessory: 'bandana', accent2: '#2a8a5a', seed: 57 },
   dot: { name: 'Dot the Dodo', species: 'dodo', plumage: '#c9a47a', hat: 'feathered', accent: '#6a3d6e', accessory: 'scar', seed: 58 },
 
+  woodgas: { name: 'Woodgas', species: 'dodo', plumage: '#a89a7a', hat: 'derby', accent: '#7a8a3a', accessory: 'toothpick', extras: ['glasses'], seed: 77 },
+
   // --- the Outlaw's gang (henchmen, no curse of their own)
   goon_sid: { name: 'Snake-Eye Sid', species: 'crow', hat: 'bandit', accent: '#2a2430', accessory: 'bandana', accent2: '#8a2a1e', seed: 71 },
   goon_clem: { name: 'Crooked Clem', species: 'vulture', hat: 'cowboy', accent: '#5a4030', accessory: 'eyepatch', seed: 72 },

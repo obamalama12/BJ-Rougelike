@@ -86,3 +86,24 @@ describe('trail', () => {
     }
   });
 });
+
+describe('Woodgas', () => {
+  it('keeps hitting until he busts, naturals and 21 included', async () => {
+    const { startTable, beginHand, dealTo, afterDeal, stand, dealerShouldHit, dealerHit, cardsOf } = await import('../src/game/table');
+    for (let i = 0; i < 40; i++) {
+      const run = newRun(`WOOD${i}`, 'paper', 1);
+      startTable(run, 'host', 100, 'woodgas');
+      beginHand(run);
+      dealTo(run, 'player');
+      dealTo(run, 'dealer');
+      dealTo(run, 'player');
+      dealTo(run, 'dealer');
+      const deal = afterDeal(run);
+      expect(deal.dealerNatural).toBe(false);
+      if (run.table!.phase === 'player') stand(run);
+      if (!run.table!.hands.some((h) => !h.outcome)) continue;
+      while (dealerShouldHit(run)) dealerHit(run);
+      expect(handTotal(cardsOf(run, run.table!.dealer), getRules(run), 21, true).bust).toBe(true);
+    }
+  });
+});

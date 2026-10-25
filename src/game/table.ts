@@ -209,7 +209,8 @@ export function afterDeal(run: Run): DealResult {
   const playerNatural = pc.length === 2 && pt.total === 21;
   const up = dc[0];
   let dealerNatural = false;
-  if (up && (up.rank === 14 || isTenValue(up))) {
+  // A dealer who hits until he busts never stops on a natural either.
+  if (up && (up.rank === 14 || isTenValue(up)) && !rules.dealerHitsToBust) {
     dealerNatural = handTotal(dc, rules, 21, true).total === 21;
   }
   const c = ctx(run, { hand: h, cards: pc });
@@ -494,6 +495,7 @@ export function dealerShouldHit(run: Run): boolean {
   if (dt.bust) return false;
   // With the deck run dry the dealer would only draw conjured stones (worth 0) forever: stand.
   if (!t.shoe.length && !t.discard.some((id) => !inPlay(t).has(id))) return false;
+  if (rules.dealerHitsToBust) return true;
   if (dt.total < rules.dealerStand) return true;
   if (dt.total === 17 && dt.soft && rules.dealerHitSoft17 && rules.dealerStand <= 17) return true;
   return false;

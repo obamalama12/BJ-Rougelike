@@ -142,6 +142,14 @@ H({ id: 'dot', name: 'Dot the Dodo', title: 'Last of Her Kind', icon: 'dodo', hu
   text: 'Your first card each hand is dealt face down, and ties count as losses',
   rules: (r) => { r.firstCardDown = true; r.dealerWinsTies = true; } });
 
+// --- The rare one: once in a while he turns up instead of a town's Outlaw ----------
+H({ id: 'woodgas', name: 'Woodgas', title: 'Doesn’t Know the Rules', icon: 'dodo', hue: '#a8c46a', scale: 1, minNight: 0, rare: true,
+  text: 'Doesn’t know how to play: the dealer keeps hitting until he busts',
+  rules: (r) => { r.dealerHitsToBust = true; } });
+
+/** Chance that a town's Outlaw is swapped for Woodgas. */
+export const RARE_OUTLAW_CHANCE = 0.05;
+
 /** The Outlaw's henchmen: nameless muscle who carry their boss's curse to the gang stops. */
 export const GOONS = ['goon_sid', 'goon_clem', 'goon_ted', 'goon_mabel', 'goon_dusty', 'goon_ike'];
 

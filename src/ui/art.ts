@@ -347,7 +347,7 @@ export function hostTooltip(id: string): string {
   const host = HOST[id];
   if (!host) return '';
   return `<div class="tt-title">${esc(host.name)}</div><div class="tt-sub2">${esc(host.title)}</div><div class="tt-body">${fmt(host.text)}</div>
-    <div class="tt-tags"><span class="tag-kind k-host">${host.showdown ? 'Showdown Outlaw' : 'Outlaw'}</span><span class="tag-sub">Target X${host.scale}</span></div>`;
+    <div class="tt-tags"><span class="tag-kind k-host">${host.rare ? 'Rare Outlaw' : host.showdown ? 'Showdown Outlaw' : 'Outlaw'}</span><span class="tag-sub">Target X${host.scale}</span></div>`;
 }
 
 export function shoeCard(id: string): HTMLElement {

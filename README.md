@@ -33,7 +33,9 @@ npm run build:single  # one self-contained HTML file in dist-single/
   - **Strange Happenings**: 34 encounters with choices, including a quick-draw duel. You won't
     meet the same one twice in a run until you've seen them all.
   - The **Outlaw** at the end of the town: the only boss you meet there, shown on the Wanted
-    poster. Outlaws come in tiers, and each town draws from a nastier tier than the last. If you lose, you can try again as long as you
+    poster. Outlaws come in tiers, and each town draws from a nastier tier than the last. Once in a
+    while (5% of towns) the Outlaw is **Woodgas** instead, who doesn't know how to play and keeps
+    hitting until he busts. If you lose, you can try again as long as you
     have Grit left, and each retry's target is 15% lower.
 - **A table** is blackjack against a dealer. You have a number of **Hands** and **Folds**.
   Reach the target score before you run out of hands, or you lose Grit.

@@ -226,6 +226,7 @@ export function getRules(run: Run): Rules {
     bustLimit: 21,
     dealerStand: 17,
     dealerHitSoft17: false,
+    dealerHitsToBust: false,
     charlieSize: 5,
     canDouble: true,
     canSplit: true,
@@ -544,7 +545,7 @@ export function outlawPool(run: Run, exclude: string[] = []): HostDef[] {
   const showdown = run.night % NIGHTS === 0;
   const fits = (h: HostDef) =>
     !!h.showdown === showdown && (showdown || (run.night < NIGHTS ? h.minNight === Math.min(run.night, 6) : h.minNight >= 4));
-  const all = Object.values(HOST).filter((h) => fits(h) && !exclude.includes(h.id));
+  const all = Object.values(HOST).filter((h) => !h.rare && fits(h) && !exclude.includes(h.id));
   const fresh = all.filter((h) => !run.hostsSeen.includes(h.id));
   return fresh.length ? fresh : all;
 }

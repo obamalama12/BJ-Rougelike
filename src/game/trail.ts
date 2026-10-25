@@ -1,7 +1,7 @@
 // The trail: a branching map per Town, Grit, and the non-table stops along the way.
 
 import type { NodeKind, Run, TableKind, TrailNode } from '../core/types';
-import { GOONS, HOST } from '../content/hosts';
+import { GOONS, HOST, RARE_OUTLAW_CHANCE } from '../content/hosts';
 import { EVENT, EVENTS } from '../content/events';
 import { HAND_TYPES } from '../core/cards';
 import { NIGHTS, outlawPool, ctx, discover, fire, has, nightBase, rerollHost, rng, availableVouchers } from './engine';
@@ -226,7 +226,7 @@ export function nextTown(run: Run) {
 /** Pick the Outlaw, the shop's Deed and lay out the trail for the current town. */
 export function startTownState(run: Run) {
   const r = rng(run);
-  run.nightHost = r.pick(outlawPool(run)).id;
+  run.nightHost = r.next() < RARE_OUTLAW_CHANCE ? 'woodgas' : r.pick(outlawPool(run)).id;
   run.hostsSeen.push(run.nightHost);
   run.flags.hostRerolls = 0;
   run.flags.wantedPoster = false;

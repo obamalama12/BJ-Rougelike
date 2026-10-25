@@ -166,6 +166,8 @@ export interface HostDef {
   minNight: number;
   maxNight?: number;
   showdown?: boolean;
+  /** Never drawn from the tiers: a rare stand-in for any town's Outlaw (see RARE_OUTLAW_CHANCE). */
+  rare?: boolean;
   rules?: (r: Rules, run: Run) => void;
   /** Called when the table starts. */
   start?: (c: Ctx) => void;
