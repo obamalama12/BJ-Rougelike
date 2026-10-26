@@ -253,7 +253,7 @@ export const EVENTS: EventDef[] = [
       { label: 'Trade an ability', detail: 'Lose a random ability, good or bad. Gain an extra path', can: (run) => run.charms.length > 0,
         apply: (c) => {
           const k = c.rng.pick(c.run.charms);
-          c.run.charms = c.run.charms.filter((x) => x.uid !== k.uid);
+          c.destroyCharm(k.uid);
           c.createCharm();
           return `He takes your ${CHARM[k.id]?.name ?? 'ability'} and draws you a map to somewhere new.`;
         } },

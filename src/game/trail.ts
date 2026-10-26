@@ -5,7 +5,7 @@ import { GOONS, HOST, rareOutlawChance } from '../content/hosts';
 import { EVENT, EVENTS } from '../content/events';
 import { HAND_TYPES } from '../core/cards';
 import { CHARM } from '../content/charms';
-import { NIGHTS, outlawPool, ctx, discover, fire, has, nightBase, rerollHost, rng, availableVouchers } from './engine';
+import { NIGHTS, outlawPool, gritCapOf, clampGrit, ctx, discover, fire, has, nightBase, rerollHost, rng, availableVouchers } from './engine';
 import { startTable } from './table';
 
 export const COLS = 9;
@@ -255,7 +255,7 @@ export function hurt(run: Run, n: number): boolean {
 
 /** Max Grit including ability bonuses. */
 export function gritCap(run: Run): number {
-  return run.maxGrit + (has(run, 'iron_gizzard') ? 4 : 0);
+  return gritCapOf(run);
 }
 
 export function heal(run: Run, n: number) {
@@ -310,6 +310,7 @@ export function campForget(run: Run): string | null {
   if (!banes.length) return null;
   const k = rng(run).pick(banes);
   run.charms = run.charms.filter((x) => x.uid !== k.uid);
+  clampGrit(run);
   return CHARM[k.id]?.name ?? null;
 }
 

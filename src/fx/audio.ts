@@ -113,8 +113,8 @@ class AudioEngine {
     const lp = ctx.createBiquadFilter();
     o.type = 'sawtooth';
     o2.type = 'triangle';
-    o.frequency.value = f;
-    o2.frequency.value = f * 2.003;
+    o.frequency.value = this.hz(f);
+    o2.frequency.value = this.hz(f * 2.003);
     lp.type = 'lowpass';
     lp.Q.value = 3;
     lp.frequency.setValueAtTime(Math.min(12000, f * 9 * bright), t);
@@ -133,6 +133,11 @@ class AudioEngine {
     return g;
   }
 
+  /** Keep a tone below the highest pitch the audio device can play (high combo notes overshot it). */
+  private hz(f: number): number {
+    return Math.min(f, (this.ctx?.sampleRate ?? 44100) / 2 - 1);
+  }
+
   private bell(f: number, t: number, vol: number, dest: AudioNode, dur = 1.6) {
     const ctx = this.ctx!;
     const ratios = [1, 2.76, 5.4, 8.93];
@@ -142,7 +147,7 @@ class AudioEngine {
     ratios.forEach((r, i) => {
       const o = ctx.createOscillator();
       o.type = 'sine';
-      o.frequency.value = f * r;
+      o.frequency.value = this.hz(f * r);
       const og = ctx.createGain();
       og.gain.value = 1 / (i + 1.4);
       o.connect(og).connect(g);
@@ -176,8 +181,8 @@ class AudioEngine {
     const o = ctx.createOscillator();
     const g = ctx.createGain();
     o.type = 'sine';
-    o.frequency.setValueAtTime(f0, t);
-    o.frequency.exponentialRampToValueAtTime(f1, t + dur * 0.5);
+    o.frequency.setValueAtTime(this.hz(f0), t);
+    o.frequency.exponentialRampToValueAtTime(this.hz(f1), t + dur * 0.5);
     this.env(g, t, 0.003, vol, dur);
     o.connect(g).connect(dest);
     o.start(t);
@@ -190,8 +195,8 @@ class AudioEngine {
     const o = ctx.createOscillator();
     const g = ctx.createGain();
     o.type = 'sine';
-    o.frequency.setValueAtTime(f * 1.5, t);
-    o.frequency.exponentialRampToValueAtTime(f, t + 0.02);
+    o.frequency.setValueAtTime(this.hz(f * 1.5), t);
+    o.frequency.exponentialRampToValueAtTime(this.hz(f), t + 0.02);
     this.env(g, t, 0.001, vol, 0.12);
     const bp = ctx.createBiquadFilter();
     bp.type = 'bandpass';
@@ -209,9 +214,9 @@ class AudioEngine {
     o.type = 'sawtooth';
     const f0 = (goose ? 330 : 520) * pitch;
     const dur = goose ? 0.32 : 0.18;
-    o.frequency.setValueAtTime(f0 * 1.15, t);
-    o.frequency.exponentialRampToValueAtTime(f0, t + 0.04);
-    o.frequency.exponentialRampToValueAtTime(f0 * (goose ? 0.82 : 0.7), t + dur);
+    o.frequency.setValueAtTime(this.hz(f0 * 1.15), t);
+    o.frequency.exponentialRampToValueAtTime(this.hz(f0), t + 0.04);
+    o.frequency.exponentialRampToValueAtTime(this.hz(f0 * (goose ? 0.82 : 0.7)), t + dur);
     const f1 = ctx.createBiquadFilter();
     f1.type = 'bandpass';
     f1.frequency.value = goose ? 1100 : 1500;
@@ -235,8 +240,8 @@ class AudioEngine {
     const ctx = this.ctx!;
     const o = ctx.createOscillator();
     o.type = 'sine';
-    o.frequency.setValueAtTime(f * 0.94, t);
-    o.frequency.exponentialRampToValueAtTime(f, t + 0.08);
+    o.frequency.setValueAtTime(this.hz(f * 0.94), t);
+    o.frequency.exponentialRampToValueAtTime(this.hz(f), t + 0.08);
     const lfo = ctx.createOscillator();
     const lg = ctx.createGain();
     lfo.frequency.value = 5.5;
@@ -441,7 +446,7 @@ class AudioEngine {
     for (const [semi, det] of [[root, -6], [root, 7], [root + 7, 3], [root + 12, -2]] as [number, number][]) {
       const o = ctx.createOscillator();
       o.type = 'sawtooth';
-      o.frequency.value = this.freq(semi);
+      o.frequency.value = this.hz(this.freq(semi));
       o.detune.value = det;
       o.connect(lp);
       osc.push(o);

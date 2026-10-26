@@ -156,7 +156,7 @@ const st = (s: { state: Record<string, any> }) => s.state;
 const won = (o?: string) => o === 'win' || o === 'blackjack' || o === 'charlie' || o === 'dealerbust';
 const mostPlayed = (run: Run): HandTypeId =>
   [...HAND_TYPES].sort((a, b) => (run.handPlays[b.id] ?? 0) - (run.handPlays[a.id] ?? 0))[0].id;
-const gritCapOf = (run: Run) => run.maxGrit + (run.charms.some((k) => k.id === 'iron_gizzard' && !k.disabled) ? 4 : 0);
+const gritCapOf = (run: Run) => run.maxGrit + (run.charms.some((k) => k.id === 'iron_gizzard') ? 4 : 0);
 const healRun = (run: Run, n: number) => (run.grit = Math.min(gritCapOf(run), run.grit + n));
 const suits = (cards: Card[]) => new Set(cards.filter((k) => k.ink !== 'stone').map((k) => k.suit)).size;
 

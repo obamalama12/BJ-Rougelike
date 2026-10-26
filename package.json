@@ -13,6 +13,7 @@
     "sim": "vite-node scripts/simulate.ts",
     "balance": "vite-node scripts/balance.ts",
     "probe": "vite-node scripts/probe-hosts.ts",
+    "fuzz": "vite-node scripts/fuzz.ts",
     "build:single": "node scripts/build-artifact.mjs"
   },
   "devDependencies": {

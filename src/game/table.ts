@@ -168,9 +168,16 @@ export function beginHand(run: Run) {
   run.stats.handsPlayed++;
   const rules = getRules(run);
   if (rules.handCost) {
-    run.money -= rules.handCost;
-    fxQueue.push({ t: 'money', v: -rules.handCost, src: { kind: 'host' } });
+    const paid = pay(run, rules.handCost);
+    if (paid) fxQueue.push({ t: 'money', v: -paid, src: { kind: 'host' } });
   }
+}
+
+/** Table fees (tolls, taxes, fold charges) take what you have, but never put you in debt. */
+function pay(run: Run, n: number): number {
+  const paid = Math.min(n, Math.max(0, run.money));
+  run.money -= paid;
+  return paid;
 }
 
 /** Deal one card to the player (hand index) or the dealer. */
@@ -373,9 +380,9 @@ export function hit(run: Run): Card | null {
   if (!card) return null;
   h.hits += 1;
   if (rules.hitCost) {
-    run.money -= rules.hitCost;
+    const paid = pay(run, rules.hitCost);
     t.hostTriggered = true;
-    fxQueue.push({ t: 'money', v: -rules.hitCost, src: { kind: 'host' } });
+    if (paid) fxQueue.push({ t: 'money', v: -paid, src: { kind: 'host' } });
   }
   const c = ctx(run, { hand: h, cards: cardsOf(run, h.cards) });
   currentHost(run)?.onHit?.(c, card);
@@ -462,9 +469,9 @@ export function fold(run: Run) {
   run.stats.folds++;
   run.stats.cardsFolded += cards.length;
   if (t.kind === 'host' && t.hostId === 'mokumokuren' && currentHost(run)) {
-    run.money -= 3;
+    const paid = pay(run, 3);
     t.hostTriggered = true;
-    fxQueue.push({ t: 'money', v: -3, src: { kind: 'host' } });
+    if (paid) fxQueue.push({ t: 'money', v: -paid, src: { kind: 'host' } });
   }
   const c = ctx(run, { hand: h, cards, outcome: 'fold' });
   fireWith(c, 'fold', cards);

@@ -157,6 +157,16 @@ function sumSlots(run: Run, key: 'charm' | 'cons' | 'hands' | 'folds' | 'interes
   return n;
 }
 
+/** Max Grit. Iron Gizzard counts even while an Outlaw has it switched off for a table. */
+export function gritCapOf(run: Run): number {
+  return run.maxGrit + (run.charms.some((k) => k.id === 'iron_gizzard') ? 4 : 0);
+}
+
+/** Losing a max-Grit ability (or max Grit itself) takes the extra Grit with it. */
+export function clampGrit(run: Run) {
+  run.grit = Math.min(run.grit, gritCapOf(run));
+}
+
 export function charmSlots(run: Run): number {
   return run.baseCharmSlots + sumSlots(run, 'charm') + run.charms.filter((k) => k.finish === 'phantom').length;
 }
@@ -475,6 +485,7 @@ export function destroyCharm(run: Run, uid: number) {
     return;
   }
   run.charms = run.charms.filter((x) => x.uid !== uid);
+  clampGrit(run);
   fxQueue.push({ t: 'destroyCharm', uid });
   fire(run, 'charmDestroyed');
 }

@@ -4,7 +4,7 @@
 
 import type { Run } from '../core/types';
 import { ABILITY, INSTANT, PATHS, outcomeOf, type Outcome } from '../content/paths';
-import { charmSlots, discover, makeCharm, rng } from './engine';
+import { charmSlots, clampGrit, discover, makeCharm, rng } from './engine';
 import { finishNode } from './trail';
 
 /** How many unmarked paths the trail forks into. */
@@ -62,6 +62,7 @@ export function dropAbility(run: Run, uid: number): boolean {
   if (!road?.mustDrop || uid === road.mustDrop) return false;
   if (!run.charms.some((k) => k.uid === uid)) return false;
   run.charms = run.charms.filter((k) => k.uid !== uid);
+  clampGrit(run);
   // Heavy Saddle can leave the belt over-full even after one drop.
   if (run.charms.length <= charmSlots(run)) road.mustDrop = undefined;
   return true;
