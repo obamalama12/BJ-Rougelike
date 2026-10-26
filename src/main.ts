@@ -25,8 +25,8 @@ import { Hud } from './ui/hud';
 import { TableScreen } from './ui/screens/table';
 import { trailScreen } from './ui/screens/trail';
 import { eventScreen, docScreen, campScreen } from './ui/screens/stops';
-import { shopScreen } from './ui/screens/shop';
 import { packScreen } from './ui/screens/pack';
+import { roadScreen } from './ui/screens/road';
 import { titleScreen, gameOverScreen, victoryScreen } from './ui/screens/menus';
 import { applySettings } from './ui/screens/options';
 import { background } from './fx/background';
@@ -92,8 +92,8 @@ function render() {
     main.appendChild(docScreen(hud));
   } else if (run.phase === 'camp') {
     main.appendChild(campScreen(hud));
-  } else if (run.phase === 'shop') {
-    main.appendChild(shopScreen(hud));
+  } else if (run.phase === 'road') {
+    main.appendChild(roadScreen(hud));
   } else if (run.phase === 'pack') {
     main.appendChild(packScreen(hud));
   }

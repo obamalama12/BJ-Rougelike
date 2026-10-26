@@ -393,3 +393,104 @@
 .duel-sign.won { box-shadow: inset 0 0 0 4px var(--stock), inset 0 0 0 6px var(--plate-sage), var(--lift-3); }
 .duel-sign.lost { box-shadow: inset 0 0 0 4px var(--stock), inset 0 0 0 6px var(--plate-verm), var(--lift-3); }
 @keyframes drawPop { from { transform: scale(0.4); opacity: 0; } }
+
+/* --- The fork in the road ------------------------------------------------------------ */
+.stop-card.bill-road { --plate: var(--plate-sage); width: 860px; }
+.road-row { display: flex; gap: 22px; justify-content: center; width: 100%; margin-top: 6px; }
+/* A signpost: a weathered board on a post, nothing written on it that gives the road away. */
+.road-sign {
+  position: relative;
+  width: 236px;
+  padding: 0 0 52px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  animation: signIn 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.3) both;
+  animation-delay: calc(var(--i) * 0.09s + 0.15s);
+  transition: transform 0.2s cubic-bezier(0.2, 0.9, 0.3, 1.4);
+}
+@keyframes signIn { from { opacity: 0; transform: translateY(30px) rotate(-4deg); } }
+.road-sign:nth-child(1) { rotate: -2deg; }
+.road-sign:nth-child(3) { rotate: 2deg; }
+.road-sign:hover, .road-sign:focus-visible { transform: translateY(-8px) scale(1.03); outline: none; }
+.rs-post {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 16px;
+  height: 70px;
+  margin-left: -8px;
+  border: 2px solid var(--key);
+  border-radius: 3px;
+  background: repeating-linear-gradient(90deg, #7a4a26 0 4px, #6a3d1e 4px 7px);
+}
+.rs-board {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-height: 200px;
+  padding: 18px 16px 16px;
+  color: var(--stock);
+  background: var(--fibre), linear-gradient(180deg, #8a5a32, #6e4422);
+  background-blend-mode: overlay, normal;
+  border: 2px solid var(--key);
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 3px rgba(42, 20, 8, 0.25), inset 0 2px 0 rgba(255, 220, 170, 0.25), var(--lift-2);
+}
+.road-sign:hover .rs-board { box-shadow: inset 0 0 0 3px rgba(42, 20, 8, 0.25), inset 0 2px 0 rgba(255, 220, 170, 0.25), 0 0 0 3px #f6cf72, var(--lift-3); }
+.rs-icon { width: 64px; height: 64px; color: var(--key); --i1: #e8c890; --i2: #f8eed6; --i3: var(--key); --i4: #f2c870; }
+.rs-icon .icon { width: 100%; height: 100%; }
+.rs-name { font-family: var(--f-display); font-size: 21px; line-height: 1.1; text-align: center; text-shadow: 0 2px 0 rgba(20, 8, 2, 0.6); text-wrap: balance; }
+.rs-scene { font-family: var(--f-hand); font-weight: 600; font-size: 20px; line-height: 1.1; text-align: center; color: #f2dcae; }
+.rs-key {
+  position: absolute;
+  top: -10px;
+  left: -8px;
+  z-index: 2;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  font: 700 14px var(--f-body);
+  color: var(--key);
+  background: var(--stock);
+  border: 2px solid var(--key);
+  border-radius: 50%;
+}
+
+/* What was down there */
+.road-reveal { display: flex; flex-direction: column; align-items: center; gap: 6px; animation: revealIn 0.5s cubic-bezier(0.2, 1.2, 0.3, 1) both; }
+@keyframes revealIn { from { opacity: 0; transform: scale(0.7) rotate(-6deg); } }
+.rr-banner {
+  padding: 4px 22px 5px;
+  font-family: var(--f-display);
+  font-size: 26px;
+  color: var(--stock);
+  border: 2px solid var(--key);
+  border-radius: 6px;
+  transform: rotate(-3deg);
+  box-shadow: var(--lift-1);
+}
+.road-reveal.good .rr-banner { background: #3f8f52; }
+.road-reveal.bad .rr-banner { background: #a8321e; }
+.road-art { position: relative; width: 130px; height: 172px; margin: 4px 0; }
+.rr-icon { width: 120px; height: 120px; margin: 4px 0; color: var(--key); --i1: #e8c890; --i2: #f8eed6; --i3: var(--key); --i4: #f2c870; }
+.road-reveal.bad .rr-icon { --i1: #e88a70; }
+.rr-icon .icon { width: 100%; height: 100%; }
+.rr-name { font-family: var(--f-display); font-size: 30px; line-height: 1.05; color: var(--key); }
+.rr-text { max-width: 560px; text-align: center; font-size: 18px; font-weight: 600; line-height: 1.35; color: var(--key-2); }
+
+/* A full belt: pick which ability to leave behind */
+.road-drop-title { margin-top: 4px; font-family: var(--f-display); font-size: 20px; color: #a8321e; }
+.road-drop { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.road-drop-slot { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 6px; background: none; border: 2px dashed transparent; border-radius: 10px; cursor: pointer; }
+.road-drop-slot:hover { border-color: #a8321e; background: rgba(168, 50, 30, 0.08); }
+.road-drop-card { position: relative; width: 84px; height: 112px; }
+.rd-label { font: 700 11px var(--f-body); letter-spacing: 0.12em; text-transform: uppercase; color: #a8321e; }
+.rr-text .t-hl, .road-reveal .t-money { color: #2f6a3a; }
+.road-reveal.bad .rr-text .t-hl { color: #8a2414; }
+.rr-text .t-chips { color: var(--plate-denim); }
+.rr-text .t-mult { color: var(--plate-verm); }

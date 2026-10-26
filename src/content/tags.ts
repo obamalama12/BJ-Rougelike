@@ -7,39 +7,15 @@ import type { HandTypeId } from '../core/types';
 export const TAGS: TagDef[] = [];
 const T = (d: TagDef) => TAGS.push(d);
 
-T({ id: 'uncommon', name: 'Green Telegram', icon: 'telegram', hue: '#3fcf8e', when: 'shop',
-  text: 'The next shop has a free {g:Uncommon} Doodad',
-  apply: (c) => { c.run.flags.shopCharm = { rarity: 2 }; return true; } });
-T({ id: 'rare', name: 'Red Telegram', icon: 'telegram', hue: '#ff3d3d', when: 'shop',
-  text: 'The next shop has a free {g:Rare} Doodad',
-  apply: (c) => { c.run.flags.shopCharm = { rarity: 3 }; return true; } });
-T({ id: 'foil', name: 'Shiny Telegram', icon: 'spark', hue: '#bfe9ff', when: 'shop',
-  text: 'The next shop has a free {g:Shiny} Doodad',
-  apply: (c) => { c.run.flags.shopCharm = { finish: 'foil' }; return true; } });
-T({ id: 'holo', name: 'Holo Telegram', icon: 'spark', hue: '#ff7aa8', when: 'shop',
-  text: 'The next shop has a free {g:Holographic} Doodad',
-  apply: (c) => { c.run.flags.shopCharm = { finish: 'holo' }; return true; } });
-T({ id: 'prism', name: 'Prism Telegram', icon: 'crystal', hue: '#c9b8ff', when: 'shop',
-  text: 'The next shop has a free {g:Prismatic} Doodad',
-  apply: (c) => { c.run.flags.shopCharm = { finish: 'prism' }; return true; } });
-T({ id: 'phantom', name: 'Ghostly Telegram', icon: 'ghost', hue: '#d8ffe0', when: 'shop', minNight: 2,
-  text: 'The next shop has a free {g:Ghostly} Doodad',
-  apply: (c) => { c.run.flags.shopCharm = { finish: 'phantom' }; return true; } });
 T({ id: 'investment', name: 'Investment Telegram', icon: 'moneybag', hue: '#ffd23f', when: 'hostBeaten',
   text: 'Earn {$:25} after defeating the next Outlaw',
   apply: (c) => { c.money(25); return true; } });
-T({ id: 'voucher', name: 'Deed Telegram', icon: 'scroll', hue: '#ff6a5a', when: 'shop',
-  text: 'Adds a {g:Deed} to the next shop',
-  apply: (c) => { c.run.flags.extraVoucher = (c.run.flags.extraVoucher ?? 0) + 1; return true; } });
 T({ id: 'boss', name: 'Run ’Em Outta Town', icon: 'boot', hue: '#ff3d3d', when: 'now',
   text: 'Rerolls the Outlaw of this Town',
   apply: (c) => { c.run.flags.rerollHost = true; return true; } });
 T({ id: 'standard', name: 'Card Telegram', icon: 'cards', hue: '#f7ecd2', when: 'now',
   text: 'Opens a free {g:Mega Card Crate}',
   apply: (c) => { c.run.flags.openPack = 'card_mega'; return true; } });
-T({ id: 'charm_pack', name: 'Doodad Telegram', icon: 'crate', hue: '#ff8a3d', when: 'now',
-  text: 'Opens a free {g:Mega Doodad Crate}',
-  apply: (c) => { c.run.flags.openPack = 'charm_mega'; return true; } });
 T({ id: 'fortune_pack', name: 'Tonic Telegram', icon: 'tonic', hue: '#c9b8ff', when: 'now',
   text: 'Opens a free {g:Mega Tonic Crate}',
   apply: (c) => { c.run.flags.openPack = 'fortune_mega'; return true; } });
@@ -55,12 +31,6 @@ T({ id: 'handy', name: 'Handy Telegram', icon: 'hand', hue: '#ffcf8a', when: 'no
 T({ id: 'garbage', name: 'Sweeper Telegram', icon: 'broom', hue: '#c9a37a', when: 'now', minNight: 2,
   text: 'Earn {$:1} for each fold left unused this run',
   apply: (c) => { c.money(c.run.flags.unusedFolds ?? 0); return true; } });
-T({ id: 'coupon', name: 'Coupon', icon: 'ticket', hue: '#ff9a7a', when: 'shop',
-  text: 'Everything in the next shop is free {d:(items from rerolls are not)}',
-  apply: (c) => { c.run.flags.coupon = true; return true; } });
-T({ id: 'd6', name: 'Dice Telegram', icon: 'dice', hue: '#f7ecd2', when: 'shop',
-  text: 'Rerolls in the next shop start at {$:0}',
-  apply: (c) => { c.run.flags.d6 = true; return true; } });
 T({ id: 'double', name: 'Double Telegram', icon: 'telegram', hue: '#ffd27a', when: 'now',
   text: 'Gives a copy of the next Telegram you take',
   apply: () => false });
@@ -75,8 +45,8 @@ T({ id: 'orbital', name: 'The Legend Grows', icon: 'book', hue: '#9fc7ff', when:
     return true;
   } });
 T({ id: 'topup', name: 'Posse Up', icon: 'duckling', hue: '#7fe07a', when: 'now',
-  text: 'Creates up to {g:2} common Doodads',
-  apply: (c) => { c.createCharm({ rarity: 1 }); c.createCharm({ rarity: 1 }); return true; } });
+  text: 'Two extra paths to choose after your next win',
+  apply: (c) => { c.createCharm(); c.createCharm(); return true; } });
 T({ id: 'speed', name: 'Pony Express Telegram', icon: 'horse', hue: '#7fe8ff', when: 'now',
   text: 'Earn {$:5} for each table skipped this run',
   apply: (c) => { c.money(5 * c.run.stats.tablesSkipped); return true; } });

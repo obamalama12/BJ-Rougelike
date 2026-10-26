@@ -3,7 +3,8 @@
 import type { Run, HandTypeId } from '../../core/types';
 import { HAND_TYPES, handBase } from '../../core/cards';
 import { EVENT } from '../../content/events';
-import { chooseEvent, resolveDuel, finishNode, docPatch, docFull, docRemove, DOC_PRICES, campRest, campYarn, campWhittle, gritCap } from '../../game/trail';
+import { CHARM } from '../../content/charms';
+import { chooseEvent, resolveDuel, finishNode, docPatch, docFull, docRemove, DOC_PRICES, campRest, campYarn, campForget, gritCap } from '../../game/trail';
 import { drainFx, rng } from '../../game/engine';
 import { app, button, save, tip, toast, wait, burstAt, screenShake } from '../app';
 import { div, fmt, h, clear, fmtNum } from '../dom';
@@ -334,9 +335,10 @@ export function campScreen(hud: Hud): HTMLElement {
         done();
       });
       choice('Spin a yarn', 'Level up a hand type of your choice', true, () => render(true));
-      choice('Whittle', 'A random Doodad without a finish becomes {g:Shiny} ({c:+50} Pot)', run.charms.some((k) => !k.finish), () => {
-        campWhittle(run);
-        sfx('buy');
+      choice('Sleep it off', 'Get rid of one of your {r:Banes}, picked at random', run.charms.some((k) => CHARM[k.id]?.bane), () => {
+        const name = campForget(run);
+        if (name) toast(`You wake up without ${name}`, 'good');
+        sfx('levelup');
         done();
       });
       card.appendChild(list);

@@ -202,6 +202,12 @@ function charmRoom(run: Run) {
   return charmSlotsFree(run) > 0;
 }
 
+// Doodads are gone: drop the Tonics and Moonshine that only worked on them.
+const DOODAD_ONLY = new Set(['the_summoning', 'the_appraiser', 'the_wheel', 'ghost_mask', 'skull_mask', 'hex_mask', 'dragon_mask', 'silent_mask']);
+for (const list of [FORTUNES, MASKS]) {
+  for (let i = list.length - 1; i >= 0; i--) if (DOODAD_ONLY.has(list[i].id)) list.splice(i, 1);
+}
+
 export const CONS: Record<string, ConsDef> = Object.fromEntries(
   [...FORTUNES, ...STARS, ...MASKS].map((d) => [d.id, d]),
 );

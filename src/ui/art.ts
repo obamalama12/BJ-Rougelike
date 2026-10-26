@@ -214,7 +214,7 @@ export function cardTooltip(c: Card, debuffed = false): string {
 export function charmFront(id: string): string {
   const d = CHARM[id];
   if (!d) return '';
-  return `<div class="ch-body r${d.rarity}" style="--hue:${d.hue}">
+  return `<div class="ch-body r${d.rarity}${d.bane ? ' bane' : ' boon'}" style="--hue:${d.hue}">
     <div class="ch-rays"></div>
     <div class="ch-art">${iconSvg(d.icon)}</div>
     <div class="ch-name">${esc(d.name)}</div>
@@ -237,7 +237,7 @@ export function charmTooltip(run: Run | null, id: string, inst?: CharmInst, extr
     <div class="tt-body">${fmt(text)}</div>
     ${fin ? `<div class="tt-sub"><b>${FINISH_INFO[fin].name}</b>: ${fmt(FINISH_INFO[fin].charmText)}</div>` : ''}
     ${inst?.disabled ? '<div class="tt-sub bad">Disabled by the Outlaw</div>' : ''}
-    <div class="tt-tags"><span class="tag-rarity r${d.rarity}">${RARITY[d.rarity]}</span>${inst ? `<span class="tag-sell">Sells for $${sellValue(inst)}</span>` : ''}${extra}</div>`;
+    <div class="tt-tags">${d.bane ? '<span class="tag-kind k-bane">Bane</span>' : '<span class="tag-kind k-boon">Boon</span>'}${extra}</div>`;
 }
 
 let _fake: Run | null = null;
@@ -329,8 +329,8 @@ export function packCard(packId: string): HTMLElement {
 
 export function packTooltip(packId: string, extra = ''): string {
   const p = PACK[packId];
-  const what: Record<string, string> = { charm: 'Doodads', fortune: 'Tonics', star: 'Tall Tales', mask: 'Moonshine', card: 'playing cards' };
-  return `<div class="tt-title">${esc(p.name)}</div><div class="tt-body">Choose ${fmt(`{g:${p.picks}}`)} of up to ${fmt(`{g:${p.size}}`)} ${what[p.kind]}${p.kind === 'card' ? ' to add to your deck' : p.kind === 'charm' ? '' : ' to use immediately'}</div>
+  const what: Record<string, string> = { fortune: 'Tonics', star: 'Tall Tales', mask: 'Moonshine', card: 'playing cards' };
+  return `<div class="tt-title">${esc(p.name)}</div><div class="tt-body">Choose ${fmt(`{g:${p.picks}}`)} of up to ${fmt(`{g:${p.size}}`)} ${what[p.kind]}${p.kind === 'card' ? ' to add to your deck' : ' to use immediately'}</div>
     <div class="tt-tags"><span class="tag-kind k-pack">Crate</span>${extra}</div>`;
 }
 

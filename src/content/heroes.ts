@@ -1,7 +1,8 @@
 // Playable gunslingers: who you are on the trail, and the edge you start with.
 
 import type { Run } from '../core/types';
-import { createCharm } from '../game/engine';
+import { makeCharm, rng } from '../game/engine';
+import { ABILITIES } from './paths';
 
 export interface HeroDef {
   id: string;
@@ -21,9 +22,10 @@ export const HEROES: HeroDef[] = [
     name: 'The Kid',
     title: 'Greenhorn with a Lucky Bandana',
     perk: 'Lucky Bandana',
-    text: 'Start the run with a random {g:uncommon} Doodad',
+    text: 'Start the run with a random {g:Boon}',
     apply: (run) => {
-      createCharm(run, { rarity: 2 });
+      const boons = ABILITIES.filter((a) => !a.bane);
+      run.charms.push(makeCharm(run, rng(run).pick(boons).id));
     },
   },
   {

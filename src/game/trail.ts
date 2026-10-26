@@ -4,9 +4,9 @@ import type { NodeKind, Run, TableKind, TrailNode } from '../core/types';
 import { GOONS, HOST, rareOutlawChance } from '../content/hosts';
 import { EVENT, EVENTS } from '../content/events';
 import { HAND_TYPES } from '../core/cards';
+import { CHARM } from '../content/charms';
 import { NIGHTS, outlawPool, ctx, discover, fire, has, nightBase, rerollHost, rng, availableVouchers } from './engine';
 import { startTable } from './table';
-import { openShop } from './shop';
 
 export const COLS = 9;
 /** Columns made entirely of the Outlaw's gang: every route meets each of them. */
@@ -24,12 +24,11 @@ export const TABLE_INFO: Record<'saloon' | 'highstakes' | 'bank' | 'gang' | 'out
 export const NODE_INFO: Record<NodeKind, { name: string; icon: string; blurb: string }> = {
   saloon: { name: 'Saloon Game', icon: 'saloon', blurb: 'A regular card table. Low target, small purse' },
   highstakes: { name: 'High Stakes', icon: 'tophat', blurb: 'Bigger target, bigger purse' },
-  bank: { name: 'Bank Job', icon: 'moneybag', blurb: 'A table under the Outlaw’s curse, with a rare Doodad as the prize' },
-  store: { name: 'General Store', icon: 'crate', blurb: 'Doodads, Tonics, Crates and Deeds' },
+  bank: { name: 'Bank Job', icon: 'moneybag', blurb: 'A table under the Outlaw’s curse. Win it for an extra path to choose' },
   doc: { name: 'Doc Hoot', icon: 'tonic', blurb: 'Patch up your Grit, or have a card removed' },
   camp: { name: 'Campfire', icon: 'campfire', blurb: 'Rest, or spin a yarn to level up a hand' },
   event: { name: 'Strange Happenings', icon: 'wanted', blurb: 'A random encounter. Could help, could cost you' },
-  gang: { name: 'Gang Member', icon: 'wanted', blurb: 'One of the Outlaw’s gang, carrying the boss’s curse. Beat them for a Bounty: pick 1 of 3 Doodads' },
+  gang: { name: 'Gang Member', icon: 'wanted', blurb: 'One of the Outlaw’s gang, carrying the boss’s curse. Beat them for a Bounty: an extra path to choose' },
   outlaw: { name: 'Showdown', icon: 'revolver', blurb: 'The boss of this town. Win to ride on to the next one' },
 };
 
@@ -42,13 +41,13 @@ export function generateTrail(run: Run) {
   const town = run.night;
   const pools: NodeKind[][] = [
     ['saloon', 'saloon', 'event'],
-    ['saloon', 'highstakes', 'event', 'camp', 'store'],
+    ['saloon', 'highstakes', 'event', 'camp'],
     ['saloon', 'highstakes', 'event', 'doc', ...(town >= 2 ? (['bank'] as NodeKind[]) : [])],
     ['gang'],
-    ['store', 'camp', 'event', 'doc', 'saloon'],
+    ['camp', 'event', 'doc', 'saloon'],
     ['saloon', 'highstakes', 'event', ...(town >= 2 ? (['bank'] as NodeKind[]) : (['highstakes'] as NodeKind[]))],
     ['gang'],
-    ['store', 'camp', 'doc'],
+    ['camp', 'doc', 'event'],
     ['outlaw'],
   ];
   const nodes: TrailNode[] = [];
@@ -62,7 +61,8 @@ export function generateTrail(run: Run) {
       let kind = bag[i % bag.length];
       // The first stop is always a card game so every town starts at the felt.
       if (c === 0 && i === 0) kind = 'saloon';
-      if (c === COLS - 2 && i === 0) kind = 'store';
+      // The last stop before the showdown is always somewhere to rest up.
+      if (c === COLS - 2 && i === 0) kind = 'camp';
       col.push({ id: id++, col: c, row: count === 1 ? 1 : count === 2 ? i * 2 : i, kind, next: [] });
     }
     // Avoid two identical utility stops in one column.
@@ -129,6 +129,13 @@ export function nodeTarget(run: Run, n: TrailNode): number {
   if (n.kind === 'outlaw') scale = HOST[n.hostId ?? run.nightHost]?.scale ?? 2;
   if (n.kind === 'outlaw' && run.flags.wantedPoster) scale *= 1.25;
   if (n.kind === 'outlaw') scale *= Math.pow(OUTLAW_RETRY, run.flags.outlawTries ?? 0);
+  // Abilities that make every target (or just the Outlaw's) easier or harder.
+  for (const k of run.charms) {
+    const d = CHARM[k.id];
+    if (!d || k.disabled) continue;
+    scale *= d.targetX ?? 1;
+    if (n.kind === 'outlaw') scale *= d.hostTargetX ?? 1;
+  }
   return round(base * scale);
 }
 
@@ -172,9 +179,6 @@ export function travel(run: Run, id: number) {
       if (n.goonId) run.table!.goonId = n.goonId;
       break;
     }
-    case 'store':
-      openShop(run);
-      break;
     case 'doc':
       run.phase = 'doc';
       run.flags.docUsed = {};
@@ -229,11 +233,10 @@ export function startTownState(run: Run) {
   run.nightHost = r.next() < rareOutlawChance(run.night) ? 'woodgas' : r.pick(outlawPool(run)).id;
   run.hostsSeen.push(run.nightHost);
   run.flags.hostRerolls = 0;
-  run.flags.wantedPoster = false;
+  // Word Gets Around (a path outcome) can carry over from the town before.
+  run.flags.wantedPoster = !!run.flags.wantedNext;
+  run.flags.wantedNext = false;
   run.flags.outlawTries = 0;
-  const avail = availableVouchers(run);
-  run.flags.nightVoucher = avail.length ? r.pick(avail) : null;
-  run.flags.nightVoucherSold = false;
   generateTrail(run);
   run.phase = 'trail';
 }
@@ -245,11 +248,12 @@ export function startTownState(run: Run) {
 export function hurt(run: Run, n: number): boolean {
   if (n <= 0) return false;
   if (has(run, 'thick_hide') && n > 0) n = Math.max(0, n - 1);
+  if (has(run, 'glass_jaw') && n > 0) n += 1;
   run.grit = Math.max(0, run.grit - n);
   return run.grit <= 0;
 }
 
-/** Max Grit including Doodad bonuses. */
+/** Max Grit including ability bonuses. */
 export function gritCap(run: Run): number {
   return run.maxGrit + (has(run, 'iron_gizzard') ? 4 : 0);
 }
@@ -300,12 +304,13 @@ export function campYarn(run: Run, ht: (typeof HAND_TYPES)[number]['id']) {
   ctx(run).levelUp(ht, 1);
 }
 
-/** Whittle: give a random Doodad without a finish a Shiny finish. */
-export function campWhittle(run: Run): boolean {
-  const pool = run.charms.filter((k) => !k.finish);
-  if (!pool.length) return false;
-  rng(run).pick(pool).finish = 'foil';
-  return true;
+/** Sleep it off: lose one Bane (picked at random). Returns its name. */
+export function campForget(run: Run): string | null {
+  const banes = run.charms.filter((k) => CHARM[k.id]?.bane);
+  if (!banes.length) return null;
+  const k = rng(run).pick(banes);
+  run.charms = run.charms.filter((x) => x.uid !== k.uid);
+  return CHARM[k.id]?.name ?? null;
 }
 
 // ---------------------------------------------------------------------------

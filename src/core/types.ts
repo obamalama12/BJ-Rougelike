@@ -122,7 +122,7 @@ export interface TableState {
   gritLost: number;
 }
 
-export type NodeKind = 'saloon' | 'highstakes' | 'bank' | 'gang' | 'store' | 'doc' | 'camp' | 'event' | 'outlaw';
+export type NodeKind = 'saloon' | 'highstakes' | 'bank' | 'gang' | 'doc' | 'camp' | 'event' | 'outlaw';
 
 export interface TrailNode {
   id: number;
@@ -163,6 +163,17 @@ export interface PackItem {
   sold?: boolean;
 }
 
+export interface RoadState {
+  /** Indexes into PATHS. */
+  options: number[];
+  /** Paths still to pick after this one (Bounties and Bank loot add more). */
+  picksLeft: number;
+  /** The path just taken and what was behind it. */
+  taken?: { path: number; outcome: { kind: 'ability' | 'instant'; id: string } };
+  /** The new ability didn't fit: the uid of the ability that must stay, while you drop another. */
+  mustDrop?: number;
+}
+
 export interface ShopState {
   items: ShopItem[];
   packs: PackItem[];
@@ -178,7 +189,6 @@ export interface OpenPack {
   packId: string;
   picksLeft: number;
   options: (
-    | { kind: 'charm'; id: string; finish?: FinishId; taken?: boolean }
     | { kind: 'cons'; cons: ConsKind; id: string; finish?: FinishId; taken?: boolean }
     | { kind: 'card'; card: Card; taken?: boolean }
   )[];
@@ -188,6 +198,8 @@ export interface OpenPack {
 }
 
 export interface RunStats {
+  /** Forks in the road taken this run. */
+  pathsTaken?: number;
   handsPlayed: number;
   handsWon: number;
   blackjacks: number;
@@ -224,7 +236,7 @@ export interface Run {
   stake: number;
   night: number;
   tableIdx: number;
-  phase: 'trail' | 'table' | 'cashout' | 'shop' | 'pack' | 'event' | 'doc' | 'camp' | 'gameover' | 'victory';
+  phase: 'trail' | 'table' | 'cashout' | 'road' | 'pack' | 'event' | 'doc' | 'camp' | 'gameover' | 'victory';
   /** Run-long health. Lost on risky wagers and failed tables; the run ends at 0. */
   grit: number;
   maxGrit: number;
@@ -246,7 +258,8 @@ export interface Run {
   /** Host id for each night, decided as the night begins. */
   nightHost: string;
   hostsSeen: string[];
-  shop: ShopState | null;
+  /** The fork in the road after a win: three unmarked paths, and what the last one led to. */
+  road: RoadState | null;
   table: TableState | null;
   pack: OpenPack | null;
   cashout: { lines: { label: string; amount: number; tone?: string }[]; total: number; failed?: boolean; gritLost?: number } | null;

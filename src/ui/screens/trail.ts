@@ -30,7 +30,7 @@ function nodePos(n: TrailNode) {
 
 /** Token shape on the map: tables are chips, services are diamond waypoints, happenings are cards. */
 function shapeOf(kind: NodeKind): 'chip' | 'diamond' | 'card' {
-  if (kind === 'store' || kind === 'doc' || kind === 'camp') return 'diamond';
+  if (kind === 'doc' || kind === 'camp') return 'diamond';
   if (kind === 'event') return 'card';
   return 'chip';
 }

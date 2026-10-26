@@ -70,6 +70,12 @@ export interface CharmDef {
   noCopy?: boolean;
   rules?: (r: Rules, s: CharmInst, run: Run) => void;
   slots?: { charm?: number; cons?: number; hands?: number; folds?: number; interest?: number };
+  /** A Bane: an ability from a path that works against you. */
+  bane?: boolean;
+  /** Multiplies every table target (abilities like Low Profile / Wanted Poster). */
+  targetX?: number;
+  /** Multiplies Outlaw showdown targets only. */
+  hostTargetX?: number;
 
   // --- Scoring ---------------------------------------------------------
   /** Each scored card (after the card's own chips). */
@@ -208,7 +214,7 @@ export interface StakeDef {
 export interface PackDef {
   id: string;
   name: string;
-  kind: 'charm' | 'fortune' | 'star' | 'mask' | 'card';
+  kind: 'fortune' | 'star' | 'mask' | 'card';
   size: number;
   picks: number;
   cost: number;

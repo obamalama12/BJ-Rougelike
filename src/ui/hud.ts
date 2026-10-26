@@ -11,7 +11,7 @@ import { app, button, jiggle, modal, popup, save, tip, toast, hideTip, endingHol
 import { charmCard, charmTooltip, consCard, consTooltip, hostTooltip, tagToken, tagTooltip } from './art';
 import { h, div, fmtNum, fmtMult, clear, fmt, esc } from './dom';
 import { charmSlots, consSlots, getRules, NIGHTS } from '../game/engine';
-import { canUseCons, consNeeds, moveCharm, sellCharm, sellCons, useCons } from '../game/shop';
+import { canUseCons, consNeeds, moveCharm, sellCons, useCons } from '../game/shop';
 import { gritCap, nodeTarget } from '../game/trail';
 import { sfx } from '../fx/audio';
 import { openRunInfo } from './screens/runinfo';
@@ -74,7 +74,7 @@ export class Hud {
     }
   }
 
-  /** Clicking anywhere off the belt and satchel drops the selected Doodad or Tonic. */
+  /** Clicking anywhere off the belt and satchel drops the selected Tonic. */
   private deselectOnStage(e: PointerEvent) {
     const t = e.target as HTMLElement;
     if (!t.closest('.charm-slot') && !t.closest('.cons-slot') && this.selected) {
@@ -99,7 +99,7 @@ export class Hud {
     r.money = div('wall-money-val');
     r.tags = div('wall-tags');
     const money = div('wall-money', div('wall-money-plate', h('div', { class: 'wall-money-bag', html: iconSvg('moneybag') }), r.money));
-    tip(money, () => '<div class="tt-title">Bucks</div><div class="tt-body">Spend them at the General Store. You earn interest on every $5 you hold when you win a table.</div>', 'bottom');
+    tip(money, () => '<div class="tt-title">Bucks</div><div class="tt-body">Pay Doc Hoot, place side bets, and cover what the trail charges you. You earn interest on every $5 you hold when you win a table.</div>', 'bottom');
     tip(r.grit, () => `<div class="tt-title">Grit ${this.run.grit}/${gritCap(this.run)}</div><div class="tt-body">Your health for the whole run. Risky wagers cost Grit when you lose a hand, and falling short of a target costs more. At 0 Grit the run is over.</div>`, 'bottom');
     const plank = (label: string, icon: string, fn: () => void) => {
       const b = button(label, 'plank', fn);
@@ -140,7 +140,7 @@ export class Hud {
       ),
     );
     const body = pot.querySelector('.pot-body') as HTMLElement;
-    tip(body, () => `<div class="tt-title">Pot × Odds</div><div class="tt-body">${fmt('A winning hand scores {c:Pot} times {m:Odds}. The kind of win sets the starting numbers. Each scored card adds its value to the Pot, and Doodads add more.')}</div>`, 'top');
+    tip(body, () => `<div class="tt-title">Pot × Odds</div><div class="tt-body">${fmt('A winning hand scores {c:Pot} times {m:Odds}. The kind of win sets the starting numbers. Each scored card adds its value to the Pot, and your abilities add more (or take some away).')}</div>`, 'top');
     r.calc = pot;
     return pot;
   }
@@ -404,30 +404,20 @@ export class Hud {
       const card = charmCard(k.id, k.finish);
       card.dataset.uid = String(k.uid);
       if (k.disabled) card.classList.add('disabled');
+      if (CHARM[k.id]?.bane) card.classList.add('bane');
       card.style.setProperty('--i', String(i));
       slot.appendChild(card);
       this.charmEls.set(k.uid, card);
       tip(card, () => charmTooltip(run, k.id, k), 'top');
-      if (this.selected?.kind === 'charm' && this.selected.uid === k.uid) {
-        slot.classList.add('selected');
-        slot.appendChild(
-          button(`Sell $${sellValue(k)}`, 'sell tiny', () => {
-            sellCharm(run, k.uid);
-            sfx('sell');
-            this.selected = null;
-            this.afterChange();
-          }),
-        );
-      }
       this.attachDrag(card, k.uid);
       this.charmRow.appendChild(slot);
     });
     for (let i = run.charms.length; i < slots; i++) {
       const empty = div('charm-slot empty', div('loop'));
-      tip(empty, () => '<div class="tt-title">Empty loop</div><div class="tt-body">Room for one more Doodad. Buy them at the General Store or win one at the Bank.</div>', 'top');
+      tip(empty, () => '<div class="tt-title">Empty slot</div><div class="tt-body">Room for one more ability. Every table you win, you pick a path, and what you find there may fill it. Good or bad.</div>', 'top');
       this.charmRow.appendChild(empty);
     }
-    this.charmCount.innerHTML = `Doodads<b>${run.charms.length}/${slots}</b>`;
+    this.charmCount.innerHTML = `Abilities<b>${run.charms.length}/${slots}</b>`;
     run.consumables.forEach((k) => {
       const slot = div('cons-slot');
       const card = consCard(k.kind, k.id, k.finish);
@@ -515,14 +505,8 @@ export class Hud {
       down = false;
       window.removeEventListener('pointermove', onMove);
       window.removeEventListener('pointerup', onUp);
-      if (!dragging) {
-        // Letting go of a press-and-hold (which showed the Doodad's tooltip) isn't a tap.
-        if (endingHold()) return;
-        this.selected = this.selected?.uid === uid ? null : { kind: 'charm', uid };
-        sfx('select');
-        this.renderTrays();
-        return;
-      }
+      // A tap does nothing (hold or hover shows what an ability does); dragging reorders.
+      if (!dragging) return;
       dragging = false;
       card.classList.remove('dragging');
       card.style.transform = '';

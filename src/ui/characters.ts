@@ -91,7 +91,7 @@ const OUTLAW_INTROS: Record<string, string> = {
   oboroguruma: 'Three cards per car. A fourth and it doesn’t count.',
   umibozu: 'Two hands. I’m on my lunch break.',
   nurarihyon: 'I’ve seen every trick. Don’t repeat yourself.',
-  shokera: 'Every hand, one of your Doodads goes in my sack.',
+  shokera: 'Every hand, one of your tricks goes in my sack.',
   tsukuyomi: 'Every card’s worth one more around me. Mind the 21.',
   chochin_o: 'My saloon. Ties go to me, and nobody folds.',
   tamamo: 'One card in three goes bad at my table.',

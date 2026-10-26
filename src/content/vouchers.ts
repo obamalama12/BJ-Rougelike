@@ -38,8 +38,8 @@ V({ id: 'star_emporium', name: 'Storytelling Contest', icon: 'trophy', requires:
 V({ id: 'seed_money', name: 'Savings Jar', icon: 'piggybank', text: 'Interest cap raised to {$:10} per table', slots: { interest: 5 } });
 V({ id: 'money_tree_v', name: 'Bank Vault', icon: 'moneybag', requires: 'seed_money', text: 'Interest cap raised to {$:20} per table', slots: { interest: 10 } });
 
-V({ id: 'spare_altar', name: 'Bandolier', icon: 'bullet', text: '{g:+1} Doodad slot', slots: { charm: 1 } });
-V({ id: 'grand_altar', name: 'Wagon Hitch', icon: 'wagon', requires: 'spare_altar', text: '{g:+1} more Doodad slot', slots: { charm: 1 } });
+V({ id: 'spare_altar', name: 'Bandolier', icon: 'bullet', text: '{g:+1} ability slot', slots: { charm: 1 } });
+V({ id: 'grand_altar', name: 'Wagon Hitch', icon: 'wagon', requires: 'spare_altar', text: '{g:+1} more ability slot', slots: { charm: 1 } });
 
 V({ id: 'lantern_eye', name: 'Card Peeker', icon: 'eye', text: 'See the dealer’s hole card', rules: (r) => { r.seeHole = true; } });
 V({ id: 'dragon_eye', name: 'X-Ray Specs', icon: 'glasses', requires: 'lantern_eye', text: 'Also see the top card of the draw pile', rules: (r) => { r.seeTop = Math.max(r.seeTop, 1); } });

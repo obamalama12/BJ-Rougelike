@@ -9,10 +9,10 @@ export const SHOES: ShoeDef[] = [
   { id: 'indigo', name: 'Blue Jeans Deck', hue: '#3d5cff', back: 'blue', text: '{g:+1} hand each table', start: { baseHands: 7 } },
   { id: 'gilded', name: 'Gold Rush Deck', hue: '#f0b429', back: 'gold', text: 'Start with an extra {$:10}', start: { money: 14 } },
   { id: 'jade', name: 'Greenback Deck', hue: '#1fae6c', back: 'jade', text: 'At the end of each table: {$:2} per remaining hand, {$:1} per remaining fold. {r:No interest}' },
-  { id: 'ink', name: 'Black Hat Deck', hue: '#2a2340', back: 'ink', text: '{g:+1} Doodad slot. {r:-1} hand each table', start: { baseCharmSlots: 6, baseHands: 5 } },
+  { id: 'ink', name: 'Black Hat Deck', hue: '#2a2340', back: 'ink', text: '{g:+1} ability slot. {r:-1} hand each table', start: { baseCharmSlots: 6, baseHands: 5 } },
   { id: 'starlit', name: 'Tonic Peddler Deck', hue: '#7a5cff', back: 'violet', text: 'Start with the {g:Saddlebag} Deed and {g:2} copies of the {g:Same Again, Barkeep} Tonic', vouchers: ['crystal_ball'], cons: [{ kind: 'fortune', id: 'the_echo' }, { kind: 'fortune', id: 'the_echo' }] },
   { id: 'observatory', name: 'Lookout Deck', hue: '#1d2a6b', back: 'night', text: 'Start with the {g:Spyglass} Deed. {r:-1} consumable slot', vouchers: ['telescope'], start: { baseConsSlots: 1 } },
-  { id: 'spirit', name: 'Moonshiner’s Deck', hue: '#9fe8ff', back: 'ghost', text: 'Moonshine may appear in the shop. Start with a {g:Hex Hooch}', cons: [{ kind: 'mask', id: 'hex_mask' }] },
+  { id: 'spirit', name: 'Moonshiner’s Deck', hue: '#9fe8ff', back: 'ghost', text: 'Start with {g:Face Card Firewater} and {g:Ace-High Hooch}', cons: [{ kind: 'mask', id: 'fox_mask' }, { kind: 'mask', id: 'oni_mask' }] },
   { id: 'court', name: 'High Society Deck', hue: '#ff7a3d', back: 'court', text: 'Every {g:2, 3, 4 and 5} is replaced with a random face card',
     build: (c) => { for (const k of c.run.deck) if (k.rank <= 5) k.rank = c.rng.pick([11, 12, 13] as Rank[]); } },
   { id: 'little', name: 'Kiddie Table Deck', hue: '#ffb3c7', back: 'pink', text: 'No face cards in the deck. {g:+1} hand each table', start: { baseHands: 7 },
@@ -37,17 +37,12 @@ export const STAKES: StakeDef[] = [
   { id: 3, name: 'Gunslinger', color: '#3fcf8e', text: 'Targets grow faster' },
   { id: 4, name: 'Desperado', color: '#3d8bff', text: '{r:-1} fold each table' },
   { id: 5, name: 'Bandit', color: '#a35cff', text: 'The dealer hits soft 17. Targets grow faster still' },
-  { id: 6, name: 'Most Wanted', color: '#ff7a3d', text: 'Shop items cost {$:1} more' },
+  { id: 6, name: 'Most Wanted', color: '#ff7a3d', text: '{r:-1} max Grit' },
   { id: 7, name: 'Dead or Alive', color: '#c2261a', text: '{r:-1} hand each table' },
   { id: 8, name: 'Legend', color: '#f0b429', text: 'Interest is capped at {$:3}. Targets X1.25' },
 ];
 
 export const PACKS: PackDef[] = [
-  { id: 'charm_normal', name: 'Doodad Crate', kind: 'charm', size: 2, picks: 1, cost: 4, weight: 4, tier: 'normal' },
-  { id: 'charm_jumbo', name: 'Jumbo Doodad Crate', kind: 'charm', size: 4, picks: 1, cost: 6, weight: 2, tier: 'jumbo' },
-  { id: 'charm_mega', name: 'Mega Doodad Crate', kind: 'charm', size: 4, picks: 2, cost: 8, weight: 0.5, tier: 'mega' },
-  // Won from Gang Members, never sold.
-  { id: 'bounty', name: 'Bounty', kind: 'charm', size: 3, picks: 1, cost: 0, weight: 0, tier: 'jumbo' },
   { id: 'fortune_normal', name: 'Tonic Crate', kind: 'fortune', size: 3, picks: 1, cost: 4, weight: 4, tier: 'normal' },
   { id: 'fortune_jumbo', name: 'Jumbo Tonic Crate', kind: 'fortune', size: 5, picks: 1, cost: 6, weight: 2, tier: 'jumbo' },
   { id: 'fortune_mega', name: 'Mega Tonic Crate', kind: 'fortune', size: 5, picks: 2, cost: 8, weight: 0.5, tier: 'mega' },

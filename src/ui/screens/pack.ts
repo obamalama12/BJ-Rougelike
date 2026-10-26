@@ -27,10 +27,7 @@ export function packScreen(hud: Hud): HTMLElement {
     const opts = div(`pack-options n${p.options.length}`);
     p.options.forEach((o, i) => {
       let card: HTMLElement;
-      if (o.kind === 'charm') {
-        card = charmCard(o.id, o.finish);
-        tip(card, () => charmTooltip(run, o.id, { uid: 0, id: o.id, finish: o.finish, state: {} }));
-      } else if (o.kind === 'cons') {
+      if (o.kind === 'cons') {
         card = consCard(o.cons, o.id, o.finish);
         tip(card, () => consTooltip(run, o.cons, o.id));
       } else {
@@ -43,7 +40,7 @@ export function packScreen(hud: Hud): HTMLElement {
       if (!o.taken) {
         const needs = o.kind === 'cons' ? CONS[o.id]?.targets : null;
         slot.appendChild(
-          button(o.kind === 'card' ? 'Add' : o.kind === 'charm' ? 'Take' : needs ? `Use (${needs[0] === needs[1] ? needs[0] : `${needs[0]}-${needs[1]}`})` : 'Use', 'buy tiny', async () => {
+          button(o.kind === 'card' ? 'Add' : needs ? `Use (${needs[0] === needs[1] ? needs[0] : `${needs[0]}-${needs[1]}`})` : 'Use', 'buy tiny', async () => {
             const r = pickFromPack(run, i, chosen.slice());
             if (!r.ok) return toast(r.reason, 'bad');
             sfx(o.kind === 'cons' && o.cons === 'star' ? 'levelup' : 'buy');

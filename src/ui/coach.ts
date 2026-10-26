@@ -22,10 +22,10 @@ const NOTES: Record<string, string> = {
   table: 'Reach the score on the poster before you run out of hands. Each bullet in the revolver down there is one hand of blackjack.',
   wager: 'Pick a wager before you deal. {g:Dollar} doubles the score and {g:Bankroll} triples it, but losing the hand costs 1 or 2 {g:Grit}. The tickets on the felt are $2 {g:side bets} that pay Bucks. Win hands in a row to build a {g:Hot Streak}.',
   hand: 'Get closer to 21 than the dealer without going over. {g:Hit} takes a card, {g:Stand} ends your turn. {g:Double} takes one card and doubles the score but uses an extra hand. {g:Fold} throws a bad hand away for free, a few times per table.',
-  score: 'A winning hand scores {c:Pot} × {m:Odds}. The kind of win sets the starting numbers, every card adds its value to the {c:Pot}, and Doodads pile on more.',
-  store: 'Doodads ride in your bandolier along the bottom and work every hand on their own. Tonics and the like go in the satchel; click one to use it.',
+  score: 'A winning hand scores {c:Pot} × {m:Odds}. The kind of win sets the starting numbers, every card adds its value to the {c:Pot}, and your abilities pile on more (or take some away).',
+  road: 'Every table you win, the trail forks. None of the paths are marked: you only find out what waited down one after you take it. It might be a {g:Boon}, a {r:Bane}, or something that happens on the spot. You carry up to 5 abilities; a full belt means the new one pushes an old one out.',
   outlaw: 'Every Outlaw bends one rule. The curse is printed on the Wanted poster. Read it before you play.',
-  gang: 'This one rides with the Outlaw and carries the boss’s curse, printed on the poster. Get used to it before the showdown. Beat them and you collect a {g:Bounty}: pick one of three Doodads, one of them rare.',
+  gang: 'This one rides with the Outlaw and carries the boss’s curse, printed on the poster. Get used to it before the showdown. Beat them and you collect a {g:Bounty}: an extra path to choose.',
 };
 
 /** Notes waiting to be shown, and the close function of the one on screen. */
@@ -105,12 +105,12 @@ export function resetTips() {
 // ---------------------------------------------------------------------------
 
 const RULES: [string, string, string][] = [
-  ['map', 'Ride the trail', 'Each town is a map. Pick your route from left to right: card tables, the store, the Doc, a campfire, or something strange. The Outlaw waits at the end. Beat seven Outlaws to win.'],
+  ['map', 'Ride the trail', 'Each town is a map. Pick your route from left to right: card tables, the Doc, a campfire, or something strange. The Outlaw waits at the end. Beat seven Outlaws to win.'],
   ['revolver', 'Play blackjack', 'Get closer to 21 than the dealer without going over. Number cards are worth their number, faces are 10, Aces are 1 or 11. The dealer draws until 17. Five cards without busting is a {h:charlie} and always wins.'],
   ['wanted', 'Beat the score', 'Every table has a target on the poster. Winning hands add to your winnings. Reach the target before your bullets (hands) run out and you collect the reward.'],
   ['coins', 'Pot × Odds', 'A winning hand scores {c:Pot} × {m:Odds}. The kind of win (a plain win, a {h:blackjack}, a hand of one suit and so on) sets the starting numbers. Each card adds its value to the Pot. Level up a kind of win with Tall Tales or at the campfire.'],
   ['horseshoe', 'Grit', 'Grit is your health. You lose it when you miss a target or lose a hand with a big wager. At zero the run ends.'],
-  ['bullet', 'Doodads', 'Doodads are the trinkets in your bandolier. They trigger by themselves, left to right, so order matters. Drag them to rearrange. Buy them at the store or win them at the Bank.'],
+  ['map', 'Forks in the road', 'Every table you win, choose one of three unmarked paths. Each hides a {g:Boon}, a {r:Bane} or an event, and you don’t know which until you take it. The same seed always leads the same way. You hold up to 5 abilities; when they’re full, a new one must replace an old one. Gang Bounties and Bank Jobs give an extra path.'],
 ];
 
 export function openHowToPlay() {

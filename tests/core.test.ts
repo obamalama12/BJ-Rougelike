@@ -47,10 +47,19 @@ describe('hand types', () => {
 
 describe('content', () => {
   it('has a ton of it, with unique ids', () => {
-    expect(CHARMS.length).toBeGreaterThanOrEqual(150);
     const ids = [...CHARMS, ...FORTUNES, ...STARS, ...MASKS].map((x) => x.id);
     expect(new Set(ids).size).toBe(ids.length);
     expect(HOSTS.length).toBeGreaterThanOrEqual(30);
+  });
+  it('has 100 paths, each hiding a different outcome', async () => {
+    const { PATHS, ABILITIES, INSTANTS, pathOutcomes } = await import('../src/content/paths');
+    expect(PATHS.length).toBe(100);
+    expect(ABILITIES.length + INSTANTS.length).toBe(100);
+    const map = pathOutcomes('SEED1');
+    expect(new Set(map.map((o) => `${o.kind}:${o.id}`)).size).toBe(100);
+    // Same seed, same roads; another seed shuffles them.
+    expect(pathOutcomes('SEED1')).toEqual(map);
+    expect(pathOutcomes('SEED2')).not.toEqual(map);
   });
   it('gives every Outlaw and gunslinger a portrait', async () => {
     const { CHARACTERS } = await import('../src/ui/portraits');
@@ -105,5 +114,33 @@ describe('Woodgas', () => {
       while (dealerShouldHit(run)) dealerHit(run);
       expect(handTotal(cardsOf(run, run.table!.dealer), getRules(run), 21, true).bust).toBe(true);
     }
+  });
+});
+
+describe('the fork in the road', () => {
+  it('a new ability on a full belt has to push one of the others out', async () => {
+    const { startRoad, takeRoad, dropAbility, leaveRoad } = await import('../src/game/roads');
+    const { outcomeOf, ABILITY } = await import('../src/content/paths');
+    const { makeCharm, charmSlots } = await import('../src/game/engine');
+    const run = newRun('ROADS', 'paper', 1);
+    for (const id of ['steady_hand', 'sharp_eye', 'iron_nerve', 'quick_feet', 'patience']) run.charms.push(makeCharm(run, id));
+    expect(run.charms.length).toBe(charmSlots(run));
+    // Find an offered path that leads to an ability we don't have.
+    let found = false;
+    for (let tries = 0; tries < 40 && !found; tries++) {
+      startRoad(run);
+      const p = run.road!.options.find((x) => { const o = outcomeOf(run, x); return o.kind === 'ability' && !run.charms.some((k) => k.id === o.id) && ABILITY[o.id].slots?.charm === undefined; });
+      if (p === undefined) continue;
+      found = true;
+      takeRoad(run, p);
+      const keep = run.road!.mustDrop!;
+      expect(keep).toBeTruthy();
+      expect(leaveRoad(run)).toBe(false); // can't ride on with an over-full belt
+      expect(dropAbility(run, keep)).toBe(false); // and the new one can't be the one dropped
+      expect(dropAbility(run, run.charms[0].uid)).toBe(true);
+      expect(run.charms.length).toBe(charmSlots(run));
+      expect(run.charms.some((k) => k.uid === keep)).toBe(true);
+    }
+    expect(found).toBe(true);
   });
 });

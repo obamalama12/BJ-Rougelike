@@ -255,12 +255,12 @@ function checkAuto(run: Run, h: PlayerHand): 'bust' | 'charlie' | 'stand' | null
   const cards = cardsOf(run, h.cards);
   let tot = handTotal(cards, rules);
   if (tot.bust) {
-    // Phoenix Feather: burn the busting card once per table.
-    if (has(run, 'phoenix_feather') && !t.phoenixUsed && cards.length > 2) {
+    // Second Wind: throw away the busting card once per table.
+    if (has(run, 'second_wind') && !t.phoenixUsed && cards.length > 2) {
       t.phoenixUsed = true;
       const burnt = h.cards.pop()!;
       t.discard.push(burnt);
-      const owner = run.charms.find((k) => k.id === 'phoenix_feather');
+      const owner = run.charms.find((k) => k.id === 'second_wind');
       fxQueue.push({ t: 'msg', text: 'Burned!', color: '#ff6a2a', src: owner ? { kind: 'charm', uid: owner.uid } : { kind: 'deck' } });
       tot = handTotal(cardsOf(run, h.cards), rules);
       if (!tot.bust) return null;

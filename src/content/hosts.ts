@@ -85,8 +85,8 @@ H({ id: 'umibozu', name: 'Lazy Pelican Pete', title: 'Short Shift', icon: 'pelic
 H({ id: 'nurarihyon', name: 'Mayor Mallard', title: 'Seen It All Before', icon: 'tophat', hue: '#b8a0ff', scale: 2, minNight: 5,
   text: 'Each hand type can score only once this table',
   rules: (r) => { r.noRepeatType = true; } });
-H({ id: 'shokera', name: 'Rustler Raven', title: 'Takes Your Doodads', icon: 'crow', hue: '#a08cff', scale: 2, minNight: 5,
-  text: 'After each hand, a random Doodad is disabled for the rest of the table',
+H({ id: 'shokera', name: 'Rustler Raven', title: 'Steals Your Tricks', icon: 'crow', hue: '#a08cff', scale: 2, minNight: 5,
+  text: 'After each hand, a random ability is disabled for the rest of the table',
   afterHand: (c) => {
     const pool = c.run.charms.filter((k) => !k.disabled);
     if (!pool.length) return;

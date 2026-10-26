@@ -263,6 +263,8 @@ body.no-grain #grain {
 .tag-rarity.r4 { --tg: var(--plate-gold); color: var(--key) !important; }
 .tt-tags > .tag-sell { background: var(--plate-gold); color: var(--key); }
 .tag-kind.k-fortune { --tg: var(--plate-verm); }
+.tag-kind.k-boon { --tg: var(--plate-sage); }
+.tag-kind.k-bane { --tg: #8a1e14; }
 .tag-kind.k-star { --tg: #24365e; }
 .tag-kind.k-mask { --tg: var(--plate-plum); }
 .tag-kind.k-relic { --tg: var(--plate-leather); }

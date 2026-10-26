@@ -6,11 +6,11 @@ import {
   afterDeal, availableActions, beginHand, cardsOf, dealTo, dealerHit, dealerShouldHit, double, endFold,
   endRound, fillSplit, fold, hit, scoreHand, settleOutcomes, settleSplit, split, stand,
 } from '../src/game/table';
-import { buyItem, buyPack, buyVoucher, cashOut, failTable, leaveShop, pickFromPack, reroll, sellCharm, skipPack, winTable, maybeOpenTagPack, useCons } from '../src/game/shop';
+import { cashOut, failTable, pickFromPack, skipPack, winTable, maybeOpenTagPack } from '../src/game/shop';
+import { dropAbility, leaveRoad, takeRoad } from '../src/game/roads';
 import { reachable, travel, docPatch, campRest, chooseEvent, resolveDuel, finishNode, isTableNode } from '../src/game/trail';
 import { EVENT } from '../src/content/events';
 import { CHARM } from '../src/content/charms';
-import { charmSlots } from '../src/game/engine';
 import { handTotal } from '../src/core/cards';
 import type { Run, TrailNode } from '../src/core/types';
 import { CONS } from '../src/content/consumables';
@@ -78,34 +78,21 @@ export function playHand(run: Run): 'ready' | 'won' | 'lost' | 'dead' {
   return endRound(run, results);
 }
 
-export function shopBot(run: Run) {
-  const s = run.shop!;
-  const rar = (id: string) => CHARM[id]?.rarity ?? 1;
-  for (let pass = 0; pass < 3; pass++) {
-    const items = [...s.items].filter((i) => !i.sold).sort((a, b) => (b.kind === 'charm' ? rar((b as any).id) : 0) - (a.kind === 'charm' ? rar((a as any).id) : 0));
-    for (const it of items) {
-      if (it.sold || run.money < it.price) continue;
-      if (it.kind === 'charm') {
-        if (run.charms.length >= charmSlots(run)) {
-          const worst = [...run.charms].sort((a, b) => rar(a.id) - rar(b.id))[0];
-          if (!worst || rar(worst.id) >= rar(it.id)) continue;
-          sellCharm(run, worst.uid);
-        }
-        buyItem(run, it.uid);
-      } else if (it.kind === 'cons' && it.cons === 'star') {
-        if (buyItem(run, it.uid, true).ok) useCons(run, run.consumables[run.consumables.length - 1].uid);
-      }
-    }
-    for (const p of s.packs) {
-      if (!p.sold && run.money >= p.price && (p.packId.startsWith('charm') || p.packId.startsWith('star'))) {
-        buyPack(run, p.uid);
-        packBot(run);
-      }
-    }
-    if (run.money >= 12 && pass < 2) reroll(run);
+/** Forks in the road: the paths are unmarked (and offered in shuffled order), so take the first; with a full belt, drop a Bane
+ *  if there is one (the oldest), otherwise the oldest ability. */
+export function roadBot(run: Run, drop: (run: Run, keep: number) => number = dropBane) {
+  let guard = 0;
+  while (run.phase === 'road' && run.road && guard++ < 20) {
+    const road = run.road;
+    if (!road.taken) takeRoad(run, road.options[0]);
+    while (run.road?.mustDrop && guard++ < 20) dropAbility(run, drop(run, run.road.mustDrop));
+    leaveRoad(run);
   }
-  if (s.voucher && run.money >= 10) buyVoucher(run);
-  for (const k of [...run.consumables]) if (k.kind === 'star') useCons(run, k.uid);
+}
+
+export function dropBane(run: Run, keep: number): number {
+  const others = run.charms.filter((k) => k.uid !== keep);
+  return (others.find((k) => CHARM[k.id]?.bane) ?? others[0]).uid;
 }
 
 export function packBot(run: Run) {
@@ -116,7 +103,7 @@ export function packBot(run: Run) {
     let score = -1;
     p.options.forEach((o, i) => {
       if (o.taken) return;
-      const v = o.kind === 'charm' ? CHARM[o.id].rarity * 10 : o.kind === 'cons' && !CONS[o.id]?.targets ? 5 : -1;
+      const v = o.kind === 'cons' && !CONS[o.id]?.targets ? 5 : -1;
       if (v > score) { score = v; best = i; }
     });
     if (best < 0 || !pickFromPack(run, best).ok) skipPack(run);
@@ -128,22 +115,21 @@ export interface Strategy {
   pickNode(run: Run, opts: TrailNode[]): TrailNode;
   /** Called before every hand to set the wager. */
   wager(run: Run): number;
-  shop(run: Run): void;
+  road(run: Run): void;
   pack(run: Run): void;
   camp(run: Run): void;
 }
 
-/** The original bot: basic blackjack, buys the rarest Doodads it can afford, rests at camp. */
+/** The original bot: basic blackjack, picks paths blind, drops Banes first, rests at camp. */
 export const basicStrategy: Strategy = {
   pickNode: (run, opts) =>
-    // Prefer: store when rich, doc/camp when hurt, otherwise card games.
+    // Prefer: doc/camp when hurt, otherwise card games.
     (run.grit <= 5 && opts.find((n) => n.kind === 'doc' || n.kind === 'camp')) ||
-    (run.money >= 12 && opts.find((n) => n.kind === 'store')) ||
     opts.find((n) => isTableNode(n)) ||
     opts[0],
   // Wager boldly while healthy.
   wager: (run) => (process.env.WAGER ? Number(process.env.WAGER) : run.grit >= 7 ? 2 : 1),
-  shop: shopBot,
+  road: (run) => roadBot(run),
   pack: packBot,
   camp: campRest,
 };
@@ -209,9 +195,8 @@ export function simulate(seed: string, shoe = 'paper', stake = 1, forceHost?: st
       if (run.phase === 'event') finishNode(run);
     } else if (run.phase === 'victory') {
       return { night: NIGHTS, won: true, run };
-    } else if (run.phase === 'shop') {
-      bot.shop(run);
-      leaveShop(run);
+    } else if (run.phase === 'road') {
+      bot.road(run);
     } else if (run.phase === 'pack') {
       bot.pack(run);
     } else if (run.phase === 'gameover') {

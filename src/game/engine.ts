@@ -26,7 +26,7 @@ import { SHOE } from '../content/shoes';
 import { TAG } from '../content/tags';
 import { startTownState } from './trail';
 
-export const RUN_VERSION = 4;
+export const RUN_VERSION = 5;
 export const NIGHTS = 7;
 
 // ---------------------------------------------------------------------------
@@ -82,7 +82,7 @@ export function newRun(seed: string, shoeId: string, stake: number): Run {
     tags: [],
     nightHost: 'kappa',
     hostsSeen: [],
-    shop: null,
+    road: null,
     table: null,
     pack: null,
     cashout: null,
@@ -102,6 +102,7 @@ export function newRun(seed: string, shoeId: string, stake: number): Run {
   for (const k of shoe.cons ?? []) run.consumables.push({ uid: run.nextId++, kind: k.kind, id: k.id });
   for (const id of shoe.charms ?? []) run.charms.push(makeCharm(run, id));
   if (stake >= 4) run.baseFolds = Math.max(0, run.baseFolds - 1);
+  if (stake >= 6) { run.maxGrit -= 1; run.grit -= 1; }
   if (stake >= 7) run.baseHands = Math.max(1, run.baseHands - 1);
   run.flags.startDeckSize = run.deck.length;
   rotate(run);
@@ -199,7 +200,7 @@ export function currentHost(run: Run) {
   return HOST[t.hostId] ?? null;
 }
 
-const NIGHT_BASE = [160, 450, 760, 1450, 2700, 4000, 11000];
+const NIGHT_BASE = [160, 420, 700, 1000, 1200, 1450, 2500];
 
 export function nightBase(run: Run, night = run.night): number {
   let base: number;
@@ -459,23 +460,10 @@ export function createCons(run: Run, kind: ConsKind, id?: string, finish?: Finis
   return true;
 }
 
-export function rollCharm(run: Run, opts: { rarity?: Rarity; exclude?: string[] } = {}): string {
-  const r = rng(run);
-  const rarity: Rarity = opts.rarity ?? (r.next() < 0.7 ? 1 : r.next() < 0.83 ? 2 : 3);
-  const owned = new Set(has(run, 'street_performer') ? [] : run.charms.map((k) => k.id));
-  const excl = new Set(opts.exclude ?? []);
-  let pool = CHARMS.filter(
-    (d) => d.rarity === rarity && !owned.has(d.id) && !excl.has(d.id) && (d.available ? d.available(run) : true),
-  );
-  if (!pool.length) pool = CHARMS.filter((d) => d.rarity === 1 && (d.available ? d.available(run) : true));
-  return r.pick(pool).id;
-}
-
-export function createCharm(run: Run, o: { rarity?: Rarity; id?: string; finish?: FinishId; force?: boolean } = {}): boolean {
-  if (!o.force && charmSlotsFree(run) <= 0 && o.finish !== 'phantom') return false;
-  const id = o.id ?? rollCharm(run, { rarity: o.rarity });
-  run.charms.push(makeCharm(run, id, o.finish));
-  discover(run, 'charm', id);
+/** Anything that used to hand out a Doodad now grants an extra mystery path after your next win. */
+export function createCharm(run: Run, _o: { rarity?: Rarity; id?: string; finish?: FinishId; force?: boolean } = {}): boolean {
+  run.flags.bonusPaths = (run.flags.bonusPaths ?? 0) + 1;
+  fxQueue.push({ t: 'msg', text: 'An extra path!', color: '#7fe07a', src: { kind: 'deck' } });
   return true;
 }
 

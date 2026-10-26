@@ -77,7 +77,7 @@ export function titleScreen(): HTMLElement {
   items.push(
     { label: 'New Run', sub: 'Saddle up with a fresh deck', act: () => openNewRun() },
     { label: 'How to Play', sub: 'Blackjack, the frontier way', act: () => openHowToPlay() },
-    { label: 'Collection', sub: 'Doodads, decks and every bird you\u2019ve met', act: () => openCollection() },
+    { label: 'Collection', sub: 'Abilities, decks and every bird you\u2019ve met', act: () => openCollection() },
     { label: 'Options', sub: 'Sound, speed and motion', act: () => openOptions() },
   );
   const cursor = h('div', { class: 'tm-cursor', html: iconSvg('badge') });

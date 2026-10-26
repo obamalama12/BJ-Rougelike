@@ -999,3 +999,7 @@
   60% { rotate: -5deg; }
   100% { scale: 1; rotate: 0deg; }
 }
+
+/* Abilities from the roads: Boons get a green rim, Banes a red one with a warning stripe. */
+.ch-body.boon { box-shadow: inset 0 0 0 3px #4fbf6a; }
+.ch-body.bane { box-shadow: inset 0 0 0 3px #c8402a; background-image: repeating-linear-gradient(-45deg, rgba(200, 64, 42, 0.12) 0 6px, transparent 6px 12px); }
