@@ -61,6 +61,15 @@ describe('content', () => {
     expect(pathOutcomes('SEED1')).toEqual(map);
     expect(pathOutcomes('SEED2')).not.toEqual(map);
   });
+  it('has a cutscene for every outcome', async () => {
+    const { ABILITIES, INSTANTS } = await import('../src/content/paths');
+    const { SCENES } = await import('../src/content/cutscenes');
+    for (const o of [...ABILITIES, ...INSTANTS]) {
+      expect(SCENES[o.id], o.id).toBeTruthy();
+      expect(SCENES[o.id].line.length, o.id).toBeGreaterThan(20);
+    }
+    expect(Object.keys(SCENES).length).toBe(ABILITIES.length + INSTANTS.length);
+  });
   it('gives every Outlaw and gunslinger a portrait', async () => {
     const { CHARACTERS } = await import('../src/ui/portraits');
     const { HEROES } = await import('../src/content/heroes');

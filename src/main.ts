@@ -17,6 +17,7 @@ import './style/stops.css';
 import './style/shop.css';
 import './style/menus.css';
 import './style/scenes.css';
+import './style/cutscene.css';
 import './style/handmade.css';
 
 import { app, mountShell, hideTip, closeAllModals } from './ui/app';

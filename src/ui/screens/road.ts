@@ -13,6 +13,13 @@ import { audio, sfx } from '../../fx/audio';
 import { iconSvg } from '../icons';
 import { charmCard, charmTooltip } from '../art';
 import { coach } from '../coach';
+import { playPathScene } from '../cutscene';
+
+// One keyboard listener for good, pointed at whichever road screen is current. A listener per
+// screen stayed attached after the screen was replaced (phones never press a key to trip the
+// clean-up), keeping every old screen and its HUD alive.
+let roadKeys: ((e: KeyboardEvent) => void) | null = null;
+let keysHooked = false;
 
 export function roadScreen(hud: Hud): HTMLElement {
   const run = app.run as Run;
@@ -21,9 +28,13 @@ export function roadScreen(hud: Hud): HTMLElement {
   hud.update();
   hud.renderTrays();
   const el = div('stop-screen road-screen');
+  if (!keysHooked) {
+    keysHooked = true;
+    window.addEventListener('keydown', (e) => roadKeys?.(e));
+  }
   let onKey: ((e: KeyboardEvent) => void) | null = null;
   const unbind = () => {
-    if (onKey) window.removeEventListener('keydown', onKey);
+    if (roadKeys === onKey) roadKeys = null;
     onKey = null;
   };
 
@@ -53,14 +64,14 @@ export function roadScreen(hud: Hud): HTMLElement {
       card.appendChild(row);
       onKey = (e) => {
         if (!el.isConnected) return unbind();
-        if (app.modalLayer.childElementCount) return;
+        if (app.modalLayer.childElementCount || app.busy) return;
         const n = Number(e.key);
         if (n >= 1 && n <= road.options.length) {
           e.preventDefault();
           choose(road.options[n - 1], row.children[n - 1] as HTMLElement);
         }
       };
-      window.addEventListener('keydown', onKey);
+      roadKeys = onKey;
       void coach('road', { x: 800, y: 300, point: 'down' });
     } else {
       const o = road.taken.outcome;
@@ -124,10 +135,15 @@ export function roadScreen(hud: Hud): HTMLElement {
     el.appendChild(card);
   };
 
-  const choose = (path: number, from: HTMLElement) => {
+  const choose = async (path: number, from: HTMLElement) => {
+    if (app.busy) return;
     const o = takeRoad(run, path);
     if (!o) return;
     save();
+    unbind();
+    // Show what happened down the road before revealing what it left you with.
+    await playPathScene(run, path, o);
+    if (!el.isConnected) return;
     const good = isGood(o);
     sfx('flip');
     if (good) {

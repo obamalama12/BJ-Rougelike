@@ -1,0 +1,264 @@
+/* Path cutscenes (src/ui/cutscene.ts). Everything is timed in multiples of --k (1 / game speed),
+   so the whole scene speeds up with the Game speed setting. Phases are classes on .cutscene:
+   (none) the duck rides in, .beat the event starts, .climax it lands, .result the verdict. */
+
+.cutscene { --k: 1; background: rgba(14, 6, 2, 0.88); cursor: pointer; }
+.cutscene.shake .cs-window { animation: csShake calc(0.45s * var(--k)) ease-out; }
+@keyframes csShake {
+  20% { transform: translate(-9px, 4px) rotate(-0.6deg); }
+  40% { transform: translate(8px, -5px) rotate(0.5deg); }
+  60% { transform: translate(-6px, 3px); }
+  80% { transform: translate(4px, -2px); }
+}
+
+.cs-frame.sheet {
+  --plate: var(--plate-sage);
+  position: relative;
+  width: 1120px;
+  padding: 16px 36px 22px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  box-shadow: var(--lift-3);
+  animation: billIn 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.15) both;
+}
+
+/* --- The window onto the road ----------------------------------------------------------- */
+.cs-window {
+  position: relative;
+  width: 1040px;
+  height: 440px;
+  overflow: hidden;
+  border: 2.5px solid var(--key);
+  border-radius: 10px;
+  box-shadow: inset 0 0 0 4px rgba(245, 232, 203, 0.35), inset 0 0 60px rgba(20, 8, 2, 0.45);
+}
+.cs-sky { position: absolute; inset: 0; background: linear-gradient(180deg, #3a2250 0%, #a0405a 45%, #f0904a 72%, #f6c06a 100%); }
+.cs-sky::before, .cs-sky::after { content: ''; position: absolute; inset: 0; opacity: 0; transition: opacity calc(0.5s * var(--k)); }
+.cs-sky::before { background: linear-gradient(180deg, rgba(255, 214, 120, 0.1), rgba(255, 230, 150, 0.55)); }
+.cs-sky::after { background: linear-gradient(180deg, rgba(40, 10, 20, 0.75), rgba(120, 20, 10, 0.45)); }
+.cutscene.good.climax .cs-sky::before { opacity: 1; }
+.cutscene.bad.climax .cs-sky::after { opacity: 1; }
+.beat-campfire .cs-sky, .beat-ghost .cs-sky { background: linear-gradient(180deg, #120a24 0%, #2a1a40 55%, #4a2a40 100%); }
+.beat-storm.beat .cs-sky { filter: brightness(0.55) saturate(0.6); transition: filter calc(0.4s * var(--k)); }
+.cs-sun { position: absolute; left: 62%; top: 52%; width: 150px; height: 150px; border-radius: 50%; background: radial-gradient(circle, #fff3c8 0 45%, rgba(255, 220, 140, 0) 70%); }
+.beat-campfire .cs-sun, .beat-ghost .cs-sun { left: 78%; top: 12%; width: 70px; height: 70px; background: radial-gradient(circle, #f4ecd8 0 48%, rgba(244, 236, 216, 0) 70%); }
+.cs-mesa { position: absolute; left: -2%; right: -2%; bottom: 90px; background: #5a2a3a; clip-path: polygon(0 100%, 0 55%, 8% 55%, 10% 30%, 22% 30%, 24% 58%, 40% 60%, 43% 40%, 51% 40%, 53% 62%, 70% 62%, 72% 25%, 86% 25%, 88% 60%, 100% 60%, 100% 100%); height: 160px; opacity: 0.85; }
+.cs-mesa.near { bottom: 60px; height: 110px; background: #3a1a26; clip-path: polygon(0 100%, 0 50%, 15% 50%, 17% 20%, 30% 20%, 32% 55%, 60% 55%, 62% 35%, 78% 35%, 80% 58%, 100% 58%, 100% 100%); opacity: 1; }
+.cs-ground { position: absolute; left: 0; right: 0; bottom: 0; height: 84px; background: linear-gradient(180deg, #7a4a26, #4a2a14); border-top: 2.5px solid var(--key); }
+.cs-ground::after { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(90deg, transparent 0 40px, rgba(255, 220, 160, 0.08) 40px 42px); animation: csScroll calc(1s * var(--k)) linear calc(var(--k) * 0s) 1; }
+@keyframes csScroll { from { background-position: 160px 0; } }
+/* The path's own landmark, printed big and dark on the horizon */
+.cs-scenery { position: absolute; right: 60px; bottom: 70px; width: 250px; height: 250px; opacity: 0.55; color: #2a1408; --i1: #3a1a26; --i2: #5a2a3a; --i3: #2a1408; --i4: #6a3a40; }
+.cs-scenery .icon, .cs-prop .icon, .cs-beat .icon { width: 100%; height: 100%; }
+
+/* --- Your duck --------------------------------------------------------------------------- */
+.cs-duck {
+  position: absolute;
+  left: 50px;
+  bottom: 22px;
+  width: 250px;
+  height: 250px;
+  filter: drop-shadow(0 8px 10px rgba(20, 8, 2, 0.5));
+  animation: duckIn calc(0.9s * var(--k)) cubic-bezier(0.2, 0.8, 0.3, 1) both, duckBob calc(0.3s * var(--k)) ease-in-out 3;
+}
+.cs-duck .portrait { width: 100%; height: 100%; }
+@keyframes duckIn { from { transform: translateX(-330px); } }
+@keyframes duckBob { 50% { translate: 0 -10px; rotate: 2deg; } }
+.cutscene.climax .cs-duck { animation: duckReact calc(0.5s * var(--k)) cubic-bezier(0.3, 1.6, 0.5, 1) both; }
+@keyframes duckReact { 30% { transform: translateY(-26px) scale(1.06); } }
+.cutscene.bad.climax .cs-duck { animation-name: duckRecoil; }
+@keyframes duckRecoil { 30% { transform: translateX(-30px) rotate(-6deg); } }
+
+/* --- What the road gives you (pops at the climax) ------------------------------------------ */
+.cs-prop {
+  position: absolute;
+  left: 440px;
+  bottom: 150px;
+  width: 130px;
+  height: 130px;
+  opacity: 0;
+  transform: scale(0.2);
+  color: var(--key);
+  --i1: #f2c870;
+  --i2: #fbf5e6;
+  --i3: var(--key);
+  --i4: #e8a93b;
+  filter: drop-shadow(0 0 18px rgba(255, 230, 150, 0.9));
+}
+.cutscene.bad .cs-prop { --i1: #d8604a; filter: drop-shadow(0 0 18px rgba(200, 50, 30, 0.8)); }
+.cutscene.climax .cs-prop { animation: propPop calc(0.55s * var(--k)) cubic-bezier(0.3, 1.6, 0.5, 1) both; }
+@keyframes propPop { from { opacity: 0; transform: scale(0.2) rotate(-20deg); } to { opacity: 1; transform: scale(1) rotate(0); } }
+/* A thief makes off with it */
+.beat-thief.climax .cs-prop { animation: propPop calc(0.4s * var(--k)) both, propStolen calc(0.7s * var(--k)) ease-in calc(0.45s * var(--k)) forwards; }
+@keyframes propStolen { to { opacity: 0; transform: translate(520px, -120px) rotate(40deg) scale(0.5); } }
+.cs-flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; }
+.cutscene.climax .cs-flash { animation: csFlash calc(0.35s * var(--k)) ease-out; }
+.cutscene.good.climax .cs-flash { background: #fff3c0; }
+@keyframes csFlash { 0% { opacity: 0.32; } 100% { opacity: 0; } }
+
+/* --- Beats --------------------------------------------------------------------------------- */
+.cs-beat { position: absolute; inset: 0; pointer-events: none; }
+.cs-beat > * { position: absolute; }
+
+/* treasure: a mound that glints, then gives something up */
+.bt-mound { left: 430px; bottom: 70px; width: 150px; height: 40px; border-radius: 50% 50% 0 0; background: #8a5a32; border: 2px solid var(--key); border-bottom: none; }
+.bt-glint { left: calc(450px + var(--n) * 30px); bottom: calc(108px + var(--n) * 9px); width: 18px; height: 18px; opacity: 0; background: radial-gradient(circle, #fff 0 20%, transparent 22%), linear-gradient(0deg, transparent 45%, #fff6c0 45% 55%, transparent 55%), linear-gradient(90deg, transparent 45%, #fff6c0 45% 55%, transparent 55%); }
+.beat .bt-glint { animation: glint calc(0.5s * var(--k)) ease-in-out calc(var(--n) * 0.12s * var(--k)) 2; }
+@keyframes glint { 50% { opacity: 1; transform: scale(1.4) rotate(45deg); } }
+
+/* stranger: someone walks up from the right */
+.bt-figure { right: 300px; bottom: 60px; width: 200px; height: 220px; opacity: 0; }
+.bt-actor { position: absolute; inset: 0 0 20px; color: var(--key); --i1: #6a3a1e; --i2: #f8eed6; --i3: var(--key); --i4: #e8a93b; filter: drop-shadow(0 6px 8px rgba(20, 8, 2, 0.5)); }
+.bt-shadow { position: absolute; left: 20%; right: 20%; bottom: 0; height: 18px; border-radius: 50%; background: rgba(20, 8, 2, 0.35); }
+.beat .bt-figure { animation: figureIn calc(0.75s * var(--k)) cubic-bezier(0.2, 0.8, 0.3, 1.1) both; }
+@keyframes figureIn { from { opacity: 0; transform: translateX(260px); } to { opacity: 1; } }
+.climax .bt-figure { opacity: 1; animation: figureNod calc(0.4s * var(--k)) ease-in-out; }
+@keyframes figureNod { 50% { transform: rotate(-6deg); } }
+
+/* campfire: flicker and sparks */
+.bt-fire { left: 450px; bottom: 50px; width: 150px; height: 150px; opacity: 0.4; color: var(--key); --i1: #e8602a; --i2: #ffd27a; --i4: #ffb03d; }
+.beat .bt-fire { opacity: 1; animation: flicker calc(0.18s * var(--k)) steps(2) infinite; transition: opacity calc(0.3s * var(--k)); }
+@keyframes flicker { 50% { transform: scale(1.04, 0.97); filter: brightness(1.2); } }
+.bt-spark { left: calc(500px + var(--n) * 7px); bottom: 150px; width: 6px; height: 6px; border-radius: 50%; background: #ffd27a; opacity: 0; }
+.beat .bt-spark { animation: sparkUp calc(0.9s * var(--k)) ease-out calc(var(--n) * 0.1s * var(--k)) infinite; }
+@keyframes sparkUp { 0% { opacity: 1; } 100% { opacity: 0; transform: translate(calc((var(--n) - 4) * 14px), -160px); } }
+
+/* star: a streak out of the sky */
+.bt-streak { left: 900px; top: -120px; width: 90px; height: 90px; opacity: 0; }
+.bt-streak::before { content: ''; position: absolute; left: 60%; top: -260px; width: 8px; height: 280px; background: linear-gradient(180deg, transparent, #fff6c0); transform: rotate(-40deg); transform-origin: bottom; }
+.bt-star { position: absolute; inset: 0; color: var(--key); --i1: #ffe27a; --i2: #fff; }
+.beat .bt-streak { animation: streak calc(0.8s * var(--k)) cubic-bezier(0.5, 0, 0.9, 0.6) both; }
+@keyframes streak { 0% { opacity: 1; } 100% { opacity: 1; transform: translate(-400px, 330px) scale(0.6); } }
+.climax .bt-streak { opacity: 0; transition: opacity calc(0.1s * var(--k)); }
+.bt-impact { left: 420px; bottom: 60px; width: 180px; height: 60px; border-radius: 50%; background: radial-gradient(ellipse, rgba(255, 240, 180, 0.9), transparent 70%); opacity: 0; }
+.climax .bt-impact { animation: csFlash calc(0.6s * var(--k)) ease-out; }
+
+/* cards: a roadside table and three cards dealt */
+.bt-table { left: 380px; bottom: 60px; width: 280px; height: 70px; background: #2f6a3a; border: 2.5px solid var(--key); border-radius: 50% / 40%; box-shadow: inset 0 -8px 0 rgba(0, 0, 0, 0.2); opacity: 0; }
+.beat .bt-table { opacity: 1; transition: opacity calc(0.2s * var(--k)); }
+.bt-card { left: calc(440px + var(--n) * 54px); bottom: 100px; width: 44px; height: 62px; border-radius: 5px; border: 2px solid var(--key); background: repeating-linear-gradient(45deg, #c8402a 0 4px, #e8604a 4px 8px); opacity: 0; }
+.beat .bt-card { animation: dealIn calc(0.35s * var(--k)) ease-out calc(var(--n) * 0.15s * var(--k)) both; }
+@keyframes dealIn { from { opacity: 0; transform: translate(300px, -160px) rotate(90deg); } to { opacity: 1; } }
+.climax .bt-card { background: #fbf5e6; transition: background 0s calc(var(--n) * 0.08s * var(--k)); }
+
+/* storm: clouds, rain and a bolt */
+.bt-cloud { top: -40px; width: 300px; height: 180px; color: var(--key); --i1: #5a5068; --i2: #8a809a; opacity: 0; }
+.bt-cloud.c1 { left: 300px; }
+.bt-cloud.c2 { left: 560px; top: -10px; }
+.beat .bt-cloud { opacity: 1; animation: cloudIn calc(0.6s * var(--k)) ease-out both; }
+@keyframes cloudIn { from { opacity: 0; transform: translateY(-120px); } }
+.bt-bolt { left: 520px; top: 80px; width: 130px; height: 200px; color: var(--key); --i1: #ffe27a; opacity: 0; }
+.climax .bt-bolt { animation: bolt calc(0.5s * var(--k)) steps(2) 1; }
+@keyframes bolt { 0%, 60% { opacity: 1; } 100% { opacity: 0; } }
+.bt-rain { left: calc(260px + var(--n) * 46px); top: 90px; width: 2px; height: 26px; background: rgba(200, 220, 255, 0.7); opacity: 0; }
+.beat .bt-rain { animation: rain calc(0.5s * var(--k)) linear calc(var(--n) * 0.04s * var(--k)) infinite; }
+@keyframes rain { 0% { opacity: 1; } 100% { opacity: 0.6; transform: translate(-30px, 260px); } }
+
+/* ambush: someone springs from behind a rock */
+.bt-rock { left: 600px; bottom: 50px; width: 220px; height: 170px; color: var(--key); --i1: #6a5a50; --i2: #9a8a7a; z-index: 2; }
+.bt-jumper { left: 610px; bottom: 120px; width: 190px; height: 190px; opacity: 0; z-index: 1; }
+.beat .bt-jumper { animation: peek calc(0.5s * var(--k)) ease-in-out both; }
+@keyframes peek { 0% { opacity: 0; transform: translateY(80px); } 100% { opacity: 1; transform: translateY(40px); } }
+.climax .bt-jumper { opacity: 1; animation: jump calc(0.45s * var(--k)) cubic-bezier(0.3, 1.6, 0.5, 1) both; }
+@keyframes jump { from { transform: translateY(40px); } to { transform: translate(-110px, -30px) rotate(-8deg); } }
+
+/* snake: grass, then a strike */
+.bt-grass { left: calc(480px + var(--n) * 40px); bottom: 70px; width: 30px; height: 40px; background: linear-gradient(75deg, transparent 40%, #4a6a2a 40% 55%, transparent 55%), linear-gradient(105deg, transparent 40%, #5a7a32 40% 55%, transparent 55%); }
+.bt-snake { left: 560px; bottom: 60px; width: 150px; height: 150px; opacity: 0; color: var(--key); --i1: #6a8a3a; --i2: #c8d88a; }
+.beat .bt-snake { animation: rustle calc(0.15s * var(--k)) linear 4; opacity: 0.3; }
+@keyframes rustle { 50% { transform: translateX(6px); } }
+.climax .bt-snake { opacity: 1; animation: strike calc(0.35s * var(--k)) cubic-bezier(0.3, 1.8, 0.5, 1) both; }
+@keyframes strike { from { transform: translate(60px, 40px) scale(0.6); } to { transform: translate(-150px, -20px) rotate(-10deg); } }
+
+/* ghost: fog and something pale */
+.bt-fog { left: -10%; right: -10%; height: 120px; bottom: 60px; background: radial-gradient(ellipse at 30% 50%, rgba(220, 220, 240, 0.4), transparent 60%), radial-gradient(ellipse at 75% 60%, rgba(220, 220, 240, 0.35), transparent 60%); opacity: 0; }
+.bt-fog.f2 { bottom: 140px; }
+.beat .bt-fog { opacity: 1; animation: fog calc(2s * var(--k)) linear infinite alternate; transition: opacity calc(0.6s * var(--k)); }
+@keyframes fog { to { transform: translateX(80px); } }
+.bt-ghost { left: 600px; bottom: 120px; width: 170px; height: 170px; opacity: 0; color: var(--key); --i1: #e8e4f4; --i2: #fff; }
+.beat .bt-ghost { animation: ghostIn calc(0.8s * var(--k)) ease-in-out both; }
+@keyframes ghostIn { from { opacity: 0; transform: translateY(40px); } to { opacity: 0.85; } }
+.climax .bt-ghost { opacity: 0.9; animation: ghostSwoop calc(0.5s * var(--k)) ease-in both; }
+@keyframes ghostSwoop { to { transform: translate(-260px, -20px) scale(1.15); opacity: 0.4; } }
+
+/* stampede: dust and a herd crossing */
+.bt-dust { left: 0; right: 0; bottom: 40px; height: 140px; background: radial-gradient(ellipse at 50% 80%, rgba(200, 160, 110, 0.75), transparent 65%); opacity: 0; }
+.beat .bt-dust { opacity: 1; transition: opacity calc(0.4s * var(--k)); }
+.bt-runner { right: -220px; bottom: calc(50px + var(--n) * 18px); width: 170px; height: 170px; color: var(--key); --i1: #6a3a1e; --i2: #f8eed6; --i4: #e8a93b; }
+.beat .bt-runner { animation: charge calc(1.1s * var(--k)) linear calc(var(--n) * 0.18s * var(--k)) both; }
+@keyframes charge { to { transform: translateX(-1300px) translateY(-6px); } }
+
+/* water: a river edge, bubbles and a splash */
+.bt-wave { left: 360px; right: 0; bottom: 0; height: 90px; background: linear-gradient(180deg, #4a7fb8, #2a4f88); border-top: 2.5px solid var(--key); clip-path: polygon(0 30%, 10% 15%, 20% 30%, 30% 15%, 40% 30%, 50% 15%, 60% 30%, 70% 15%, 80% 30%, 90% 15%, 100% 30%, 100% 100%, 0 100%); opacity: 0; }
+.beat .bt-wave { opacity: 1; animation: wave calc(0.8s * var(--k)) linear infinite; transition: opacity calc(0.3s * var(--k)); }
+@keyframes wave { 50% { transform: translateX(-20px); } }
+.bt-bubble { left: calc(470px + var(--n) * 60px); bottom: 40px; width: 14px; height: 14px; border-radius: 50%; border: 2px solid rgba(240, 250, 255, 0.8); opacity: 0; }
+.beat .bt-bubble { animation: bubble calc(0.9s * var(--k)) ease-out calc(var(--n) * 0.12s * var(--k)) infinite; }
+@keyframes bubble { 0% { opacity: 1; } 100% { opacity: 0; transform: translateY(-110px); } }
+.bt-splash { left: 440px; bottom: 60px; width: 200px; height: 140px; background: radial-gradient(ellipse at 50% 100%, rgba(200, 230, 255, 0.9), transparent 65%); opacity: 0; }
+.climax .bt-splash { animation: csFlash calc(0.6s * var(--k)) ease-out; }
+
+/* thief: a hand reaches in from the edge */
+.bt-hand { right: -180px; bottom: 140px; width: 160px; height: 160px; color: var(--key); --i1: #c9a37a; --i2: #f8eed6; transform: scaleX(-1); }
+.beat .bt-hand { animation: reach calc(0.8s * var(--k)) ease-in-out both; }
+@keyframes reach { to { transform: translateX(-540px) scaleX(-1); } }
+.climax .bt-hand { transform: translateX(-540px) scaleX(-1); animation: grab calc(0.9s * var(--k)) ease-in calc(0.3s * var(--k)) both; }
+@keyframes grab { from { transform: translateX(-540px) scaleX(-1); } to { transform: translateX(80px) scaleX(-1); } }
+
+/* --- Narration and the verdict ---------------------------------------------------------------- */
+.cs-line {
+  max-width: 940px;
+  min-height: 64px;
+  font-family: var(--f-hand);
+  font-weight: 600;
+  font-size: 32px;
+  line-height: 1.1;
+  text-align: center;
+  color: var(--key);
+  animation: lineIn calc(0.6s * var(--k)) ease-out calc(0.35s * var(--k)) both;
+}
+@keyframes lineIn { from { opacity: 0; transform: translateY(8px); } }
+.cs-result {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: 640px;
+  padding: 20px 30px 22px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+  background: var(--fibre), var(--stock);
+  background-blend-mode: multiply, normal;
+  border: 2.5px solid var(--key);
+  border-radius: 10px;
+  box-shadow: inset 0 0 0 5px var(--stock), inset 0 0 0 7px #3f8f52, var(--lift-3);
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.6) rotate(-4deg);
+  pointer-events: none;
+}
+.cutscene.bad .cs-result { box-shadow: inset 0 0 0 5px var(--stock), inset 0 0 0 7px #a8321e, var(--lift-3); }
+.cutscene.result .cs-result { animation: verdict calc(0.4s * var(--k)) cubic-bezier(0.3, 1.5, 0.5, 1) both; }
+@keyframes verdict { to { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(-1.5deg); } }
+.cutscene.result .cs-window { filter: brightness(0.6); transition: filter calc(0.3s * var(--k)); }
+.csr-banner { padding: 4px 26px 6px; font-family: var(--f-display); font-size: 40px; color: var(--stock); border: 2.5px solid var(--key); border-radius: 6px; background: #3f8f52; transform: rotate(-3deg); box-shadow: var(--lift-1); }
+.cutscene.bad .csr-banner { background: #a8321e; }
+.csr-name { font-family: var(--f-display); font-size: 34px; line-height: 1.05; color: var(--key); }
+.csr-text { font-size: 20px; font-weight: 600; line-height: 1.35; color: var(--key-2); }
+.csr-text .t-hl, .csr-text .t-money { color: #2f6a3a; }
+.cutscene.bad .csr-text .t-hl { color: #8a2414; }
+.csr-text .t-chips { color: var(--plate-denim); }
+.csr-text .t-mult { color: var(--plate-verm); }
+.cs-skip { position: absolute; right: 18px; bottom: 8px; font: 700 11px var(--f-body); letter-spacing: 0.2em; text-transform: uppercase; color: rgba(42, 20, 8, 0.45); }
+.cs-skip::before { content: 'Tap to skip'; }
+.cutscene.result .cs-skip::before { content: 'Tap to continue'; }
+/* The frame takes the verdict's colour once it's known, never before. */
+.cutscene.bad.result .cs-frame.sheet { --plate: #a8321e; }
+
+/* Motion reduced: no movement at all, just the last frame. */
+.reduce-motion .cutscene *, .reduce-motion .cutscene { animation: none !important; transition: none !important; }
+.reduce-motion .cutscene .cs-prop, .reduce-motion .cutscene .cs-result { opacity: 1; transform: translate(0); }
+.reduce-motion .cutscene .cs-result { transform: translate(-50%, -50%); }
