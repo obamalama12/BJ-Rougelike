@@ -192,7 +192,9 @@ export class Hud {
     const outlawNode = run.trail.nodes.find((n) => n.kind === 'outlaw');
     const hostId = t?.hostId ?? run.nightHost;
     const host = HOST[hostId];
-    const key = t ? `${t.kind}:${t.hostId}:${t.target}:${t.hostDisabled}` : `town:${run.nightHost}:${run.night}`;
+    // Sheriff's Pardon (an ability) switches every curse off, so the poster should say so.
+    const pardoned = run.charms.some((k) => k.id === 'shrine_guardian' && !k.disabled);
+    const key = t ? `${t.kind}:${t.hostId}:${t.target}:${t.hostDisabled}:${pardoned}` : `town:${run.nightHost}:${run.night}:${pardoned}`;
     if (key !== this.posterKey) {
       this.posterKey = key;
       const p = this.poster;
@@ -206,7 +208,7 @@ export class Hud {
       else face.innerHTML = `<div class="poster-icon">${iconSvg(t?.kind === 'silk' ? 'tophat' : 'saloon')}</div>`;
       if (cursed && host) tip(face, () => hostTooltip(hostId), 'right');
       const name = div('poster-name', isOutlaw ? host?.name ?? 'Outlaw' : isGang ? nameOf(goonFace(t?.goonId)) : t?.kind === 'bank' ? 'The Vault' : t?.kind === 'silk' ? 'High Rollers' : 'Saloon Regulars');
-      const curse = cursed && host ? h('div', { class: 'poster-curse', html: t?.hostDisabled ? '<s>Curse lifted</s>' : fmt(host.text) }) : null;
+      const curse = cursed && host ? h('div', { class: 'poster-curse', html: t?.hostDisabled ? '<s>Curse lifted</s>' : pardoned ? `<s>${fmt(host.text)}</s><br>Pardoned: no effect on you` : fmt(host.text) }) : null;
       this.refs.target = div('poster-target-val');
       this.refs.score = div('poster-score-val', '0');
       this.refs.scoreBar = div('poster-bar-fill');
