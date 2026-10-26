@@ -9,6 +9,8 @@ export type SealId = 'red' | 'gold' | 'blue' | 'purple';
 export type Rarity = 1 | 2 | 3 | 4;
 
 export interface Card {
+  /** Conjured for one hand when the deck runs completely dry; never joins the deck for good. */
+  temp?: boolean;
   id: number;
   rank: Rank;
   suit: Suit;
@@ -190,7 +192,6 @@ export interface OpenPack {
   picksLeft: number;
   options: (
     | { kind: 'cons'; cons: ConsKind; id: string; finish?: FinishId; taken?: boolean }
-    | { kind: 'card'; card: Card; taken?: boolean }
   )[];
   /** Cards drawn from the deck to target Fortunes/Masks while the pack is open. */
   spread: number[];

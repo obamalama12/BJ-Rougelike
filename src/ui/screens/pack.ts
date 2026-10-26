@@ -26,24 +26,18 @@ export function packScreen(hud: Hud): HTMLElement {
     el.appendChild(board);
     const opts = div(`pack-options n${p.options.length}`);
     p.options.forEach((o, i) => {
-      let card: HTMLElement;
-      if (o.kind === 'cons') {
-        card = consCard(o.cons, o.id, o.finish);
-        tip(card, () => consTooltip(run, o.cons, o.id));
-      } else {
-        card = playingCard({ ...o.card, id: -1 - i }, run.shoeId);
-        tip(card, () => cardTooltip(o.card));
-      }
+      const card = consCard(o.cons, o.id, o.finish);
+      tip(card, () => consTooltip(run, o.cons, o.id));
       card.classList.add('pack-card');
       card.style.setProperty('--d', `${i * 0.08}s`);
       const slot = div(`pack-slot${o.taken ? ' taken' : ''}`, div('pack-stage', h('span', { class: 'pack-spot' }), card));
       if (!o.taken) {
-        const needs = o.kind === 'cons' ? CONS[o.id]?.targets : null;
+        const needs = CONS[o.id]?.targets ?? null;
         slot.appendChild(
-          button(o.kind === 'card' ? 'Add' : needs ? `Use (${needs[0] === needs[1] ? needs[0] : `${needs[0]}-${needs[1]}`})` : 'Use', 'buy tiny', async () => {
+          button(needs ? `Use (${needs[0] === needs[1] ? needs[0] : `${needs[0]}-${needs[1]}`})` : 'Use', 'buy tiny', async () => {
             const r = pickFromPack(run, i, chosen.slice());
             if (!r.ok) return toast(r.reason, 'bad');
-            sfx(o.kind === 'cons' && o.cons === 'star' ? 'levelup' : 'buy');
+            sfx(o.cons === 'star' ? 'levelup' : 'buy');
             burstAt(card, { n: 26, color: ['#c9b8ff', '#ffd23f', '#fff6e0'] });
             chosen.length = 0;
             drainFx();

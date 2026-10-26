@@ -1,7 +1,7 @@
 // Strange Happenings: the "?" stops on the trail.
 
 import type { Ctx } from '../game/api';
-import type { Run } from '../core/types';
+import type { Card, Run } from '../core/types';
 import { HAND_TYPES } from '../core/cards';
 import { charmSlotsFree, mostPlayed, CHARM } from './charms';
 
@@ -30,6 +30,11 @@ const gainGrit = (c: Ctx, n: number) => {
 const loseGrit = (c: Ctx, n: number) => {
   c.run.grit = Math.max(0, c.run.grit - n);
 };
+/** Your deck never grows (it's blackjack): rewards change cards you already hold instead.
+ *  Picks up to n different random cards (optionally filtered) and returns them. */
+const reprint = (c: { run: Run; rng: { shuffle<T>(a: T[]): T[] } }, n: number, ok: (k: Card) => boolean = () => true): Card[] =>
+  c.rng.shuffle(c.run.deck.filter(ok)).slice(0, n);
+
 // Rewards that used to be Doodads are extra mystery paths now, which never need room.
 const room = (_run: Run) => true;
 
@@ -99,7 +104,7 @@ export const EVENTS: EventDef[] = [
     choices: [
       { label: 'Pan for gold', detail: 'Gain $5 to $20. 1 in 4 chance of sunburn: -1 Grit',
         apply: (c) => { const n = 5 + Math.floor(c.rng.next() * 16); c.money(n); if (c.rng.next() < 0.25) { loseGrit(c, 1); return `You find $${n} in nuggets and get a sunburn. -1 Grit.`; } return `You find $${n} in nuggets.`; } },
-      { label: 'Stake a claim', detail: 'Add 2 Gold Plated cards to your deck', apply: (c) => { c.addCard({ ink: 'gilded' }); c.addCard({ ink: 'gilded' }); return 'You hammer in a claim sign. 2 Gold Plated cards join your deck.'; } },
+      { label: 'Stake a claim', detail: '2 random cards in your deck become Gold Plated', apply: (c) => { for (const k of reprint(c, 2, (x) => x.ink !== 'gilded' && x.ink !== 'stone')) k.ink = 'gilded'; return 'You hammer in a claim sign and gild two of your cards with the first nuggets.'; } },
     ],
   },
   {
@@ -171,10 +176,10 @@ export const EVENTS: EventDef[] = [
     text: 'A raven in a fancy vest shuffles one-handed. He offers lessons, for a price.',
     choices: [
       { label: 'Learn a trick', detail: 'Quackjack and Dead Eye each gain 1 level', cost: 10, apply: (c) => { c.levelUp('blackjack', 1); c.levelUp('twentyone', 1); return 'He teaches you to deal seconds. Quackjack and Dead Eye gain a level.'; } },
-      { label: 'Swipe his deck', detail: 'Add 3 cards with random inks to your deck. -2 Grit', apply: (c) => {
+      { label: 'Swipe his inks', detail: '3 random cards in your deck get random inks. -2 Grit', apply: (c) => {
         const inks = ['jade', 'crimson', 'gilded', 'glass', 'lucky', 'spirit', 'ash'] as const;
-        for (let i = 0; i < 3; i++) c.addCard({ ink: c.rng.pick(inks) });
-        loseGrit(c, 2); return 'You grab the deck and run. He pecks you twice on the way out. -2 Grit.'; } },
+        for (const k of reprint(c, 3, (x) => x.ink !== 'stone')) k.ink = c.rng.pick(inks);
+        loseGrit(c, 2); return 'You grab his ink pots and run, painting three of your cards on the way. He pecks you twice. -2 Grit.'; } },
       { label: 'Not interested', detail: 'Nothing happens', apply: () => '"Suit yourself."' },
     ],
   },
@@ -240,7 +245,7 @@ export const EVENTS: EventDef[] = [
     icon: 'mirror',
     text: 'Inside the tent, a hundred bent copies of you stare back. One of them is holding cards.',
     choices: [
-      { label: 'Step into the mirror', detail: 'Copy 2 random cards in your deck', apply: (c) => { for (let i = 0; i < 2; i++) { const k = c.rng.pick(c.run.deck); c.addCard({ ...k, id: undefined as unknown as number }); } return 'You step out holding two cards that weren’t in your deck before.'; } },
+      { label: 'Step into the mirror', detail: '2 random cards in your deck become copies of a third', apply: (c) => { const [src, ...rest] = reprint(c, 3); for (const k of rest) Object.assign(k, { rank: src.rank, suit: src.suit, ink: src.ink, seal: src.seal, finish: src.finish }); return `You step out and two of your cards have turned into the ${cardName(src)}.`; } },
       { label: 'Smash a mirror', detail: 'Gain $7. -1 Grit', apply: (c) => { c.money(7); loseGrit(c, 1); return 'There’s $7 in coins behind the glass. You cut your wing getting it. -1 Grit.'; } },
     ],
   },
@@ -302,9 +307,9 @@ export const EVENTS: EventDef[] = [
     character: 'shopkeeper',
     text: 'In the back of the newspaper office, a duck is printing playing cards on the same press as the Gazette.',
     choices: [
-      { label: 'Order a fresh Ace', detail: 'Add a {g:Red Hot} Ace to your deck', cost: 5, apply: (c) => { const k = c.addCard({ rank: 14, suit: c.rng.pick(SUITS), ink: 'crimson' }); return `Still warm from the press: a ${cardName(k)}.`; } },
-      { label: 'Order three tens', detail: 'Add three 10s to your deck', cost: 4, apply: (c) => { for (let i = 0; i < 3; i++) c.addCard({ rank: 10, suit: c.rng.pick(SUITS) }); return 'Three crisp tens. They smell like ink and the weather report.'; } },
-      { label: 'Ask for a misprint', detail: 'Add a random {g:Wild} card to your deck', apply: (c) => { const k = c.addCard({ rank: c.rng.pick(RANKS), suit: c.rng.pick(SUITS), ink: 'spirit' }); return `He hands you a smudged ${cardName(k)}. It counts as every suit.`; } },
+      { label: 'Reprint an Ace', detail: 'A random card in your deck is reprinted as a {g:Red Hot} Ace', cost: 5, apply: (c) => { const [k] = reprint(c, 1, (x) => x.rank !== 14); if (k) { k.rank = 14; k.ink = 'crimson'; } return k ? `Still warm from the press: a ${cardName(k)}.` : 'Your deck is all Aces already.'; } },
+      { label: 'Reprint three tens', detail: 'Three of your lowest cards are reprinted as 10s', cost: 4, apply: (c) => { const low = [...c.run.deck].filter((x) => x.ink !== 'stone').sort((a, b) => a.rank - b.rank).slice(0, 3); for (const k of low) k.rank = 10; return 'Three of your little cards come back off the press as crisp tens.'; } },
+      { label: 'Ask for a misprint', detail: 'A random card in your deck becomes {g:Wild}', apply: (c) => { const [k] = reprint(c, 1, (x) => x.ink !== 'spirit' && x.ink !== 'stone'); if (k) k.ink = 'spirit'; return k ? `He smudges your ${cardName(k)}. It counts as every suit now.` : 'He shrugs. Nothing left to smudge.'; } },
     ],
   },
   {
@@ -408,7 +413,7 @@ export const EVENTS: EventDef[] = [
     minTown: 3,
     text: 'A boarded-up mine shaft with a hand-painted sign: "GOLD (PROBABLY)". The boards are already pried loose.',
     choices: [
-      { label: 'Go in deep', detail: 'Gain $25 and a Gold Plated card. -4 Grit', apply: (c) => { c.money(25); c.addCard({ rank: c.rng.pick(RANKS), suit: c.rng.pick(SUITS), ink: 'gilded' }); loseGrit(c, 4); return 'There was gold. There was also a cave-in. +$25 and a gold card. -4 Grit.'; } },
+      { label: 'Go in deep', detail: 'Gain $25 and a random card becomes Gold Plated. -4 Grit', apply: (c) => { c.money(25); const [k] = reprint(c, 1, (x) => x.ink !== 'gilded' && x.ink !== 'stone'); if (k) k.ink = 'gilded'; loseGrit(c, 4); return 'There was gold. There was also a cave-in. +$25 and a gilded card. -4 Grit.'; } },
       { label: 'Poke around the entrance', detail: 'Gain $8', apply: (c) => { c.money(8); return 'You find a few nuggets the last fellow dropped. +$8.'; } },
       { label: 'Read the rest of the sign', detail: 'Nothing happens', apply: () => 'The back says "ALSO BEARS". You leave.' },
     ],

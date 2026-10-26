@@ -329,8 +329,8 @@ export function packCard(packId: string): HTMLElement {
 
 export function packTooltip(packId: string, extra = ''): string {
   const p = PACK[packId];
-  const what: Record<string, string> = { fortune: 'Tonics', star: 'Tall Tales', mask: 'Moonshine', card: 'playing cards' };
-  return `<div class="tt-title">${esc(p.name)}</div><div class="tt-body">Choose ${fmt(`{g:${p.picks}}`)} of up to ${fmt(`{g:${p.size}}`)} ${what[p.kind]}${p.kind === 'card' ? ' to add to your deck' : ' to use immediately'}</div>
+  const what: Record<string, string> = { fortune: 'Tonics', star: 'Tall Tales', mask: 'Moonshine' };
+  return `<div class="tt-title">${esc(p.name)}</div><div class="tt-body">Choose ${fmt(`{g:${p.picks}}`)} of up to ${fmt(`{g:${p.size}}`)} ${what[p.kind]} to use immediately</div>
     <div class="tt-tags"><span class="tag-kind k-pack">Crate</span>${extra}</div>`;
 }
 

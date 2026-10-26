@@ -107,7 +107,8 @@ Tall Tales level these up.
   6 final Outlaws such as the Golden Goose.
 - **16 Decks** to start with and **8 Wanted Levels** of difficulty, from Greenhorn to Legend.
 - 8 card **Inks**, 4 **Finishes** and 4 **Brands**.
-- Crates of Tonics, Tall Tales, Moonshine and cards (normal, jumbo, mega).
+- Crates of Tonics, Tall Tales and Moonshine (normal, jumbo, mega). Your deck never grows during
+  a run: rewards change cards you already hold (ink them, reprint them) instead of adding new ones.
 
 ## Under the hood
 

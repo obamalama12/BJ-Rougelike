@@ -1,7 +1,7 @@
 // Tonics (card magic), Tall Tales (hand upgrades) and Moonshine (strong, with a cost).
 
 import type { ConsDef } from '../game/api';
-import type { HandTypeId, InkId, Rank, Suit, FinishId, SealId, Run } from '../core/types';
+import type { Card, HandTypeId, InkId, Rank, Suit, FinishId, SealId, Run } from '../core/types';
 import { HAND_TYPES, SUIT_INFO, RANKS, SUITS } from '../core/cards';
 import { sellValue, charmSlotsFree } from './charms';
 
@@ -80,8 +80,8 @@ F({ id: 'the_wheel', name: 'Roulette Remedy', icon: 'wagonwheel', hue: '#ff9ad8'
     } else c.msg('Nope!', '#ff6b5a');
   } });
 F({ id: 'the_matchmaker', name: 'Love Potion No. 9', icon: 'heart', hue: '#ff7aa8', targets: [1, 1],
-  text: 'Adds {g:2} copies of a selected card’s rank, in random suits, to your deck',
-  use: (c, [a]) => { for (let i = 0; i < 2; i++) c.addCard({ rank: a.rank, suit: c.rng.pick(SUITS) }); } });
+  text: '{g:2} random cards in your deck take on a selected card’s rank',
+  use: (c, [a]) => { for (const k of c.rng.shuffle(c.run.deck.filter((x) => x.id !== a.id)).slice(0, 2)) k.rank = a.rank; } });
 
 // --- Tall Tales -------------------------------------------------------------
 
@@ -117,6 +117,10 @@ for (const h of HAND_TYPES) {
 const randInk = (c: { rng: { pick: <T>(a: readonly T[]) => T } }): InkId =>
   c.rng.pick(['jade', 'crimson', 'gilded', 'glass', 'lucky', 'spirit', 'ash'] as InkId[]);
 
+/** Up to n different random cards from the deck (your deck never grows, so Moonshine changes cards instead). */
+const turnRandom = (c: Parameters<ConsDef['use']>[0], n: number, ok: (k: Card) => boolean = () => true): Card[] =>
+  c.rng.shuffle(c.run.deck.filter((k) => k.ink !== 'stone' && ok(k))).slice(0, n);
+
 const destroyRandom = (c: Parameters<ConsDef['use']>[0], n: number) => {
   for (let i = 0; i < n; i++) {
     if (!c.run.deck.length) return;
@@ -125,14 +129,14 @@ const destroyRandom = (c: Parameters<ConsDef['use']>[0], n: number) => {
 };
 
 M({ id: 'fox_mask', name: 'Face Card Firewater', icon: 'mustache', hue: '#ffb03d',
-  text: 'Destroys {g:1} random card in your deck. Adds {g:3} face cards with random inks',
-  use: (c) => { destroyRandom(c, 1); for (let i = 0; i < 3; i++) c.addCard({ rank: c.rng.pick([11, 12, 13] as Rank[]), ink: randInk(c) }); } });
+  text: 'Turns {g:3} random cards in your deck into face cards with random inks',
+  use: (c) => { for (const k of turnRandom(c, 3)) { k.rank = c.rng.pick([11, 12, 13] as Rank[]); k.ink = randInk(c); } } });
 M({ id: 'oni_mask', name: 'Ace-High Hooch', icon: 'cards', hue: '#ff3d3d',
-  text: 'Destroys {g:1} random card in your deck. Adds {g:2} Aces with random inks',
-  use: (c) => { destroyRandom(c, 1); for (let i = 0; i < 2; i++) c.addCard({ rank: 14, ink: randInk(c) }); } });
+  text: 'Turns {g:2} random cards in your deck into Aces with random inks',
+  use: (c) => { for (const k of turnRandom(c, 2)) { k.rank = 14; k.ink = randInk(c); } } });
 M({ id: 'tengu_mask', name: 'Numbers Racket Rotgut', icon: 'dice', hue: '#ff5b3a',
-  text: 'Destroys {g:1} random card in your deck. Adds {g:4} number cards with random inks',
-  use: (c) => { destroyRandom(c, 1); for (let i = 0; i < 4; i++) c.addCard({ rank: c.rng.int(2, 10) as Rank, ink: randInk(c) }); } });
+  text: 'Gives {g:4} random number cards in your deck random inks',
+  use: (c) => { for (const k of turnRandom(c, 4, (x) => x.rank <= 10)) k.ink = randInk(c); } });
 
 const sealMask = (id: string, name: string, seal: SealId, hue: string, label: string) =>
   M({ id, name, icon: 'jug', hue, targets: [1, 1],
@@ -147,8 +151,8 @@ M({ id: 'hollow_mask', name: 'Spit Shine Whiskey', icon: 'spark', hue: '#e6f0ff'
   text: 'Makes {g:1} selected card {g:Shiny}, {g:Holographic} or {g:Prismatic} at random',
   use: (c, [a]) => { a.finish = c.rng.weighted(['foil', 'holo', 'prism'] as FinishId[], (x) => (x === 'foil' ? 5 : x === 'holo' ? 3.5 : 1.5)); } });
 M({ id: 'mirror_mask', name: 'Seeing Double', icon: 'glasses', hue: '#c9b8ff', targets: [1, 1],
-  text: 'Creates {g:2} copies of {g:1} selected card',
-  use: (c, [a]) => { for (let i = 0; i < 2; i++) c.addCard({ ...a, id: undefined as unknown as number }); } });
+  text: '{g:2} random cards in your deck become copies of {g:1} selected card',
+  use: (c, [a]) => { for (const k of turnRandom(c, 2, (x) => x.id !== a.id)) Object.assign(k, { rank: a.rank, suit: a.suit, ink: a.ink, seal: a.seal, finish: a.finish }); } });
 M({ id: 'ghost_mask', name: 'Ghost Town Gin', icon: 'ghost', hue: '#d8ffe0',
   text: 'A random Doodad becomes {g:Ghostly} {d:(takes up no slot)}. {r:-1 fold} each table for the rest of the run',
   canUse: (run) => run.charms.some((k) => !k.finish),

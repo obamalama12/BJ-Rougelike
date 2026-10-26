@@ -13,9 +13,6 @@ T({ id: 'investment', name: 'Investment Telegram', icon: 'moneybag', hue: '#ffd2
 T({ id: 'boss', name: 'Run ’Em Outta Town', icon: 'boot', hue: '#ff3d3d', when: 'now',
   text: 'Rerolls the Outlaw of this Town',
   apply: (c) => { c.run.flags.rerollHost = true; return true; } });
-T({ id: 'standard', name: 'Card Telegram', icon: 'cards', hue: '#f7ecd2', when: 'now',
-  text: 'Opens a free {g:Mega Card Crate}',
-  apply: (c) => { c.run.flags.openPack = 'card_mega'; return true; } });
 T({ id: 'fortune_pack', name: 'Tonic Telegram', icon: 'tonic', hue: '#c9b8ff', when: 'now',
   text: 'Opens a free {g:Mega Tonic Crate}',
   apply: (c) => { c.run.flags.openPack = 'fortune_mega'; return true; } });

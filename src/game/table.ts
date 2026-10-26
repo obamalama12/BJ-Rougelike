@@ -121,8 +121,10 @@ function takeTop(run: Run): Card | null {
   const t = run.table!;
   if (!t.shoe.length) reshuffle(run);
   if (!t.shoe.length) {
-    // Deck exhausted completely: conjure a stone card so play can continue.
+    // Deck exhausted completely: conjure a stone card so play can continue. It's only borrowed
+    // for this hand (your deck never grows) and is cleared away when the hand ends.
     const c = ctx(run).addCard({ ink: 'stone' });
+    c.temp = true;
     t.discard = t.discard.filter((x) => x !== c.id);
     return c;
   }
@@ -170,6 +172,18 @@ export function beginHand(run: Run) {
   if (rules.handCost) {
     const paid = pay(run, rules.handCost);
     if (paid) fxQueue.push({ t: 'money', v: -paid, src: { kind: 'host' } });
+  }
+}
+
+/** Clear away any card conjured because the deck ran dry. */
+function dropTempCards(run: Run) {
+  if (!run.deck.some((k) => k.temp)) return;
+  const temp = new Set(run.deck.filter((k) => k.temp).map((k) => k.id));
+  run.deck = run.deck.filter((k) => !k.temp);
+  const t = run.table;
+  if (t) {
+    t.discard = t.discard.filter((id) => !temp.has(id));
+    t.shoe = t.shoe.filter((id) => !temp.has(id));
   }
 }
 
@@ -803,6 +817,7 @@ export function endRound(run: Run, results: ScoreResult[]): 'ready' | 'won' | 'l
   t.hands = [];
   t.dealer = [];
   t.hidden = [];
+  dropTempCards(run);
   if (t.score >= t.target) {
     t.phase = 'won';
     return 'won';
@@ -839,6 +854,7 @@ export function endFold(run: Run) {
   t.hands = [];
   t.dealer = [];
   t.hidden = [];
+  dropTempCards(run);
   t.phase = 'ready';
 }
 

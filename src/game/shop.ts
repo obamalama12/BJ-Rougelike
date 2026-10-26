@@ -298,10 +298,7 @@ export function openPack(run: Run, packId: string, returnTo: 'shop' | 'trail') {
   const pack: OpenPack = { packId, picksLeft: def.picks, options: [], spread: [], returnTo };
   const used = new Set<string>();
   for (let i = 0; i < def.size; i++) {
-    if (def.kind === 'card') {
-      const card = randomCard(run, true);
-      pack.options.push({ kind: 'card', card });
-    } else {
+    {
       let kind: ConsKind = def.kind;
       let pool = kind === 'fortune' ? FORTUNES : kind === 'star' ? STARS : MASKS.filter((m) => m.id !== 'silent_mask');
       if (kind === 'fortune' && hasVoucher(run, 'omen_globe') && r.next() < 0.15) {
@@ -330,11 +327,7 @@ export function pickFromPack(run: Run, idx: number, targetIds: number[] = []): B
   if (!p || p.picksLeft <= 0) return { ok: false, reason: 'No picks left' };
   const o = p.options[idx];
   if (!o || o.taken) return { ok: false, reason: 'Gone' };
-  if (o.kind === 'card') {
-    const card = { ...o.card, id: run.nextId++ };
-    run.deck.push(card);
-    fire(run, 'cardAdded', card);
-  } else {
+  {
     const d = CONS[o.id];
     if (o.cons === 'star' || !d.targets) {
       if (!applyCons(run, o.cons, o.id, [])) {

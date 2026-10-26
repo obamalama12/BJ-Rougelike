@@ -24,8 +24,12 @@ export const SHOES: ShoeDef[] = [
   { id: 'balance', name: 'Fifty-Fifty Deck', hue: '#e9e2cf', back: 'yinyang', text: 'Before each hand scores, Pot and Odds are both set to their average. {r:Targets X2}', scale: 2 },
   { id: 'twin', name: 'Double Stack Deck', hue: '#3fcf8e', back: 'twin', text: 'Two full decks shuffled together. {g:+1} hand each table', start: { baseHands: 7 },
     build: (c) => { const extra = c.run.deck.map((k) => ({ ...k })); for (const k of extra) c.addCard({ rank: k.rank, suit: k.suit }); } },
-  { id: 'lucky7', name: 'Lucky Seven Deck', hue: '#ffd23f', back: 'lucky', text: 'An extra {g:7} of every suit. {h:sevens} starts at level {g:3}',
-    build: (c) => { for (const s of SUITS) c.addCard({ rank: 7, suit: s }); c.run.handLevels.sevens = 3; } },
+  { id: 'lucky7', name: 'Lucky Seven Deck', hue: '#ffd23f', back: 'lucky', text: 'One card of every suit is a {g:7} instead {d:(so 8 sevens)}. {h:sevens} starts at level {g:3}',
+    build: (c) => {
+      // Still 52 cards: one non-7 of each suit is reprinted as a 7.
+      for (const s of SUITS) { const k = c.run.deck.find((x) => x.suit === s && x.rank !== 7 && x.rank <= 6); if (k) k.rank = 7; }
+      c.run.handLevels.sevens = 3;
+    } },
   { id: 'mirror', name: 'Mirror Mirror Deck', hue: '#c9b8ff', back: 'mirror', text: 'After defeating each Outlaw, receive a {g:Double Telegram}' },
 ];
 
@@ -52,9 +56,6 @@ export const PACKS: PackDef[] = [
   { id: 'mask_normal', name: 'Moonshine Crate', kind: 'mask', size: 2, picks: 1, cost: 4, weight: 0.6, tier: 'normal' },
   { id: 'mask_jumbo', name: 'Jumbo Moonshine Crate', kind: 'mask', size: 4, picks: 1, cost: 6, weight: 0.3, tier: 'jumbo' },
   { id: 'mask_mega', name: 'Mega Moonshine Crate', kind: 'mask', size: 4, picks: 2, cost: 8, weight: 0.1, tier: 'mega' },
-  { id: 'card_normal', name: 'Card Crate', kind: 'card', size: 3, picks: 1, cost: 4, weight: 4, tier: 'normal' },
-  { id: 'card_jumbo', name: 'Jumbo Card Crate', kind: 'card', size: 5, picks: 1, cost: 6, weight: 2, tier: 'jumbo' },
-  { id: 'card_mega', name: 'Mega Card Crate', kind: 'card', size: 5, picks: 2, cost: 8, weight: 0.5, tier: 'mega' },
 ];
 
 export const PACK: Record<string, PackDef> = Object.fromEntries(PACKS.map((p) => [p.id, p]));

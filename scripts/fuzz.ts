@@ -41,6 +41,10 @@ function invariants(run: Run): string[] {
     ids.add(c.id);
     if (!(c.rank >= 2 && c.rank <= 14)) out.push(`card ${c.id} has rank ${c.rank}`);
   }
+  // It's blackjack: the deck may shrink, but never grows past what the run started with.
+  const real = run.deck.filter((k) => !k.temp).length;
+  if (real > (run.flags.startDeckSize ?? 52)) out.push(`deck grew to ${real} (started with ${run.flags.startDeckSize})`);
+  if (!run.table && run.deck.some((k) => k.temp)) out.push('a borrowed card stayed in the deck after the table');
   for (const k of run.charms) if (!CHARM[k.id]) out.push(`unknown ability ${k.id}`);
   if (new Set(run.charms.map((k) => k.uid)).size !== run.charms.length) out.push('duplicate ability uid');
   // Abilities may overflow only while the road is waiting for you to drop one.

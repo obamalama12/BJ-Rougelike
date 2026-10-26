@@ -121,7 +121,7 @@ export const SCENES: Record<string, SceneDef> = {
   hot_spring: S('water', 'Steam curls off a hidden hot spring. You soak until every ache floats away.'),
   old_almanac: S('treasure', 'A dog-eared almanac in a dead man’s saddlebag. Half of it is about card games.'),
   kind_stranger: S('stranger', 'A kind old hen waves you over to her wagon and shares her supper and a few coins.', { actor: 'chicken' }),
-  lucky_aces: S('treasure', 'Two Aces lie face up in the dirt, side by side, like they were waiting for you.', { prop: 'cards' }),
+  lucky_aces: S('treasure', 'Two Aces lie face up in the dirt, side by side. You swap your two worst cards for them.', { prop: 'cards' }),
   thin_the_herd: S('campfire', 'You go through your deck by the fire and toss the worst cards into the flames.'),
   tougher_hide: S('stampede', 'A bull charges you head on. You plant your feet, and the bull bounces off.'),
   ambush: S('ambush', 'Bandits jump out from behind the rocks and give you a proper going-over before you can draw.', { actor: 'bandana' }),

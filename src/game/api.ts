@@ -214,7 +214,7 @@ export interface StakeDef {
 export interface PackDef {
   id: string;
   name: string;
-  kind: 'fortune' | 'star' | 'mask' | 'card';
+  kind: 'fortune' | 'star' | 'mask';
   size: number;
   picks: number;
   cost: number;

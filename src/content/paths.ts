@@ -265,8 +265,8 @@ instant({ id: 'old_almanac', name: 'Old Almanac', icon: 'book', good: true, text
   for (const h of top) run.handLevels[h.id]++;
 } });
 instant({ id: 'kind_stranger', name: 'A Kind Stranger', icon: 'cowboyhat', good: true, text: 'Shares his supper: {$:+5} and {g:+2} Grit', apply: (run) => { run.money += 5; healRun(run, 2); } });
-instant({ id: 'lucky_aces', name: 'Lucky Aces', icon: 'cards', good: true, text: 'You find two Aces in the dirt. They join your deck', apply: (run) => {
-  for (let i = 0; i < 2; i++) run.deck.push({ id: run.nextId++, rank: 14, suit: (['moon', 'flame', 'leaf', 'bell'] as const)[i * 2] });
+instant({ id: 'lucky_aces', name: 'Lucky Aces', icon: 'cards', good: true, text: 'Two of your lowest cards turn into Aces', apply: (run) => {
+  for (const k of [...run.deck].filter((x) => x.rank !== 14 && x.ink !== 'stone').sort((a, b) => a.rank - b.rank).slice(0, 2)) k.rank = 14;
 } });
 instant({ id: 'thin_the_herd', name: 'Thin the Herd', icon: 'scissors', good: true, text: 'Three of the lowest cards leave your deck', apply: (run) => {
   const low = [...run.deck].filter((k) => k.ink !== 'stone').sort((a, b) => a.rank - b.rank).slice(0, 3).map((k) => k.id);
@@ -276,8 +276,10 @@ instant({ id: 'tougher_hide', name: 'Tougher Hide', icon: 'heart', good: true, t
 instant({ id: 'ambush', name: 'Ambush!', icon: 'bandana', good: false, text: 'Bandits jump you: {r:-3} Grit', apply: (run) => gritHurt(run, 3) });
 instant({ id: 'pickpocket', name: 'Pickpocket', icon: 'hand', good: false, text: 'Someone lifted half your Bucks', apply: (run) => { run.money = Math.floor(Math.max(0, run.money) / 2); } });
 instant({ id: 'rockslide', name: 'Rockslide', icon: 'rock', good: false, text: 'Rocks come down the hill: {r:-2} Grit', apply: (run) => gritHurt(run, 2) });
-instant({ id: 'pebbles', name: 'Pebbles in the Deck', icon: 'rock', good: false, text: 'Three worthless rocks get shuffled into your deck', apply: (run) => {
-  for (let i = 0; i < 3; i++) run.deck.push({ id: run.nextId++, rank: 2, suit: 'moon', ink: 'stone' });
+instant({ id: 'pebbles', name: 'Pebbles in the Deck', icon: 'rock', good: false, text: 'Three of your cards are swapped for worthless rocks', apply: (run) => {
+  const r = new Rng(run.rng);
+  for (const k of r.shuffle(run.deck.filter((x) => x.ink !== 'stone')).slice(0, 3)) k.ink = 'stone';
+  run.rng = r.state;
 } });
 instant({ id: 'stampede', name: 'Stampede', icon: 'bull', good: false, text: 'Two of your face cards are trampled', apply: (run) => {
   const faces = run.deck.filter((k) => isFace(k)).slice(0, 2).map((k) => k.id);
