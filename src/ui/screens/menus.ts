@@ -27,6 +27,27 @@ import { version as APP_VERSION } from '../../../package.json';
 const STAKE_PLATE = ['#6e6250', '#c8402a', '#557a46', '#2f5d8a', '#6a3d6e', '#c9692a', '#8a1e14', '#d99a22'];
 const STAR = 'M20 2.5l4.6 10.6 11.5 1-8.7 7.6 2.6 11.3L20 27.1l-10 5.9 2.6-11.3-8.7-7.6 11.5-1z';
 
+// The title screen is rebuilt on every visit, so the window gets one keyboard and one pointer
+// listener for good, pointed at whichever title screen is showing. (A listener per visit that only
+// unhooked itself on the next key or mouse move kept old screens alive on phones, which have neither.)
+let activeTitle: { el: HTMLElement; key: (e: KeyboardEvent) => void } | null = null;
+let titleHooked = false;
+function hookTitleInput() {
+  if (titleHooked) return;
+  titleHooked = true;
+  window.addEventListener('keydown', (e) => {
+    if (activeTitle && !activeTitle.el.isConnected) activeTitle = null;
+    activeTitle?.key(e);
+  });
+  // Layers drift against the pointer for a little depth.
+  window.addEventListener('pointermove', (e) => {
+    if (activeTitle && !activeTitle.el.isConnected) activeTitle = null;
+    if (!activeTitle) return;
+    activeTitle.el.style.setProperty('--px', ((e.clientX / window.innerWidth) * 2 - 1).toFixed(3));
+    activeTitle.el.style.setProperty('--py', ((e.clientY / window.innerHeight) * 2 - 1).toFixed(3));
+  });
+}
+
 export function titleScreen(): HTMLElement {
   background.setPalette('menu', 1);
   audio.setMood('menu');
@@ -114,25 +135,19 @@ export function titleScreen(): HTMLElement {
   requestAnimationFrame(() => setFocus(0, true));
   const menu = div('title-menu', list, sub);
 
-  const onKey = (e: KeyboardEvent) => {
-    if (!el.isConnected) return window.removeEventListener('keydown', onKey);
-    if (app.modalLayer.childElementCount || e.metaKey || e.ctrlKey || e.altKey) return;
-    const k = e.key.toLowerCase();
-    if (k === 'arrowdown' || k === 's') setFocus((focus + 1) % items.length);
-    else if (k === 'arrowup' || k === 'w') setFocus((focus + items.length - 1) % items.length);
-    else if (k === 'enter' || k === ' ') entries[focus].click();
-    else return;
-    e.preventDefault();
+  activeTitle = {
+    el,
+    key: (e) => {
+      if (app.modalLayer.childElementCount || e.metaKey || e.ctrlKey || e.altKey) return;
+      const k = e.key.toLowerCase();
+      if (k === 'arrowdown' || k === 's') setFocus((focus + 1) % items.length);
+      else if (k === 'arrowup' || k === 'w') setFocus((focus + items.length - 1) % items.length);
+      else if (k === 'enter' || k === ' ') entries[focus].click();
+      else return;
+      e.preventDefault();
+    },
   };
-  window.addEventListener('keydown', onKey);
-
-  // Layers drift against the pointer for a little depth.
-  const onMove = (e: PointerEvent) => {
-    if (!el.isConnected) return window.removeEventListener('pointermove', onMove);
-    el.style.setProperty('--px', ((e.clientX / window.innerWidth) * 2 - 1).toFixed(3));
-    el.style.setProperty('--py', ((e.clientY / window.innerHeight) * 2 - 1).toFixed(3));
-  };
-  window.addEventListener('pointermove', onMove);
+  hookTitleInput();
 
   const stat = (label: string, val: string) => div('ts-cell', div('ts-val', val), div('ts-label', label));
   const stats = div(
