@@ -54,10 +54,10 @@ describe('content', () => {
   it('has 100 paths, each hiding a different outcome', async () => {
     const { PATHS, ABILITIES, INSTANTS, pathOutcomes } = await import('../src/content/paths');
     expect(PATHS.length).toBe(100);
-    // Every ability and instant but the rare peek, which no path hides.
-    expect(ABILITIES.length + INSTANTS.length).toBe(101);
+    // Every ability and instant but the three rare ones, which no path hides.
+    expect(ABILITIES.length + INSTANTS.length).toBe(103);
     expect(pathOutcomes('SEED1').length).toBe(100);
-    expect(pathOutcomes('SEED1').some((o) => o.id === 'gamblers_glass')).toBe(false);
+    for (const rare of ['gamblers_glass', 'rabbits_foot', 'monkey_business']) expect(pathOutcomes('SEED1').some((o) => o.id === rare)).toBe(false);
     const map = pathOutcomes('SEED1');
     expect(new Set(map.map((o) => `${o.kind}:${o.id}`)).size).toBe(100);
     // Same seed, same roads; another seed shuffles them.
@@ -126,6 +126,79 @@ describe('Woodgas', () => {
       while (dealerShouldHit(run)) dealerHit(run);
       expect(handTotal(cardsOf(run, run.table!.dealer), getRules(run), 21, true).bust).toBe(true);
     }
+  });
+});
+
+describe('rare abilities', () => {
+  const deal = async (seed: string) => {
+    const { startTable, beginHand, dealTo, afterDeal } = await import('../src/game/table');
+    const { makeCharm } = await import('../src/game/engine');
+    const run = newRun(seed, 'paper', 1);
+    run.charms.push(makeCharm(run, 'monkey_business'), makeCharm(run, 'rabbits_foot'));
+    startTable(run, 'paper', 100);
+    beginHand(run);
+    dealTo(run, 'player');
+    dealTo(run, 'dealer');
+    dealTo(run, 'player');
+    dealTo(run, 'dealer');
+    afterDeal(run);
+    return run;
+  };
+  it('Monkey Business makes the dealer hit until he busts, three times', async () => {
+    const { useMonkey, monkeyLeft, stand, dealerShouldHit, dealerHit, cardsOf } = await import('../src/game/table');
+    let checked = 0;
+    for (let i = 0; i < 40 && checked < 10; i++) {
+      const run = await deal(`MONK${i}`);
+      if (run.table!.phase !== 'player') continue;
+      expect(useMonkey(run)).toBe(true);
+      expect(monkeyLeft(run)).toBe(0); // once per hand
+      stand(run);
+      if (!run.table!.hands.some((h) => !h.outcome)) continue;
+      while (dealerShouldHit(run)) dealerHit(run);
+      expect(handTotal(cardsOf(run, run.table!.dealer), getRules(run), 21, true).bust).toBe(true);
+      checked++;
+    }
+    expect(checked).toBeGreaterThan(5);
+    const run = await deal('MONKX');
+    run.charms.find((k) => k.id === 'monkey_business')!.state.uses = 1;
+    run.table!.phase = 'player';
+    useMonkey(run);
+    expect(run.charms.some((k) => k.id === 'monkey_business')).toBe(false);
+  });
+  it('Lucky Rabbit’s Foot turns one bust into a win, then it’s gone', async () => {
+    const { canRescue, rescueBust, hit } = await import('../src/game/table');
+    for (let i = 0; i < 40; i++) {
+      const run = await deal(`FOOT${i}`);
+      const t = run.table!;
+      if (t.phase !== 'player') continue;
+      while (t.phase === 'player' && !t.hands[0].outcome) hit(run);
+      if (t.hands[0].outcome !== 'bust') continue;
+      expect(canRescue(run, 0)).toBe(true);
+      expect(rescueBust(run, 0)).toBe(true);
+      expect(t.hands[0].outcome).toBe('win');
+      expect(run.charms.some((k) => k.id === 'rabbits_foot')).toBe(false);
+      expect(canRescue(run, 0)).toBe(false);
+      return;
+    }
+    throw new Error('never busted');
+  });
+  it('good paths turn up the rare ones at about 2%, 5% and 10%', async () => {
+    const { startRoad, takeRoad } = await import('../src/game/roads');
+    const { isGood, outcomeOf } = await import('../src/content/paths');
+    const n: Record<string, number> = {};
+    let good = 0;
+    for (let i = 0; i < 6000; i++) {
+      const run = newRun(`ODDS${i}`, 'paper', 1);
+      startRoad(run);
+      const path = run.road!.options.find((p) => isGood(outcomeOf(run, p)));
+      if (path === undefined) continue;
+      good++;
+      const o = takeRoad(run, path)!;
+      n[o.id] = (n[o.id] ?? 0) + 1;
+    }
+    expect((n.monkey_business ?? 0) / good).toBeCloseTo(0.02, 1);
+    expect((n.rabbits_foot ?? 0) / good).toBeCloseTo(0.05, 1);
+    expect((n.gamblers_glass ?? 0) / good).toBeCloseTo(0.1, 1);
   });
 });
 

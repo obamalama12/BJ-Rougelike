@@ -3,7 +3,7 @@
 
 import { newRun, getRules, NIGHTS } from '../src/game/engine';
 import {
-  afterDeal, availableActions, beginHand, cardsOf, dealTo, dealerHit, dealerShouldHit, double, endFold,
+  afterDeal, availableActions, canRescue, rescueBust, monkeyLeft, useMonkey, beginHand, cardsOf, dealTo, dealerHit, dealerShouldHit, double, endFold,
   endRound, fillSplit, fold, hit, scoreHand, settleOutcomes, settleSplit, split, stand,
 } from '../src/game/table';
 import { cashOut, failTable, pickFromPack, skipPack, winTable, maybeOpenTagPack } from '../src/game/shop';
@@ -37,8 +37,11 @@ export function botTurn(run: Run) {
       fold(run);
       return;
     }
+    const hi = t.active;
     if (a.double && (tot.total === 10 || tot.total === 11) && upv < 10 && t.handsLeft >= 2) {
       double(run);
+      // Lucky Rabbit's Foot: a bust is always worth saving.
+      if (canRescue(run, hi)) rescueBust(run, hi);
       continue;
     }
     let wantHit: boolean;
@@ -47,8 +50,14 @@ export function botTurn(run: Run) {
     else if (tot.total <= 16) wantHit = upv >= 7;
     else wantHit = false;
     if (!a.stand) wantHit = true;
-    if (wantHit && a.hit) hit(run);
-    else stand(run);
+    if (wantHit && a.hit) {
+      hit(run);
+      if (canRescue(run, hi)) rescueBust(run, hi);
+    } else {
+      // Monkey Business: save it for the gang and the Outlaw, when the dealer shows a strong card.
+      if ((t.kind === 'host' || t.kind === 'gang') && upv >= 7 && monkeyLeft(run)) useMonkey(run);
+      stand(run);
+    }
   }
 }
 

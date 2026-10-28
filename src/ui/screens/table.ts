@@ -19,11 +19,11 @@ import {
 } from '../../game/table';
 import { drainFx, getRules, currentHost, NIGHTS } from '../../game/engine';
 import { cashOut, failTable, winTable } from '../../game/shop';
-import { setWager, placeSideBet, hotStreakX, SIDE_BETS, peeksLeft, peekHole } from '../../game/table';
+import { setWager, placeSideBet, hotStreakX, SIDE_BETS, peeksLeft, peekHole, monkeyLeft, useMonkey, canRescue, rescueBust } from '../../game/table';
 import type { SideBetId } from '../../core/types';
 import { dealerId, line, nameOf, outlawIntro, portraitOf, type Mood, goonLine } from '../characters';
 import type { Expression } from '../portraits';
-import { app, burstAt, button, center, jiggle, modal, popup, save, screenShake, tip, toast, wait, hideTip } from '../app';
+import { app, burstAt, button, center, jiggle, modal, modalTitle, popup, save, screenShake, tip, toast, wait, hideTip } from '../app';
 import { cardTooltip, hostMedallion, hostTooltip, playingCard, cardBackHtml, hiddenCard, revealCard } from '../art';
 import { div, fmtNum, h, clear, fmt } from '../dom';
 import { Hud } from '../hud';
@@ -387,6 +387,9 @@ export class TableScreen {
     );
     const peeks = peeksLeft(run);
     if (peeks) this.actions.append(mk('Peek', 'L', 'peek', true, () => this.doPeek(), `Look through Gambler’s Glass at the dealer’s face-down card. ${peeks} use${peeks > 1 ? 's' : ''} left.`, undefined, `L · ${peeks} left`));
+    const monkeys = monkeyLeft(run);
+    if (monkeys) this.actions.append(mk('Monkey', 'M', 'monkey', true, () => this.doMonkey(), `Monkey Business: this hand the dealer keeps hitting until he busts, whatever his total. ${monkeys} use${monkeys > 1 ? 's' : ''} left.`, undefined, `M · ${monkeys} left`));
+    else if (t.monkeyed) this.actions.append(div('monkey-on', '🐒 The dealer will hit until he busts'));
     void coach('hand', { x: 1090, y: 540, point: 'right' });
   }
 
@@ -515,6 +518,44 @@ export class TableScreen {
     else if (k === 'p' && a.split) void this.doSplit();
     else if (k === 'f' && a.fold) void this.doFold();
     else if (k === 'l') this.doPeek();
+    else if (k === 'm') this.doMonkey();
+  }
+
+  private doMonkey() {
+    if (app.busy || !useMonkey(this.run)) return;
+    sfx('honk');
+    screenShake(2);
+    const gone = !this.run.charms.some((x) => x.id === 'monkey_business');
+    toast(gone ? 'Monkey Business! That was the last of it. The dealer will hit until he busts.' : 'Monkey Business! The dealer will hit until he busts.', 'good');
+    this.mood('fold', 'sweating', 0.8);
+    save();
+    this.renderActions();
+    this.hud.renderTrays();
+  }
+
+  /** A hand just busted: offer Lucky Rabbit's Foot, if it's on the belt. The player decides. */
+  private offerRescue(hi: number): Promise<boolean> {
+    if (!canRescue(this.run, hi)) return Promise.resolve(false);
+    return new Promise((resolve) => {
+      const box = div('rescue-box');
+      let close = () => {};
+      const pick = (use: boolean) => {
+        close();
+        if (use && rescueBust(this.run, hi)) {
+          sfx('levelup');
+          toast('The Rabbit’s Foot comes through! Your bust is a win.', 'good');
+          save();
+          this.hud.renderTrays();
+          resolve(true);
+        } else resolve(false);
+      };
+      box.append(
+        modalTitle('rescue-title', 'Busted!'),
+        div('rescue-text', 'Rub your Lucky Rabbit’s Foot to win this hand instead? It only works once.'),
+        div('rescue-btns', rescueBtn('Rub it — win the hand', 'primary big', () => pick(true)), rescueBtn('Save it for later', 'ghost', () => pick(false))),
+      );
+      close = modal(box, { cls: 'rescue-modal', dismissable: false });
+    });
   }
 
   private doPeek() {
@@ -602,6 +643,7 @@ export class TableScreen {
     this.layout();
     this.flushFx();
     await wait(230);
+    if (before.outcome === 'bust' && (await this.offerRescue(hi))) this.layout();
     if (before.outcome) {
       this.outcomeFx(hi, before.outcome);
       await wait(before.outcome === 'bust' ? 650 : 450);
@@ -631,6 +673,7 @@ export class TableScreen {
     this.hud.update();
     this.flushFx();
     await wait(300);
+    if (hand.outcome === 'bust' && (await this.offerRescue(hi))) this.layout();
     if (hand.outcome) {
       this.outcomeFx(hi, hand.outcome);
       await wait(500);
@@ -1093,3 +1136,14 @@ function dealerNeedsToPlayOrScored(run: Run) {
 
 export { NIGHTS, currentHost };
 export type { Card, HandTypeId };
+
+/** The table is locked mid-hand while the rescue prompt is up, so these skip button()'s busy check. */
+function rescueBtn(label: string, cls: string, fn: () => void): HTMLElement {
+  const b = h('button', { class: `btn ${cls}`, type: 'button' }, h('span', { class: 'btn-label' }, label));
+  b.addEventListener('click', (e) => {
+    e.stopPropagation();
+    sfx('click');
+    fn();
+  }, { once: true });
+  return b;
+}

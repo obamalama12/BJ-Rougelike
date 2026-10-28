@@ -166,6 +166,7 @@ export function beginHand(run: Run) {
   t.active = 0;
   t.dealer = [];
   t.hidden = [];
+  t.monkeyed = false;
   t.lastScore = 0;
   run.stats.handsPlayed++;
   const rules = getRules(run);
@@ -279,6 +280,38 @@ export function peekHole(run: Run): boolean {
   revealDealer(run);
   k.state.uses = (k.state.uses ?? 0) - 1;
   if (k.state.uses <= 0) run.charms = run.charms.filter((x) => x !== k);
+  return true;
+}
+
+/** Uses Monkey Business has left right now, or 0 if it can't be used this moment. */
+export function monkeyLeft(run: Run): number {
+  const t = run.table;
+  const k = run.charms.find((x) => x.id === 'monkey_business');
+  if (!t || !k || t.phase !== 'player' || t.monkeyed) return 0;
+  return k.state.uses ?? 0;
+}
+
+/** Monkey Business: this hand the dealer hits until he busts, whatever his total. */
+export function useMonkey(run: Run): boolean {
+  if (!monkeyLeft(run)) return false;
+  const k = run.charms.find((x) => x.id === 'monkey_business')!;
+  run.table!.monkeyed = true;
+  k.state.uses = (k.state.uses ?? 0) - 1;
+  if (k.state.uses <= 0) run.charms = run.charms.filter((x) => x !== k);
+  return true;
+}
+
+/** Can Lucky Rabbit's Foot turn this busted hand into a win? */
+export function canRescue(run: Run, hi: number): boolean {
+  const h = run.table?.hands[hi];
+  return !!h && h.outcome === 'bust' && run.charms.some((x) => x.id === 'rabbits_foot');
+}
+
+/** Lucky Rabbit's Foot: the busted hand wins instead. One use. */
+export function rescueBust(run: Run, hi: number): boolean {
+  if (!canRescue(run, hi)) return false;
+  run.table!.hands[hi].outcome = 'win';
+  run.charms = run.charms.filter((x) => x.id !== 'rabbits_foot');
   return true;
 }
 
@@ -534,7 +567,7 @@ export function dealerShouldHit(run: Run): boolean {
   if (dt.bust) return false;
   // With the deck run dry the dealer would only draw conjured stones (worth 0) forever: stand.
   if (!t.shoe.length && !t.discard.some((id) => !inPlay(t).has(id))) return false;
-  if (rules.dealerHitsToBust) return true;
+  if (rules.dealerHitsToBust || t.monkeyed) return true;
   if (dt.total < rules.dealerStand) return true;
   if (dt.total === 17 && dt.soft && rules.dealerHitSoft17 && rules.dealerStand <= 17) return true;
   return false;

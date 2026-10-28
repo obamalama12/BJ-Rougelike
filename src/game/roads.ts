@@ -3,7 +3,7 @@
 // content/paths, shuffled per seed. A new ability that doesn't fit pushes out one you already have.
 
 import type { Run } from '../core/types';
-import { ABILITY, INSTANT, PATHS, RARE_PEEK, RARE_PEEK_CHANCE, isGood, outcomeOf, type Outcome } from '../content/paths';
+import { ABILITY, INSTANT, PATHS, RARE_PEEK, RARE_PEEK_CHANCE, RARE_SAVE, RARE_SAVE_CHANCE, SUPER_RARE, SUPER_RARE_CHANCE, isGood, outcomeOf, type Outcome } from '../content/paths';
 import { charmSlots, clampGrit, discover, makeCharm, rng } from './engine';
 import { finishNode } from './trail';
 
@@ -50,9 +50,17 @@ export function takeRoad(run: Run, path: number): Outcome | null {
   const road = run.road;
   if (!road || road.taken || !road.options.includes(path)) return null;
   let outcome = outcomeOf(run, path);
-  // Now and then a good road turns up something rarer than what it was hiding.
-  if (isGood(outcome) && !run.charms.some((k) => k.id === RARE_PEEK.id) && rng(run).next() < RARE_PEEK_CHANCE) {
-    outcome = { kind: 'ability', id: RARE_PEEK.id };
+  // Now and then a good road turns up something rarer than what it was hiding: Monkey Business
+  // 2% of the time, Lucky Rabbit's Foot 5%, Gambler's Glass 10%. Never one you already carry.
+  if (isGood(outcome)) {
+    const roll = rng(run).next();
+    let edge = 0;
+    for (const [d, chance] of [[SUPER_RARE, SUPER_RARE_CHANCE], [RARE_SAVE, RARE_SAVE_CHANCE], [RARE_PEEK, RARE_PEEK_CHANCE]] as const) {
+      if (roll < (edge += chance)) {
+        if (!run.charms.some((k) => k.id === d.id)) outcome = { kind: 'ability', id: d.id };
+        break;
+      }
+    }
   }
   road.taken = { path, outcome };
   road.picksLeft--;

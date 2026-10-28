@@ -313,7 +313,7 @@ const OUTCOMES: Outcome[] = [
 ];
 
 // --- The rare one ------------------------------------------------------------------------------
-// Not hidden behind any path. Any good path has a 10% chance to turn this up instead.
+// Not hidden behind any path. Any good path might turn one of these up instead of what it held.
 
 /** Chance a good path hands over the rare peek instead of what it would have. */
 export const RARE_PEEK_CHANCE = 0.1;
@@ -323,8 +323,28 @@ export const RARE_PEEK: AbilityDef = {
   init: () => ({ uses: PEEK_USES }),
   text: (s) => `{g:Rare.} Peek at the dealer’s face-down card. {g:${st(s).uses ?? PEEK_USES}} use${(st(s).uses ?? PEEK_USES) === 1 ? '' : 's'} left, then it’s gone`,
 };
-ABILITIES.push(RARE_PEEK);
-ABILITY[RARE_PEEK.id] = RARE_PEEK;
+
+/** Chance a good path hands over Lucky Rabbit's Foot instead. */
+export const RARE_SAVE_CHANCE = 0.05;
+export const RARE_SAVE: AbilityDef = {
+  id: 'rabbits_foot', name: 'Lucky Rabbit’s Foot', icon: 'clover', rarity: 3, cost: 0, hue: '#ffd23f',
+  init: () => ({ uses: 1 }),
+  text: '{g:Rare.} When you bust, you may rub it to win the hand instead. One use, then it’s gone',
+};
+
+/** Super rare: a good path hands this over 2% of the time. */
+export const SUPER_RARE_CHANCE = 0.02;
+export const MONKEY_USES = 3;
+export const SUPER_RARE: AbilityDef = {
+  id: 'monkey_business', name: 'Monkey Business', icon: 'monkey', rarity: 4, cost: 0, hue: '#c86bff',
+  init: () => ({ uses: MONKEY_USES }),
+  text: (s) => `{g:Super rare.} Use it during your turn and the dealer plays like Woodgas: he keeps hitting until he busts, whatever his total. {g:${st(s).uses ?? MONKEY_USES}} use${(st(s).uses ?? MONKEY_USES) === 1 ? '' : 's'} left`,
+};
+
+for (const d of [RARE_PEEK, RARE_SAVE, SUPER_RARE]) {
+  ABILITIES.push(d);
+  ABILITY[d.id] = d;
+}
 
 const mapCache = new Map<string, Outcome[]>();
 /** The outcome behind each path for a seed: a fixed shuffle, so the same seed always leads the same way. */

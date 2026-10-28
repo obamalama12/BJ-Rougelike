@@ -104,6 +104,8 @@ export interface TableState {
   foldsUsed: number;
   firstFoldDone?: boolean;
   bustSaved?: boolean;
+  /** Monkey Business is on: this hand the dealer hits until he busts. */
+  monkeyed?: boolean;
   phoenixUsed?: boolean;
   hostTriggered?: boolean;
   /** Ids of Ash cards that crumbled this table. */
