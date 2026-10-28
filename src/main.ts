@@ -33,6 +33,7 @@ import { applySettings } from './ui/screens/options';
 import { background } from './fx/background';
 import { particles } from './fx/particles';
 import { profile, saveProfile } from './ui/profile';
+import { watchForUpdates } from './ui/update';
 
 const root = document.getElementById('app')!;
 const bg = document.getElementById('bg') as HTMLCanvasElement;
@@ -106,5 +107,6 @@ app.render = render;
 render();
 
 window.addEventListener('beforeunload', () => saveProfile());
+watchForUpdates();
 document.getElementById('boot')?.remove();
 document.querySelector('.rotate-skip')?.addEventListener('click', () => document.body.classList.add('rotate-ok'));
