@@ -105,8 +105,8 @@
 /* treasure: a mound that glints, then gives something up */
 .bt-mound { left: 430px; bottom: 70px; width: 150px; height: 40px; border-radius: 50% 50% 0 0; background: #8a5a32; border: 2px solid var(--key); border-bottom: none; }
 .bt-glint { left: calc(450px + var(--n) * 30px); bottom: calc(108px + var(--n) * 9px); width: 18px; height: 18px; opacity: 0; background: radial-gradient(circle, #fff 0 20%, transparent 22%), linear-gradient(0deg, transparent 45%, #fff6c0 45% 55%, transparent 55%), linear-gradient(90deg, transparent 45%, #fff6c0 45% 55%, transparent 55%); }
-.beat .bt-glint { animation: glint calc(0.5s * var(--k)) ease-in-out calc(var(--n) * 0.12s * var(--k)) 2; }
-@keyframes glint { 50% { opacity: 1; transform: scale(1.4) rotate(45deg); } }
+.beat .bt-glint { animation: csGlint calc(0.5s * var(--k)) ease-in-out calc(var(--n) * 0.12s * var(--k)) 2; }
+@keyframes csGlint { 50% { opacity: 1; transform: scale(1.4) rotate(45deg); } }
 
 /* stranger: someone walks up from the right */
 .bt-figure { right: 300px; bottom: 60px; width: 200px; height: 220px; opacity: 0; }
@@ -119,8 +119,8 @@
 
 /* campfire: flicker and sparks */
 .bt-fire { left: 450px; bottom: 50px; width: 150px; height: 150px; opacity: 0.4; color: var(--key); --i1: #e8602a; --i2: #ffd27a; --i4: #ffb03d; }
-.beat .bt-fire { opacity: 1; animation: flicker calc(0.18s * var(--k)) steps(2) infinite; transition: opacity calc(0.3s * var(--k)); }
-@keyframes flicker { 50% { transform: scale(1.04, 0.97); filter: brightness(1.2); } }
+.beat .bt-fire { opacity: 1; animation: csFlicker calc(0.18s * var(--k)) steps(2) infinite; transition: opacity calc(0.3s * var(--k)); }
+@keyframes csFlicker { 50% { transform: scale(1.04, 0.97); filter: brightness(1.2); } }
 .bt-spark { left: calc(500px + var(--n) * 7px); bottom: 150px; width: 6px; height: 6px; border-radius: 50%; background: #ffd27a; opacity: 0; }
 .beat .bt-spark { animation: sparkUp calc(0.9s * var(--k)) ease-out calc(var(--n) * 0.1s * var(--k)) infinite; }
 @keyframes sparkUp { 0% { opacity: 1; } 100% { opacity: 0; transform: translate(calc((var(--n) - 4) * 14px), -160px); } }
@@ -217,9 +217,9 @@
   line-height: 1.1;
   text-align: center;
   color: var(--key);
-  animation: lineIn calc(0.6s * var(--k)) ease-out calc(0.35s * var(--k)) both;
+  animation: csLineIn calc(0.6s * var(--k)) ease-out calc(0.35s * var(--k)) both;
 }
-@keyframes lineIn { from { opacity: 0; transform: translateY(8px); } }
+@keyframes csLineIn { from { opacity: 0; transform: translateY(8px); } }
 .cs-result {
   position: absolute;
   left: 50%;

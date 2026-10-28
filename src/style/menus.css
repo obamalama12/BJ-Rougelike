@@ -277,11 +277,11 @@
   background: linear-gradient(105deg, var(--stock) 42%, #fffaf0 49%, #ffe7a8 51%, var(--stock) 58%) 120% 0 / 300% 100% no-repeat, var(--stock);
   -webkit-background-clip: text;
   background-clip: text;
-  animation: stampIn 0.55s cubic-bezier(0.2, 1.3, 0.4, 1) both, glint 7s 1.6s ease-in-out infinite;
+  animation: logoStamp 0.55s cubic-bezier(0.2, 1.3, 0.4, 1) both, logoGlint 7s 1.6s ease-in-out infinite;
 }
 .logo-word + .logo-word { animation-delay: 0.12s, 1.75s; }
-@keyframes stampIn { from { opacity: 0; transform: scale(1.5) rotate(-3deg); } }
-@keyframes glint {
+@keyframes logoStamp { from { opacity: 0; transform: scale(1.5) rotate(-3deg); } }
+@keyframes logoGlint {
   0% { background-position: 120% 0, 0 0; }
   18%, 100% { background-position: -20% 0, 0 0; }
 }
@@ -417,7 +417,7 @@
 .reduce-motion .title-bounty,
 .reduce-motion .title-dust,
 .reduce-motion .tm-cursor .icon { animation: none; }
-.reduce-motion .logo-word { animation: stampIn 0.55s both; }
+.reduce-motion .logo-word { animation: logoStamp 0.55s both; }
 .reduce-motion .title-screen { --px: 0 !important; --py: 0 !important; }
 
 /* New run ------------------------------------------------------------------ */
@@ -667,11 +667,11 @@
   background: #f8eed6;
   border: 2px solid var(--key);
   box-shadow: inset 0 0 0 3px #f8eed6, inset 0 0 0 4.5px var(--plate-gold), 0 2px 0 var(--key), var(--lift-1);
-  animation: badgePin 0.3s cubic-bezier(0.3, 0.7, 0.4, 1.4) both;
+  animation: endBadgePin 0.3s cubic-bezier(0.3, 0.7, 0.4, 1.4) both;
   animation-delay: calc(var(--i) * 0.12s);
 }
 .end-badge .icon { width: 46px; height: 46px; color: var(--key); --i1: var(--plate-gold); --i4: var(--plate-verm); }
-@keyframes badgePin { from { opacity: 0; transform: scale(1.8) rotate(-20deg); } }
+@keyframes endBadgePin { from { opacity: 0; transform: scale(1.8) rotate(-20deg); } }
 
 /* Run info ----------------------------------------------------------------- */
 
