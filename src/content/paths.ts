@@ -316,7 +316,7 @@ const OUTCOMES: Outcome[] = [
 // Not hidden behind any path. Any good path might turn one of these up instead of what it held.
 
 /** Chance a good path hands over the rare peek instead of what it would have. */
-export const RARE_PEEK_CHANCE = 0.1;
+export const RARE_PEEK_CHANCE = 0.05;
 export const PEEK_USES = 3;
 export const RARE_PEEK: AbilityDef = {
   id: 'gamblers_glass', name: 'Gambler’s Glass', icon: 'eye', rarity: 3, cost: 0, hue: '#ffd23f',

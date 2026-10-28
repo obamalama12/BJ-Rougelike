@@ -51,7 +51,7 @@ export function takeRoad(run: Run, path: number): Outcome | null {
   if (!road || road.taken || !road.options.includes(path)) return null;
   let outcome = outcomeOf(run, path);
   // Now and then a good road turns up something rarer than what it was hiding: Monkey Business
-  // 2% of the time, Lucky Rabbit's Foot 5%, Gambler's Glass 10%. Never one you already carry.
+  // 2% of the time, Lucky Rabbit's Foot 5%, Gambler's Glass 5%. Never one you already carry.
   if (isGood(outcome)) {
     const roll = rng(run).next();
     let edge = 0;

@@ -182,7 +182,7 @@ describe('rare abilities', () => {
     }
     throw new Error('never busted');
   });
-  it('good paths turn up the rare ones at about 2%, 5% and 10%', async () => {
+  it('good paths turn up the rare ones at about 2%, 5% and 5%', async () => {
     const { startRoad, takeRoad } = await import('../src/game/roads');
     const { isGood, outcomeOf } = await import('../src/content/paths');
     const n: Record<string, number> = {};
@@ -198,7 +198,7 @@ describe('rare abilities', () => {
     }
     expect((n.monkey_business ?? 0) / good).toBeCloseTo(0.02, 1);
     expect((n.rabbits_foot ?? 0) / good).toBeCloseTo(0.05, 1);
-    expect((n.gamblers_glass ?? 0) / good).toBeCloseTo(0.1, 1);
+    expect((n.gamblers_glass ?? 0) / good).toBeCloseTo(0.05, 1);
   });
 });
 
