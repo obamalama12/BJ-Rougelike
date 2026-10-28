@@ -235,6 +235,7 @@
 .btn.act.double { --bc: var(--plate-gold); --fg: var(--key); }
 .btn.act.split { --bc: var(--plate-sage); }
 .btn.act.fold { --bc: var(--plate-leather); }
+.btn.act.peek { --bc: #6a4c9c; box-shadow: 0 0 14px rgba(255, 210, 63, 0.55); }
 
 /* Shared animations */
 @keyframes panelIn { from { opacity: 0; transform: translateY(30px) scale(0.9); } }

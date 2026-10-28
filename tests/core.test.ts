@@ -54,7 +54,10 @@ describe('content', () => {
   it('has 100 paths, each hiding a different outcome', async () => {
     const { PATHS, ABILITIES, INSTANTS, pathOutcomes } = await import('../src/content/paths');
     expect(PATHS.length).toBe(100);
-    expect(ABILITIES.length + INSTANTS.length).toBe(100);
+    // Every ability and instant but the rare peek, which no path hides.
+    expect(ABILITIES.length + INSTANTS.length).toBe(101);
+    expect(pathOutcomes('SEED1').length).toBe(100);
+    expect(pathOutcomes('SEED1').some((o) => o.id === 'gamblers_glass')).toBe(false);
     const map = pathOutcomes('SEED1');
     expect(new Set(map.map((o) => `${o.kind}:${o.id}`)).size).toBe(100);
     // Same seed, same roads; another seed shuffles them.

@@ -19,7 +19,7 @@ import {
 } from '../../game/table';
 import { drainFx, getRules, currentHost, NIGHTS } from '../../game/engine';
 import { cashOut, failTable, winTable } from '../../game/shop';
-import { setWager, placeSideBet, hotStreakX, SIDE_BETS } from '../../game/table';
+import { setWager, placeSideBet, hotStreakX, SIDE_BETS, peeksLeft, peekHole } from '../../game/table';
 import type { SideBetId } from '../../core/types';
 import { dealerId, line, nameOf, outlawIntro, portraitOf, type Mood, goonLine } from '../characters';
 import type { Expression } from '../portraits';
@@ -385,6 +385,8 @@ export class TableScreen {
       mk('Split', 'P', 'split', a.split, () => void this.doSplit(), `Split a pair into two hands played one after the other.${extra(rules.splitCost)}`, a.reasons.split, `P${rules.splitCost ? ' · 1 hand' : ''}`),
       mk('Fold', 'F', 'fold', a.fold, () => void this.doFold(), 'Throw this hand away. It does not use up a hand.', a.reasons.fold, `F · ${t.foldsLeft} left`),
     );
+    const peeks = peeksLeft(run);
+    if (peeks) this.actions.append(mk('Peek', 'L', 'peek', true, () => this.doPeek(), `Look through Gambler’s Glass at the dealer’s face-down card. ${peeks} use${peeks > 1 ? 's' : ''} left.`, undefined, `L · ${peeks} left`));
     void coach('hand', { x: 1090, y: 540, point: 'right' });
   }
 
@@ -512,6 +514,18 @@ export class TableScreen {
     else if (k === 'd' && a.double) void this.doDouble();
     else if (k === 'p' && a.split) void this.doSplit();
     else if (k === 'f' && a.fold) void this.doFold();
+    else if (k === 'l') this.doPeek();
+  }
+
+  private doPeek() {
+    if (app.busy || !peekHole(this.run)) return;
+    sfx('flip');
+    const gone = !this.run.charms.some((x) => x.id === 'gamblers_glass');
+    toast(gone ? 'Gambler’s Glass cracks. That was its last look.' : 'You squint through Gambler’s Glass…', gone ? 'bad' : 'good');
+    save();
+    this.layout();
+    this.renderActions();
+    this.hud.renderTrays();
   }
 
   private lock() {

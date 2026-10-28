@@ -182,7 +182,7 @@ boon({ id: 'iron_nerve', name: 'Iron Nerve', icon: 'shield', text: '{g:+1} hand 
 boon({ id: 'quick_feet', name: 'Quick Feet', icon: 'boot', text: '{g:+2} folds at every table', slots: { folds: 2 } });
 boon({ id: 'gamblers_grin', name: 'Gambler’s Grin', icon: 'dice', text: 'Doubled hands score {x:X3} instead of X2', rules: (r) => { r.doubleX = Math.max(r.doubleX, 3); } });
 boon({ id: 'long_reach', name: 'Long Reach', icon: 'lasso', text: 'You bust over {g:22} instead of 21', rules: (r) => { r.bustLimit += 1; } });
-boon({ id: 'peeking_tom', name: 'Peeking Tom', icon: 'eye', text: 'You can see the dealer’s face-down card', rules: (r) => { r.seeHole = true; } });
+boon({ id: 'quick_draw', name: 'Quick Draw', icon: 'revolver', text: 'Hands won with just two cards score {x:X1.5} Odds', hand: (c) => { if (c.cards.length === 2) c.xmult(1.5); } });
 boon({ id: 'sidewinder', name: 'Sidewinder', icon: 'snake', text: 'Hands won because the dealer busted score {x:X2} Odds', hand: (c) => { if (c.outcome === 'dealerbust') c.xmult(2); } });
 boon({ id: 'card_counter', name: 'Card Counter', icon: 'book', text: (_s, run) => `{c:+2} Pot for each card left in the shoe {d:(currently {c:+${(run.table?.shoe.length ?? 0) * 2}})}`, hand: (c) => c.chips((c.table?.shoe.length ?? 0) * 2) });
 boon({ id: 'hot_streak', name: 'Hot Streak', icon: 'campfire', init: () => ({ w: 0 }),
@@ -311,6 +311,20 @@ const OUTCOMES: Outcome[] = [
   ...ABILITIES.map((a) => ({ kind: 'ability' as const, id: a.id })),
   ...INSTANTS.map((a) => ({ kind: 'instant' as const, id: a.id })),
 ];
+
+// --- The rare one ------------------------------------------------------------------------------
+// Not hidden behind any path. Any good path has a 10% chance to turn this up instead.
+
+/** Chance a good path hands over the rare peek instead of what it would have. */
+export const RARE_PEEK_CHANCE = 0.1;
+export const PEEK_USES = 3;
+export const RARE_PEEK: AbilityDef = {
+  id: 'gamblers_glass', name: 'Gambler’s Glass', icon: 'eye', rarity: 3, cost: 0, hue: '#ffd23f',
+  init: () => ({ uses: PEEK_USES }),
+  text: (s) => `{g:Rare.} Peek at the dealer’s face-down card. {g:${st(s).uses ?? PEEK_USES}} use${(st(s).uses ?? PEEK_USES) === 1 ? '' : 's'} left, then it’s gone`,
+};
+ABILITIES.push(RARE_PEEK);
+ABILITY[RARE_PEEK.id] = RARE_PEEK;
 
 const mapCache = new Map<string, Outcome[]>();
 /** The outcome behind each path for a seed: a fixed shuffle, so the same seed always leads the same way. */

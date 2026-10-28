@@ -8,9 +8,9 @@ import { CHARM } from '../content/charms';
 import { NIGHTS, outlawPool, gritCapOf, clampGrit, ctx, discover, fire, has, nightBase, rerollHost, rng, availableVouchers } from './engine';
 import { startTable } from './table';
 
-export const COLS = 9;
+export const COLS = 7;
 /** Columns made entirely of the Outlaw's gang: every route meets each of them. */
-export const GANG_COLS = [3, 6];
+export const GANG_COLS = [2, 4];
 
 /** Difficulty and payout of each kind of table. */
 export const TABLE_INFO: Record<'saloon' | 'highstakes' | 'bank' | 'gang' | 'outlaw', { kind: TableKind; scale: number; reward: number; gritOnFail: number; name: string }> = {
@@ -39,13 +39,14 @@ export const NODE_INFO: Record<NodeKind, { name: string; icon: string; blurb: st
 export function generateTrail(run: Run) {
   const r = rng(run);
   const town = run.night;
+  // Seven stops a route: a card game to open, a mixed stop, the gang, another mixed stop, the gang
+  // again, somewhere to rest, then the Outlaw. Saloon Games only turn up at the start.
+  const bankOr = (alt: NodeKind): NodeKind[] => (town >= 2 ? ['bank'] : [alt]);
   const pools: NodeKind[][] = [
-    ['saloon', 'saloon', 'event'],
-    ['saloon', 'highstakes', 'event', 'camp'],
-    ['saloon', 'highstakes', 'event', 'doc', ...(town >= 2 ? (['bank'] as NodeKind[]) : [])],
+    ['saloon', 'saloon', 'highstakes', 'event'],
+    ['highstakes', 'event', 'camp', 'doc', ...bankOr('event')],
     ['gang'],
-    ['camp', 'event', 'doc', 'saloon'],
-    ['saloon', 'highstakes', 'event', ...(town >= 2 ? (['bank'] as NodeKind[]) : (['highstakes'] as NodeKind[]))],
+    ['event', 'camp', 'doc', 'highstakes', ...bankOr('camp')],
     ['gang'],
     ['camp', 'doc', 'event'],
     ['outlaw'],

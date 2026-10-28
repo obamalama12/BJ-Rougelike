@@ -264,6 +264,24 @@ function revealHand(run: Run, h: PlayerHand) {
   t.hidden = t.hidden.filter((id) => !h.cards.includes(id));
 }
 
+/** How many peeks Gambler's Glass has left right now, or 0 if there's nothing to peek at. */
+export function peeksLeft(run: Run): number {
+  const t = run.table;
+  const k = run.charms.find((x) => x.id === 'gamblers_glass');
+  if (!t || !k || t.phase !== 'player' || !t.dealer.some((id) => t.hidden.includes(id))) return 0;
+  return k.state.uses ?? 0;
+}
+
+/** Use one look through Gambler's Glass: the dealer's face-down card turns up for this hand. */
+export function peekHole(run: Run): boolean {
+  if (!peeksLeft(run)) return false;
+  const k = run.charms.find((x) => x.id === 'gamblers_glass')!;
+  revealDealer(run);
+  k.state.uses = (k.state.uses ?? 0) - 1;
+  if (k.state.uses <= 0) run.charms = run.charms.filter((x) => x !== k);
+  return true;
+}
+
 export function revealDealer(run: Run) {
   const t = run.table!;
   t.hidden = t.hidden.filter((id) => !t.dealer.includes(id));

@@ -3,7 +3,7 @@
 // content/paths, shuffled per seed. A new ability that doesn't fit pushes out one you already have.
 
 import type { Run } from '../core/types';
-import { ABILITY, INSTANT, PATHS, outcomeOf, type Outcome } from '../content/paths';
+import { ABILITY, INSTANT, PATHS, RARE_PEEK, RARE_PEEK_CHANCE, isGood, outcomeOf, type Outcome } from '../content/paths';
 import { charmSlots, clampGrit, discover, makeCharm, rng } from './engine';
 import { finishNode } from './trail';
 
@@ -49,7 +49,11 @@ function dealRoads(run: Run) {
 export function takeRoad(run: Run, path: number): Outcome | null {
   const road = run.road;
   if (!road || road.taken || !road.options.includes(path)) return null;
-  const outcome = outcomeOf(run, path);
+  let outcome = outcomeOf(run, path);
+  // Now and then a good road turns up something rarer than what it was hiding.
+  if (isGood(outcome) && !run.charms.some((k) => k.id === RARE_PEEK.id) && rng(run).next() < RARE_PEEK_CHANCE) {
+    outcome = { kind: 'ability', id: RARE_PEEK.id };
+  }
   road.taken = { path, outcome };
   road.picksLeft--;
   run.flags.pathsTaken = [...(run.flags.pathsTaken ?? []), path];
