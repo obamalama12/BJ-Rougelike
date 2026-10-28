@@ -54,7 +54,7 @@ export function roadScreen(hud: Hud): HTMLElement {
       const row = div('road-row');
       road.options.forEach((p, i) => {
         const def = PATHS[p];
-        const b = h('button', { class: 'road-sign', type: 'button' });
+        const b = h('button', { class: `road-sign tone-${def.tone}`, type: 'button' });
         b.style.setProperty('--i', String(i));
         b.innerHTML = `<span class="rs-key">${i + 1}</span><span class="rs-post"></span><span class="rs-board"><span class="rs-icon">${iconSvg(def.icon)}</span><span class="rs-name">${def.name}</span><span class="rs-scene">${def.scene}</span></span>`;
         b.addEventListener('click', () => choose(p, b));

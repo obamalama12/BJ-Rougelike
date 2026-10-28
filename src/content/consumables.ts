@@ -21,7 +21,6 @@ inkFortune('jade_brush', 'Dr. Greenleaf’s Elixir', 'jade', 2, 'dollar', '#3fcf
 inkFortune('crimson_brush', 'Red-Eye Remedy', 'crimson', 2, 'pepper', '#ff4b3a', 'Red Hot');
 inkFortune('gold_leaf', 'Gold Fever Tonic', 'gilded', 1, 'nugget', '#ffd23f', 'Gold Plated');
 inkFortune('glass_bell', 'Liquid Glass', 'glass', 2, 'shotglass', '#bfe9ff', 'Glass');
-inkFortune('millstone', 'Rock Candy', 'stone', 1, 'rock', '#a8b0c0', 'Rock');
 inkFortune('rabbit_foot', 'Rabbit’s Foot Rub', 'lucky', 2, 'clover', '#7fe07a', 'Lucky');
 inkFortune('wandering_spirit', 'Wild West Wonder Water', 'spirit', 1, 'spark', '#d8ffe0', 'Wild');
 inkFortune('ash_urn', 'Squeaky Bath Salts', 'ash', 2, 'rubberduck', '#b0a8a0', 'Rubber Ducky');

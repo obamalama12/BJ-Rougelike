@@ -200,7 +200,7 @@ function randomCard(run: Run, fancy: boolean): Card {
   const r = rng(run);
   const card: Card = { id: 0, rank: r.pick(RANKS) as Rank, suit: r.pick(SUITS) as Suit };
   if (fancy) {
-    if (r.next() < 0.4) card.ink = r.pick(['jade', 'crimson', 'gilded', 'glass', 'stone', 'lucky', 'spirit', 'ash'] as InkId[]);
+    if (r.next() < 0.4) card.ink = r.pick(['jade', 'crimson', 'gilded', 'glass', 'lucky', 'spirit', 'ash'] as InkId[]);
     if (r.next() < 0.12) card.seal = r.pick(['red', 'gold', 'blue', 'purple'] as SealId[]);
     if (r.next() < 0.08) card.finish = r.pick(['foil', 'holo', 'prism'] as FinishId[]);
   }

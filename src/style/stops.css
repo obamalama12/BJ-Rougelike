@@ -494,3 +494,30 @@
 .road-reveal.bad .rr-text .t-hl { color: #8a2414; }
 .rr-text .t-chips { color: var(--plate-denim); }
 .rr-text .t-mult { color: var(--plate-verm); }
+
+/* Longer road descriptions, and a look for each mood (it hints at nothing: outcomes are shuffled). */
+.road-sign { width: 252px; }
+.rs-board { min-height: 232px; padding: 16px 14px 16px; gap: 5px; }
+.rs-icon { width: 54px; height: 54px; }
+.rs-name { font-size: 20px; }
+.rs-scene { font-size: 18.5px; line-height: 1.08; }
+/* Tempting: sun-warmed wood with a gilt edge */
+.road-sign.tone-lure .rs-board {
+  background: var(--fibre), linear-gradient(180deg, #a87a3e, #7e5426);
+  box-shadow: inset 0 0 0 3px rgba(242, 200, 112, 0.55), inset 0 2px 0 rgba(255, 230, 170, 0.35), var(--lift-2);
+}
+.road-sign.tone-lure .rs-scene { color: #fbe6b4; }
+/* Ominous: scorched, cracked, a little red in the grain */
+.road-sign.tone-omen .rs-board {
+  background: var(--fibre), radial-gradient(ellipse at 50% 120%, rgba(150, 30, 20, 0.45), transparent 60%), linear-gradient(180deg, #5a3a26, #2e1c12);
+  box-shadow: inset 0 0 18px rgba(0, 0, 0, 0.6), inset 0 0 0 3px rgba(42, 20, 8, 0.5), var(--lift-2);
+}
+.road-sign.tone-omen .rs-scene { color: #e8b8a0; }
+.road-sign.tone-omen .rs-icon { --i1: #c8644a; }
+/* Strange: dusk-weathered wood with a violet cast */
+.road-sign.tone-odd .rs-board {
+  background: var(--fibre), linear-gradient(180deg, #6e5470, #42304a);
+  box-shadow: inset 0 0 0 3px rgba(190, 160, 220, 0.3), inset 0 2px 0 rgba(230, 210, 255, 0.2), var(--lift-2);
+}
+.road-sign.tone-odd .rs-scene { color: #e2d4f2; }
+.road-sign.tone-odd .rs-icon { --i1: #b8a0d8; }

@@ -121,9 +121,9 @@ function takeTop(run: Run): Card | null {
   const t = run.table!;
   if (!t.shoe.length) reshuffle(run);
   if (!t.shoe.length) {
-    // Deck exhausted completely: conjure a stone card so play can continue. It's only borrowed
-    // for this hand (your deck never grows) and is cleared away when the hand ends.
-    const c = ctx(run).addCard({ ink: 'stone' });
+    // Deck exhausted completely: borrow a card from the house so play can continue. It's only
+    // borrowed for this hand (your deck never grows) and is cleared away when the hand ends.
+    const c = ctx(run).addCard({});
     c.temp = true;
     t.discard = t.discard.filter((x) => x !== c.id);
     return c;

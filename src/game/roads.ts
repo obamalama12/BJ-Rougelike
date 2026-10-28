@@ -30,7 +30,17 @@ function dealRoads(run: Run) {
     run.flags.pathsTaken = taken;
     pool = PATHS.map((_, i) => i);
   }
-  road.options = rng(run).shuffle(pool).slice(0, ROAD_CHOICES);
+  // One road that looks inviting, one that looks grim and one that's just strange, when the
+  // untaken roads allow it. Looks prove nothing: what's down each one is shuffled by seed.
+  const r = rng(run);
+  const shuffled = r.shuffle(pool);
+  const picks: number[] = [];
+  for (const tone of r.shuffle(['lure', 'omen', 'odd'] as const)) {
+    const i = shuffled.find((p) => PATHS[p].tone === tone && !picks.includes(p));
+    if (i !== undefined) picks.push(i);
+  }
+  for (const p of shuffled) if (picks.length < ROAD_CHOICES && !picks.includes(p)) picks.push(p);
+  road.options = picks.slice(0, ROAD_CHOICES);
   road.taken = undefined;
   road.mustDrop = undefined;
 }

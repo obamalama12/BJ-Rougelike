@@ -127,7 +127,7 @@ export const SCENES: Record<string, SceneDef> = {
   ambush: S('ambush', 'Bandits jump out from behind the rocks and give you a proper going-over before you can draw.', { actor: 'bandana' }),
   pickpocket: S('thief', 'A friendly fella bumps into you, says sorry, and walks off with half your Bucks.', { prop: 'moneybag' }),
   rockslide: S('stampede', 'A rumble overhead, and then half the mountain comes down the slope at you.', { prop: 'rock' }),
-  pebbles: S('thief', 'A prankster magpie swaps a few of your cards for river pebbles while you sleep.', { prop: 'rock' }),
+  water_damage: S('water', 'You ford a river that turns out deeper than it looked. Your best cards come out the other side soggy and warped.'),
   stampede: S('stampede', 'A herd of longhorns tramples straight through camp. Two of your best cards don’t make it.'),
   bad_water: S('water', 'The well water tastes funny. By morning you know it was worse than funny.'),
   word_gets_around: S('stranger', 'A gossiping magpie flies ahead of you, telling everyone you’re coming.', { actor: 'magpie' }),
