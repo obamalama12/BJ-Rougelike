@@ -610,7 +610,7 @@ export class TableScreen {
       await wait(250);
       this.showBanner('Dealer Quackjack!', 'bad');
       sfx('lose');
-      await wait(700);
+      await wait(560);
     } else if (res.playerNatural) {
       await wait(150);
       this.outcomeFx(0, 'blackjack');
@@ -732,14 +732,14 @@ export class TableScreen {
     clear(this.actions);
     revealDealer(run);
     this.layout();
-    await wait(380);
+    await wait(320);
     if (dealerNeedsToPlay(run)) {
       while (dealerShouldHit(run)) {
         dealerHit(run);
         sfx('deal');
         this.layout();
         this.flushFx();
-        await wait(430);
+        await wait(340);
       }
     }
     const dealerBust = handTotal(cardsOf(run, run.table!.dealer), getRules(run), 21, true).bust;
@@ -775,7 +775,7 @@ export class TableScreen {
       for (const id of hand.cards) this.cards.get(id)?.classList.remove('focus');
     }
     this.flushFx();
-    await wait(250);
+    await wait(150);
     // Shatter / crumble effects before cards leave.
     for (const r of results) {
       for (const id of [...r.shattered, ...r.crumbled]) {
@@ -790,13 +790,13 @@ export class TableScreen {
     }
     const state = endRound(run, results);
     this.flushFx();
-    await wait(200);
+    await wait(120);
     this.layout();
     this.hud.update();
     this.hud.renderTrays();
     this.banner.className = 'outcome-banner';
     this.hud.clearCalc();
-    await wait(380);
+    await wait(220);
     if (state === 'won') await this.winSequence();
     else if (state === 'dead') await this.loseSequence();
     else if (state === 'lost') await this.failSequence();
@@ -885,18 +885,18 @@ export class TableScreen {
         for (const id of hand.cards) this.cards.get(id)?.classList.add('dim');
       }
       this.hud.clearCalc();
-      await wait(360);
+      await wait(280);
       await this.playEvents(res.events.filter((e) => e.t === 'money' || e.t === 'msg'), true);
-      await wait(400);
+      await wait(280);
       return;
     }
     const info = HAND_TYPE[ht];
     this.showBanner(info.name, ht === 'push' ? 'info' : ['royal', 'sevens', 'flush', 'blackjack', 'charlie'].includes(ht) ? 'gold' : 'good', hand.doubled ? 'Doubled' : '');
     if (ht !== 'push') sfx('win');
-    await wait(320);
+    await wait(240);
     await this.playEvents(res.events, false, hand.cards);
     // Final tally
-    await wait(200);
+    await wait(140);
     const totalEl = div('score-total', `+${fmtNum(res.total)}`);
     this.el.appendChild(totalEl);
     totalEl.style.left = `${FELT_CX}px`;
@@ -913,7 +913,7 @@ export class TableScreen {
     void coach('score', { x: 1140, y: 560, point: 'left' });
     if (big) this.mood('bigScore', 'shocked');
     else if (ht !== 'push' && o !== 'blackjack') this.mood('playerWin', Math.random() < 0.5 ? 'angry' : 'sad', 0.6);
-    await wait(900);
+    await wait(650);
     totalEl.classList.add('out');
     setTimeout(() => totalEl.remove(), 500);
     for (const id of hand.cards) this.cards.get(id)?.classList.remove('scoring');
@@ -921,7 +921,7 @@ export class TableScreen {
 
   private async playEvents(events: ScoreEvent[], quick: boolean, handCards: number[] = []) {
     const run = this.run;
-    let delay = quick ? 220 : 420;
+    let delay = quick ? 200 : 320;
     let chipN = 0;
     let multN = 0;
     for (const e of events) {
@@ -930,7 +930,7 @@ export class TableScreen {
         this.hud.setCalc(e.chips, e.mult);
         jiggle(this.hud.refs.calc, 'bump');
         sfx('select');
-        await wait(380);
+        await wait(280);
         continue;
       }
       const src = 'src' in e ? (e.src as Src) : null;
@@ -994,7 +994,8 @@ export class TableScreen {
           continue;
       }
       await wait(delay);
-      delay = Math.max(quick ? 120 : 110, delay * 0.93);
+      // Each step comes a little quicker than the last, so long combos build speed.
+      delay = Math.max(quick ? 110 : 95, delay * 0.9);
     }
     this.hud.update();
   }

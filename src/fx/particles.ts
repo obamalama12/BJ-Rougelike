@@ -103,6 +103,8 @@ class Particles {
   lanternRate = 1;
   private last = performance.now();
   private dpr = 1;
+  /** Whether the front canvas has anything on it to clear. */
+  private frontDirty = false;
 
   mount(back: HTMLCanvasElement, front: HTMLCanvasElement) {
     this.back = back;
@@ -123,10 +125,13 @@ class Particles {
 
   resize() {
     this.dpr = Math.min(2, window.devicePixelRatio || 1);
-    for (const c of [this.back, this.front]) {
-      c.width = Math.floor(window.innerWidth * this.dpr);
-      c.height = Math.floor(window.innerHeight * this.dpr);
-    }
+    // The drifting feathers and tumbleweeds are soft and half see-through: no need for full sharpness.
+    const back = Math.min(1.25, this.dpr);
+    this.back.width = Math.floor(window.innerWidth * back);
+    this.back.height = Math.floor(window.innerHeight * back);
+    this.front.width = Math.floor(window.innerWidth * this.dpr);
+    this.front.height = Math.floor(window.innerHeight * this.dpr);
+    this.frontDirty = true;
   }
 
   private spawnLantern(anywhere = false) {
@@ -220,7 +225,8 @@ class Particles {
     const d = this.dpr;
     // --- back: lanterns
     const b = this.bctx;
-    b.setTransform(d, 0, 0, d, 0, 0);
+    const bd = this.back.width / W;
+    b.setTransform(bd, 0, 0, bd, 0, 0);
     b.clearRect(0, 0, W, H);
     if (this.enabled) {
       const target = Math.round(10 * this.lanternRate);
@@ -255,8 +261,11 @@ class Particles {
     }
     // --- front: particles
     const f = this.fctx;
+    // Nothing flying and nothing left over: leave the canvas alone so it isn't re-sent every frame.
+    if (!this.parts.length && !this.frontDirty) return;
     f.setTransform(d, 0, 0, d, 0, 0);
     f.clearRect(0, 0, W, H);
+    this.frontDirty = this.parts.length > 0;
     if (!this.parts.length) return;
     f.globalCompositeOperation = 'lighter';
     for (const p of this.parts) {

@@ -14,7 +14,7 @@ import { iconSvg } from './icons';
 import { sfx } from '../fx/audio';
 
 /** Base timings in ms at speed 1: walk in, the beat starts, the climax, the result, close. */
-const T = { beat: 1000, climax: 1900, result: 3100, close: 5200, reducedClose: 1600 };
+const T = { beat: 900, climax: 1700, result: 2700, close: 4500, reducedClose: 1400 };
 
 /** Who turns up in each beat when the scene doesn't name someone. */
 const DEFAULT_ACTOR: Partial<Record<Beat, string>> = { stranger: 'cowboyhat', ambush: 'bandana', stampede: 'bull', thief: 'hand' };

@@ -163,6 +163,14 @@ class Background {
   private start = performance.now();
   private raf = 0;
   private last = 0;
+  /** Frames between redraws: the sky drifts slowly, so 30fps looks the same as 60 for half the work. */
+  private every = 2;
+  private tick = 0;
+  /** Automatic step-down for devices that can't keep up: 0 as set, 1 low quality, 2 low and slower still. */
+  private strain = 0;
+  private slow = 0;
+  private frames = 0;
+  private prevNow = 0;
 
   mount(canvas: HTMLCanvasElement, quality: 'high' | 'low' | 'off') {
     this.canvas = canvas;
@@ -170,12 +178,38 @@ class Background {
     window.addEventListener('resize', () => this.resize());
     const loop = (now: number) => {
       this.raf = requestAnimationFrame(loop);
-      this.frame(now);
+      this.watch(now);
+      if (++this.tick % this.every === 0) this.frame(now);
     };
     this.raf = requestAnimationFrame(loop);
   }
 
-  setQuality(q: 'high' | 'low' | 'off') {
+  /** Watch how long whole frames take; if the page keeps dropping below ~35fps, make the sky cheaper. */
+  private watch(now: number) {
+    const dt = now - this.prevNow;
+    this.prevNow = now;
+    // Ignore gaps from a hidden tab or a breakpoint.
+    if (dt > 250 || document.hidden || this.quality === 'off') return;
+    this.frames++;
+    if (dt > 28) this.slow++;
+    if (this.frames < 120) return;
+    const struggling = this.slow > 60;
+    this.frames = 0;
+    this.slow = 0;
+    if (!struggling || this.strain >= 2) return;
+    this.strain++;
+    if (this.strain === 1 && this.quality === 'high') this.setQuality('low', true);
+    else {
+      this.strain = 2;
+      this.every = 4;
+    }
+  }
+
+  setQuality(q: 'high' | 'low' | 'off', auto = false) {
+    if (!auto) {
+      this.strain = 0;
+      this.every = 2;
+    }
     this.quality = q;
     if (q === 'off') {
       this.canvas.style.display = 'none';
@@ -215,7 +249,9 @@ class Background {
     if (!this.canvas) return;
     // Edges are antialiased in the shader, so a smooth upscale from slightly below native looks clean.
     const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
-    const scale = this.quality === 'high' ? 0.9 * dpr : 0.55;
+    // The sky is all soft gradients; drawing it below native size and letting it scale up costs
+    // far less and looks the same.
+    const scale = this.quality === 'high' ? 0.6 * dpr : 0.45;
     const w = Math.max(1, Math.floor(window.innerWidth * scale));
     const hh = Math.max(1, Math.floor(window.innerHeight * scale));
     this.canvas.width = w;
@@ -236,8 +272,6 @@ class Background {
   private frame(now: number) {
     const gl = this.gl;
     if (!gl || this.quality === 'off' || document.hidden) return;
-    // Cap at ~45fps on low quality.
-    if (this.quality === 'low' && now - this.last < 22) return;
     const dt = Math.min(0.1, (now - this.last) / 1000);
     this.last = now;
     for (let i = 0; i < 4; i++) for (let j = 0; j < 3; j++) this.cur[i][j] += (this.target[i][j] - this.cur[i][j]) * Math.min(1, dt * 1.6);

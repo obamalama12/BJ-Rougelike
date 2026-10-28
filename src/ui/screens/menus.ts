@@ -46,6 +46,19 @@ function hookTitleInput() {
     activeTitle.el.style.setProperty('--px', ((e.clientX / window.innerWidth) * 2 - 1).toFixed(3));
     activeTitle.el.style.setProperty('--py', ((e.clientY / window.innerHeight) * 2 - 1).toFixed(3));
   });
+  // A glint runs across the logo every 7 seconds: switched on just for the sweep, so the logo
+  // sits still (and isn't redrawn) the rest of the time.
+  let glints = 0;
+  setInterval(() => {
+    if (activeTitle && !activeTitle.el.isConnected) activeTitle = null;
+    const logo = activeTitle?.el.querySelector('.logo-main');
+    if (!logo || document.hidden) return;
+    logo.classList.remove('glint');
+    void (logo as HTMLElement).offsetWidth;
+    logo.classList.add('glint');
+    const n = ++glints;
+    setTimeout(() => n === glints && logo.classList.remove('glint'), 1600);
+  }, 7000);
 }
 
 export function titleScreen(): HTMLElement {
