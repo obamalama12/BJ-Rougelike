@@ -382,7 +382,7 @@ export class TableScreen {
       mk('Hit', 'H', 'hit', a.hit, () => void this.doHit(), 'Take another card.', a.reasons.hit),
       mk('Stand', 'S', 'stand', a.stand, () => void this.doStand(), 'Keep what you have. The dealer plays next.', a.reasons.stand),
       mk('Double', 'D', 'double', a.double, () => void this.doDouble(), `Take exactly one more card. A win scores X${rules.doubleX}.${extra(rules.doubleCost)}`, a.reasons.double, `D · X${rules.doubleX}${rules.doubleCost ? ' · 1 hand' : ''}`),
-      mk('Split', 'P', 'split', a.split, () => void this.doSplit(), `Split a pair into two hands played one after the other.${extra(rules.splitCost)}`, a.reasons.split, `P${rules.splitCost ? ' · 1 hand' : ''}`),
+      mk('Split', 'P', 'split', a.split, () => void this.doSplit(), `Split a pair into two hands played one after the other. Any two 10-value cards count as a pair (a 10 and a Queen, say).${extra(rules.splitCost)}`, a.reasons.split, `P${rules.splitCost ? ' · 1 hand' : ''}`),
       mk('Fold', 'F', 'fold', a.fold, () => void this.doFold(), 'Throw this hand away. It does not use up a hand.', a.reasons.fold, `F · ${t.foldsLeft} left`),
     );
     const peeks = peeksLeft(run);

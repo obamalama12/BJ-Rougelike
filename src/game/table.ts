@@ -420,7 +420,7 @@ export function availableActions(run: Run): Actions {
     else a.double = true;
     const [x, y] = cards;
     const pair = x.ink !== 'stone' && y.ink !== 'stone' && (x.rank === y.rank || (rules.splitAnyTen && isTenValue(x) && isTenValue(y)));
-    if (!pair) a.reasons.split = 'Needs a pair';
+    if (!pair) a.reasons.split = 'Needs a pair (any two 10-value cards count)';
     else if (!rules.canSplit) a.reasons.split = 'Splitting is forbidden';
     else if (t.hands.length >= 4) a.reasons.split = 'Too many hands';
     else if (t.handsLeft < rules.splitCost) a.reasons.split = 'Needs a spare hand';

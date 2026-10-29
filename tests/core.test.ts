@@ -221,6 +221,20 @@ describe('house rules', () => {
     t.dealer = [ace, six];
     expect(dealerShouldHit(run)).toBe(false); // the Old-Timer stands on soft 17 too
   });
+  it('lets you split any two 10-value cards', async () => {
+    const { startTable, beginHand, availableActions } = await import('../src/game/table');
+    const run = newRun('SPLIT', 'paper', 1);
+    startTable(run, 'paper', 100);
+    beginHand(run);
+    const t = run.table!;
+    const ten = c(10), queen = c(12, 'leaf'), nine = c(9);
+    run.deck.push(ten, queen, nine);
+    t.dealer = [run.deck[0].id, run.deck[1].id];
+    t.hands[0].cards = [ten.id, queen.id];
+    expect(availableActions(run).split).toBe(true);
+    t.hands[0].cards = [ten.id, nine.id];
+    expect(availableActions(run).split).toBe(false);
+  });
   it('rarely repeats a henchman within a run', async () => {
     const { GOONS } = await import('../src/content/hosts');
     const { CHARACTERS } = await import('../src/ui/portraits');

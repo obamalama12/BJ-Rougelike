@@ -101,8 +101,8 @@ export function newRun(seed: string, shoeId: string, stake: number): Run {
   for (const v of shoe.vouchers ?? []) run.vouchers.push(v);
   for (const k of shoe.cons ?? []) run.consumables.push({ uid: run.nextId++, kind: k.kind, id: k.id });
   for (const id of shoe.charms ?? []) run.charms.push(makeCharm(run, id));
-  if (stake >= 4) run.baseFolds = Math.max(0, run.baseFolds - 1);
-  if (stake >= 6) { run.maxGrit -= 1; run.grit -= 1; }
+  if (stake >= 4) run.baseFolds = Math.max(0, run.baseFolds - 2);
+  if (stake >= 6) { run.maxGrit -= 2; run.grit -= 2; }
   if (stake >= 7) run.baseHands = Math.max(1, run.baseHands - 1);
   run.flags.startDeckSize = run.deck.length;
   rotate(run);
@@ -219,8 +219,8 @@ export function nightBase(run: Run, night = run.night): number {
     const k = night - NIGHT_BASE.length;
     base = NIGHT_BASE[NIGHT_BASE.length - 1] * Math.pow(2.6, k) * Math.pow(1.08, k * k);
   }
-  if (run.stake >= 3) base *= 1 + 0.12 * (night - 1);
-  if (run.stake >= 5) base *= 1 + 0.12 * (night - 1);
+  if (run.stake >= 3) base *= 1 + 0.06 * (night - 1);
+  if (run.stake >= 5) base *= 1 + 0.05 * (night - 1);
   if (run.stake >= 8) base *= 1.25;
   base *= SHOE[run.shoeId]?.scale ?? 1;
   return roundTarget(base);
@@ -252,7 +252,8 @@ export function getRules(run: Run): Rules {
     plusOne: false,
     faceValue: 10,
     dealerWinsTies: false,
-    splitAnyTen: false,
+    // Any two 10-value cards (10, J, Q, K) count as a pair you can split.
+    splitAnyTen: true,
     smeared: false,
     allFace: false,
     firstCardDown: false,
@@ -273,6 +274,9 @@ export function getRules(run: Run): Rules {
     maxHits: 99,
     splitAces21: false,
   };
+  // Wanted levels, before anything you carry gets a say.
+  if (run.stake >= 2) r.dealerWinsTies = true;
+  if (run.stake >= 4) r.charlieSize += 1;
   for (const v of run.vouchers) VOUCHER[v]?.rules?.(r, run);
   SHOE[run.shoeId]?.rules?.(r, run);
   for (const k of activeCharms(run)) CHARM[k.id]?.rules?.(r, k, run);

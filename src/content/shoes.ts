@@ -37,11 +37,11 @@ export const SHOE: Record<string, ShoeDef> = Object.fromEntries(SHOES.map((s) =>
 
 export const STAKES: StakeDef[] = [
   { id: 1, name: 'Greenhorn', color: '#8a93a6', text: 'Standard rules' },
-  { id: 2, name: 'Drifter', color: '#e2382b', text: 'Saloon Game tables pay no reward Bucks' },
+  { id: 2, name: 'Drifter', color: '#e2382b', text: 'Ties go to the dealer. Saloon Games pay no reward Bucks' },
   { id: 3, name: 'Gunslinger', color: '#3fcf8e', text: 'Targets grow faster' },
-  { id: 4, name: 'Desperado', color: '#3d8bff', text: '{r:-1} fold each table' },
-  { id: 5, name: 'Bandit', color: '#a35cff', text: 'The dealer hits soft 17. Targets grow faster still' },
-  { id: 6, name: 'Most Wanted', color: '#ff7a3d', text: '{r:-1} max Grit' },
+  { id: 4, name: 'Desperado', color: '#3d8bff', text: '{r:-2} folds each table. Charley Horse needs 6 cards' },
+  { id: 5, name: 'Bandit', color: '#a35cff', text: 'Gang members and Bank Jobs are tougher. Targets grow faster still' },
+  { id: 6, name: 'Most Wanted', color: '#ff7a3d', text: '{r:-2} max Grit' },
   { id: 7, name: 'Dead or Alive', color: '#c2261a', text: '{r:-1} hand each table' },
   { id: 8, name: 'Legend', color: '#f0b429', text: 'Interest is capped at {$:3}. Targets X1.25' },
 ];

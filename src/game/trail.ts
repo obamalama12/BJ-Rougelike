@@ -137,6 +137,8 @@ export function nodeTarget(run: Run, n: TrailNode): number {
   if (n.kind === 'outlaw') scale = HOST[n.hostId ?? run.nightHost]?.scale ?? 2;
   if (n.kind === 'outlaw' && run.flags.wantedPoster) scale *= 1.25;
   if (n.kind === 'outlaw') scale *= Math.pow(OUTLAW_RETRY, run.flags.outlawTries ?? 0);
+  // Bandit wanted level and up: the gang and the vaults are tougher.
+  if (run.stake >= 5 && (n.kind === 'gang' || n.kind === 'bank')) scale *= 1.15;
   // Abilities that make every target (or just the Outlaw's) easier or harder.
   for (const k of run.charms) {
     const d = CHARM[k.id];
