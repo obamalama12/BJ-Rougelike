@@ -313,7 +313,7 @@ export function campScreen(hud: Hud): HTMLElement {
         const lv = run.handLevels[ht.id];
         const b = handBase(ht.id, lv);
         const btn = h('button', { class: 'yarn', type: 'button' });
-        btn.innerHTML = `<span class="yarn-name">${ht.name}</span><span class="yarn-lv">Lv ${lv}<i>→</i>${lv + 1}</span><span class="yarn-calc"><b class="yc-chips">${fmtNum(b.chips)}</b><i>×</i><b class="yc-mult">${fmtNum(b.mult)}</b></span>`;
+        btn.innerHTML = `<span class="yarn-name">${ht.name}</span><span class="yarn-lv">Lv ${lv}<i>→</i>${lv + 1}</span><span class="yarn-desc">${ht.desc}</span><span class="yarn-calc"><b class="yc-chips">${fmtNum(b.chips)}</b><i>×</i><b class="yc-mult">${fmtNum(b.mult)}</b></span>`;
         btn.addEventListener('click', () => {
           campYarn(run, ht.id as HandTypeId);
           sfx('levelup');
