@@ -3,7 +3,7 @@
 import { coach } from '../coach';
 import { townCelebration, type Celebration } from '../scenes';
 import type { Run, TrailNode, NodeKind } from '../../core/types';
-import { HOST } from '../../content/hosts';
+import { GOON_PERKS, HOST } from '../../content/hosts';
 import { COLS, GANG_COLS, NODE_INFO, nodeTarget, reachable, travel, isTableNode } from '../../game/trail';
 import { canRerollHost, payRerollHost, maybeOpenTagPack } from '../../game/shop';
 import { NIGHTS } from '../../game/engine';
@@ -255,6 +255,8 @@ function nodeTip(run: Run, n: TrailNode): string {
     const host = HOST[n.hostId];
     extra += `<br><br><b>${n.kind === 'outlaw' ? host?.name : `${host?.name}’s curse`}</b>: ${fmt(host?.text ?? '')}`;
   }
+  const perk = n.kind === 'gang' && n.goonId ? GOON_PERKS[n.goonId] : undefined;
+  if (perk) extra += `<br><b>Side ability, ${perk.name}</b>: ${perk.text}`;
   const title = n.kind === 'outlaw' ? HOST[n.hostId ?? '']?.name ?? info.name : n.kind === 'gang' ? nameOf(goonFace(n.goonId)) : info.name;
   return `<div class="tt-title">${title}</div><div class="tt-body">${info.blurb}${extra}</div>`;
 }

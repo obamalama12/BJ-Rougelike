@@ -1,5 +1,4 @@
-// The fork in the road after every table you win: three unmarked paths, one pick (plus one more for
-// each Bounty, Bank Job or other extra path you've earned). What waits down a path comes from
+// The fork in the road after you beat one of the Outlaw's gang: three unmarked paths, one pick. What waits down a path comes from
 // content/paths, shuffled per seed. A new ability that doesn't fit pushes out one you already have.
 
 import type { Run } from '../core/types';
@@ -12,9 +11,9 @@ export const ROAD_CHOICES = 3;
 
 /** Open the fork in the road after a won table. */
 export function startRoad(run: Run) {
-  const picks = 1 + (run.flags.bonusPaths ?? 0);
+  // One pick per fork: forks only come from beating a gang member.
   run.flags.bonusPaths = 0;
-  run.road = { options: [], picksLeft: picks };
+  run.road = { options: [], picksLeft: 1 };
   dealRoads(run);
   run.phase = 'road';
 }

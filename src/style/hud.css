@@ -301,6 +301,18 @@
   box-shadow: inset 0 0 0 2px var(--stock), inset 0 0 0 3px color-mix(in srgb, var(--plate-verm) 60%, transparent);
 }
 .poster-curse .t-suit { filter: brightness(0.75); }
+/* A henchman's own side ability, under the boss's curse he carries. */
+.poster-perk {
+  width: 100%;
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.25;
+  padding: 5px 9px 6px;
+  border-radius: 6px;
+  color: #1e4a22;
+  background: color-mix(in srgb, #4fbf6a 9%, var(--stock));
+  border: 1px dashed #3a8a4a;
+}
 .poster-curse .t-hand, .poster-curse .t-hl { color: #8a1a0a; }
 .poster-curse .t-money { color: #8a5a0a; }
 /* Ledger rows: label .... value */

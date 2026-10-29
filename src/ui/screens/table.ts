@@ -17,7 +17,7 @@ import {
   fillSplit, fold, hit, revealDealer, scoreHand, settleOutcomes, settleSplit, split, stand, cardById, dealerNeedsToPlay,
   type ScoreResult,
 } from '../../game/table';
-import { drainFx, getRules, currentHost, NIGHTS } from '../../game/engine';
+import { dealerRuleText, drainFx, getRules, currentHost, NIGHTS } from '../../game/engine';
 import { cashOut, failTable, winTable } from '../../game/shop';
 import { setWager, placeSideBet, hotStreakX, SIDE_BETS, peeksLeft, peekHole, monkeyLeft, useMonkey, canRescue, rescueBust } from '../../game/table';
 import type { SideBetId } from '../../core/types';
@@ -143,7 +143,7 @@ export class TableScreen {
     } else if (t.phase === 'ready' && t.dealt === 0) setTimeout(greet, 500);
     const rules = getRules(run);
     const rule = this.felt.querySelector('.felt-rule')!;
-    rule.innerHTML = `<span>Dealer ${rules.dealerHitsToBust ? 'hits until he busts' : rules.dealerStand > 17 ? `hits to ${rules.dealerStand}` : rules.dealerHitSoft17 ? 'hits soft 17' : 'stands on 17'}</span><span class="dot">◆</span><span>Bust over ${rules.bustLimit}</span><span class="dot">◆</span><span>Charley Horse at ${rules.charlieSize}</span>`;
+    rule.innerHTML = `<span>Dealer ${dealerRuleText(rules)}</span><span class="dot">◆</span><span>Bust over ${rules.bustLimit}</span><span class="dot">◆</span><span>Charley Horse at ${rules.charlieSize}</span>`;
     // Restore any cards on the felt (e.g. after reload mid-hand).
     for (const id of [...t.dealer, ...t.hands.flatMap((x) => x.cards)]) this.spawn(id, false);
     this.layout();

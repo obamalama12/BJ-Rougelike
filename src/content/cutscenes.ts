@@ -95,7 +95,7 @@ export const SCENES: Record<string, SceneDef> = {
   jinxed_horseshoes: S('snake', 'You pick up a horseshoe, points down. Everybody knows that’s bad luck.', { prop: 'horseshoe' }),
   wet_powder: S('storm', 'A cloudburst soaks you to the bone, and your gunpowder with it.'),
   greedy_dealer: S('cards', 'A greedy dealer takes a shine to your purse and decides he’ll keep drawing till he gets it.'),
-  soft_spot: S('cards', 'You tip a dealer too well. Now he’s soft on himself and hits every chance he gets.'),
+  soft_spot: S('cards', 'A sweet-talking dealer gets in your head. Every soft hand feels like a sure thing now, and pays like it isn’t.'),
   hanging_judge: S('stranger', 'A hanging judge looks over his spectacles at you. “Any tie, you lose. Court adjourned.”', { actor: 'jail' }),
   toll_road: S('stranger', 'A toad in a booth blocks the road. “Toll’s a dollar a step, partner.”', { actor: 'coin' }),
   tax_man: S('stranger', 'The tax man rides up with a ledger and a smile. He’ll be taking his cut every hand.', { actor: 'scroll' }),

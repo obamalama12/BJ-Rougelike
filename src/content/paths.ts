@@ -1,4 +1,4 @@
-// The roads you take. After every table you win you pick one of three unmarked paths, and only
+// The roads you take. After you beat one of the Outlaw's gang you pick one of three unmarked paths, and only
 // once you've taken it do you find out what waited there: a Boon (an ability that helps), a Bane
 // (an ability that hurts), or something that happens on the spot. Which outcome sits behind which
 // path is shuffled by the run's seed, so the same seed always leads the same way.
@@ -8,7 +8,7 @@
 
 import type { CharmDef } from '../game/api';
 import type { Card, HandTypeId, Run } from '../core/types';
-import { HAND_TYPES, isFace, isSuit } from '../core/cards';
+import { HAND_TYPES, handTotal, isFace, isSuit } from '../core/cards';
 import { Rng, hashSeed } from '../core/rng';
 
 // ---------------------------------------------------------------------------
@@ -234,7 +234,7 @@ bane({ id: 'stuck_together', name: 'Stuck Together', icon: 'needle', text: 'You 
 bane({ id: 'jinxed_horseshoes', name: 'Jinxed Horseshoes', icon: 'horseshoe', text: 'Scored {s:moon} cards give {x:X0.9} Odds', card: (c, _s, k) => { if (isSuit(k, 'moon', c.rules)) c.xmult(0.9); } });
 bane({ id: 'wet_powder', name: 'Wet Powder', icon: 'dynamite', text: 'Scored {s:flame} cards give {x:X0.9} Odds', card: (c, _s, k) => { if (isSuit(k, 'flame', c.rules)) c.xmult(0.9); } });
 bane({ id: 'greedy_dealer', name: 'Greedy Dealer', icon: 'moneybag', text: 'The dealer keeps drawing until {r:18}', rules: (r) => { r.dealerStand = Math.max(r.dealerStand, 18); } });
-bane({ id: 'soft_spot', name: 'Soft Spot', icon: 'pie', text: 'The dealer hits on soft 17', rules: (r) => { r.dealerHitSoft17 = true; } });
+bane({ id: 'soft_spot', name: 'Soft Spot', icon: 'pie', text: 'Hands you win on a soft total score {x:X0.6} Odds', hand: (c) => { if (handTotal(c.cards, c.rules).soft) c.xmult(0.6); } });
 bane({ id: 'hanging_judge', name: 'Hanging Judge', icon: 'jail', text: 'Ties count as losses', rules: (r) => { r.dealerWinsTies = true; } });
 bane({ id: 'toll_road', name: 'Toll Road', icon: 'coin', text: 'Every hit costs {$:1}', rules: (r) => { r.hitCost = Math.max(r.hitCost, 1); } });
 bane({ id: 'tax_man', name: 'Tax Man', icon: 'scroll', text: 'Every hand you deal costs {$:1}', rules: (r) => { r.handCost = Math.max(r.handCost, 1); } });

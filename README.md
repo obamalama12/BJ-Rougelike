@@ -5,7 +5,7 @@ A blackjack roguelike set in a frontier town full of ducks, geese and other bird
 You play a duck riding through seven towns. Each **Town** is a branching **trail** of stops:
 card games, Doc Hoot's office, campfires and strange encounters. At the end of the trail you
 play the town's **Outlaw**. Beat all seven Outlaws to win the run. After that you can keep
-riding for as long as you last. Every table you win, the trail forks into three unmarked paths,
+riding for as long as you last. Beat one of the Outlaw's gang and the trail forks into three unmarked paths,
 and what you find down them shapes the run.
 
 ## Playing
@@ -24,13 +24,14 @@ npm run build:single  # one self-contained HTML file in dist-single/
 - **The trail.** Pick your next stop each step:
   - **Saloon Game** and **High Stakes** tables. High Stakes has a bigger target and a
     bigger payout.
-  - **Bank Job**: a harder table under the town Outlaw's curse. Winning it earns an extra path.
+  - **Bank Job**: a harder table under the town Outlaw's curse. Winning it pays out loot from the vault.
   - **Doc Hoot** (heal, or remove cards from your deck) and the **Campfire** (rest, level up
     a hand type, or sleep off one of your Banes).
   - **Gang Members**: twice in every town, a whole column of the map is the Outlaw's gang, so
     every route meets two of them. They're the Outlaw's henchmen and carry the boss's curse, so
-    you get a taste of the showdown on the way. Beat one for a **Bounty** (an extra path to choose)
-    and 1 Grit.
+    you get a taste of the showdown on the way. Beat one for a **Bounty** (the trail forks)
+    and 1 Grit. There are 25 henchmen, and you won't meet the same one twice in a normal run.
+    Some have a side ability of their own: Dusty Dan stands on all 17s.
   - **Strange Happenings**: 34 encounters with choices, including a quick-draw duel. You won't
     meet the same one twice in a run until you've seen them all.
   - The **Outlaw** at the end of the town: the only boss you meet there, shown on the Wanted
@@ -39,7 +40,7 @@ npm run build:single  # one self-contained HTML file in dist-single/
     he busts. He's a 5% chance in town 1 and the chance halves every town (2.5%, 1.25%, ...),
     down to about 0.08% for the final showdown, and stays at 0.08% in endless mode. If you lose, you can try again as long as you
     have Grit left, and each retry's target is 15% lower.
-- **Forks in the road.** After every table you win, choose one of three unmarked paths
+- **Forks in the road.** Beat one of the Outlaw's gang (two per town) and choose one of three unmarked paths
   ("Follow the Buzzards", "Old Mine Shaft No. 9", "The Witch's Hollow"...). You only find out
   what was down there after you take it:
   - a **Boon**: an ability that helps (bonus Odds for a suit, an extra hand every table, bust
@@ -51,9 +52,9 @@ npm run build:single  # one self-contained HTML file in dist-single/
 
   There are 100 paths. Which outcome waits on which path is shuffled by the run's seed, so the
   same seed always leads the same way. You carry up to **5 abilities**, Boons and Banes alike;
-  when your belt is full, a new one must replace one you already have. Gang Bounties, Bank
-  Jobs and some encounters give extra paths.
-- **A table** is blackjack against a dealer. You have a number of **Hands** and **Folds**.
+  when your belt is full, a new one must replace one you already have. Some encounters hand
+  you a random Boon on the spot.
+- **A table** is blackjack against a dealer, who stands on a hard 17 and hits a soft 17. You have a number of **Hands** and **Folds**.
   Reach the target score before you run out of hands, or you lose Grit.
 - **Showdowns and celebrations.** Each town's Outlaw gets an entrance scene with their curse and
   a taunt. Beating them jails them, pins a sheriff badge on your 7-badge strip, and shows who's

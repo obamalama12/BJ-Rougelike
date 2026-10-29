@@ -3,6 +3,7 @@
 // as the run goes on. Tiers come from `npm run probe` (how often the bot survives each curse).
 
 import type { HostDef } from '../game/api';
+import type { Rules } from '../core/types';
 import { isFace, isSuit } from '../core/cards';
 
 export const HOSTS: HostDef[] = [];
@@ -154,6 +155,14 @@ export function rareOutlawChance(town: number): number {
 }
 
 /** The Outlaw's henchmen: nameless muscle who carry their boss's curse to the gang stops. */
-export const GOONS = ['goon_sid', 'goon_clem', 'goon_ted', 'goon_mabel', 'goon_dusty', 'goon_ike'];
+export const GOONS = [
+  'goon_sid', 'goon_clem', 'goon_ted', 'goon_mabel', 'goon_dusty', 'goon_ike',
+  'goon_wade', 'goon_rosa', 'goon_bart', 'goon_lefty', 'goon_greta', 'goon_hank', 'goon_ollie', 'goon_pete', 'goon_sal', 'goon_jasper', 'goon_moe', 'goon_vern', 'goon_dixie', 'goon_cy', 'goon_nell', 'goon_rufus', 'goon_beau', 'goon_tilly', 'goon_dale',
+];
+
+/** A henchman's side ability: a quirk of his own, on top of the boss's curse he carries. */
+export const GOON_PERKS: Record<string, { name: string; text: string; rules: (r: Rules) => void }> = {
+  goon_dusty: { name: 'Old-Timer', text: 'Plays by the old rules: the dealer stands on all 17s, soft ones too', rules: (r) => { r.dealerHitSoft17 = false; } },
+};
 
 export const HOST: Record<string, HostDef> = Object.fromEntries(HOSTS.map((h) => [h.id, h]));

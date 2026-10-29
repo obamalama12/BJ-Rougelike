@@ -42,7 +42,7 @@ T({ id: 'orbital', name: 'The Legend Grows', icon: 'book', hue: '#9fc7ff', when:
     return true;
   } });
 T({ id: 'topup', name: 'Posse Up', icon: 'duckling', hue: '#7fe07a', when: 'now',
-  text: 'Two extra paths to choose after your next win',
+  text: 'Gain two random Boons ($6 each instead if your belt is full)',
   apply: (c) => { c.createCharm(); c.createCharm(); return true; } });
 T({ id: 'speed', name: 'Pony Express Telegram', icon: 'horse', hue: '#7fe8ff', when: 'now',
   text: 'Earn {$:5} for each table skipped this run',

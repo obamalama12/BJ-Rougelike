@@ -1,4 +1,4 @@
-// The fork in the road: three unmarked signposts after every table you win, the reveal of what
+// The fork in the road: three unmarked signposts after you beat a gang member, the reveal of what
 // waited down the one you took, and (with a full belt) choosing which ability to leave behind.
 
 import type { Run } from '../../core/types';

@@ -202,6 +202,48 @@ describe('rare abilities', () => {
   });
 });
 
+describe('house rules', () => {
+  it('the dealer stands on hard 17 and hits soft 17; Dusty Dan stands on all 17s', async () => {
+    const { startTable, dealerShouldHit } = await import('../src/game/table');
+    const run = newRun('SOFT', 'paper', 1);
+    startTable(run, 'paper', 100);
+    const t = run.table!;
+    t.hands = [{ cards: [1], doubled: false, done: false, fromSplit: false, hits: 0 }];
+    run.deck = [c(14), c(6), c(10, 'leaf'), c(7, 'leaf')];
+    const [ace, six, ten, seven] = run.deck.map((k) => k.id);
+    t.hands[0].cards = [];
+    t.dealer = [ace, six];
+    expect(dealerShouldHit(run)).toBe(true); // soft 17
+    t.dealer = [ten, seven];
+    expect(dealerShouldHit(run)).toBe(false); // hard 17
+    t.kind = 'gang';
+    t.goonId = 'goon_dusty';
+    t.dealer = [ace, six];
+    expect(dealerShouldHit(run)).toBe(false); // the Old-Timer stands on soft 17 too
+  });
+  it('rarely repeats a henchman within a run', async () => {
+    const { GOONS } = await import('../src/content/hosts');
+    const { CHARACTERS } = await import('../src/ui/portraits');
+    for (const g of GOONS) expect(CHARACTERS[g], g).toBeTruthy();
+    expect(new Set(GOONS.map((g) => CHARACTERS[g].name)).size).toBe(GOONS.length);
+    const { startTownState } = await import('../src/game/trail');
+    const run = newRun('GOONS', 'paper', 1);
+    const met: string[] = [];
+    for (let town = 1; town <= 7; town++) {
+      run.night = town;
+      startTownState(run);
+      // Face one henchman in each of the town's two gang columns, as any route does.
+      for (const col of [2, 4]) {
+        const n = run.trail.nodes.find((x) => x.kind === 'gang' && x.col === col)!;
+        met.push(n.goonId!);
+        run.flags.goonsMet = [...(run.flags.goonsMet ?? []), n.goonId];
+      }
+    }
+    expect(met.length).toBe(14);
+    expect(new Set(met).size).toBe(14);
+  });
+});
+
 describe('the fork in the road', () => {
   it('a new ability on a full belt has to push one of the others out', async () => {
     const { startRoad, takeRoad, dropAbility, leaveRoad } = await import('../src/game/roads');

@@ -61,7 +61,7 @@ export const EVENTS: EventDef[] = [
     icon: 'wagon',
     text: 'A stagecoach has lost a wheel. The driver, a pigeon, is guarding the strongbox with a broom.',
     choices: [
-      { label: 'Lift the wheel', detail: 'Gain $12 and an extra path. -2 Grit', can: room,
+      { label: 'Lift the wheel', detail: 'Gain $12 and a random Boon. -2 Grit', can: room,
         apply: (c) => { loseGrit(c, 2); c.money(12); c.createCharm({ rarity: 2 }); return 'Your back hurts. The pigeon pays you $12 and tells you about a back road. -2 Grit.'; } },
       { label: 'Rob the strongbox', detail: 'Gain $25. The next Outlaw’s target is 25% higher', apply: (c) => { c.money(25); c.run.flags.wantedPoster = true; return 'You ride off $25 richer. By the next town, your face is on a poster.'; } },
       { label: 'Ride on by', detail: 'Nothing happens', apply: () => 'Not your wheel.' },
@@ -76,7 +76,7 @@ export const EVENTS: EventDef[] = [
     choices: [
       { label: 'Walk it home', detail: '-1 Grit, +2 max Grit', apply: (c) => { loseGrit(c, 1); c.run.maxGrit += 2; return 'Its mother hugs you hard enough to hurt. -1 Grit, +2 max Grit.'; } },
       { label: 'Share your bread', detail: 'Heal 3 Grit', apply: (c) => { gainGrit(c, 3); return 'You split a crust with it. +3 Grit.'; } },
-      { label: 'Recruit it', detail: 'Gain an extra path', can: room, apply: (c) => { c.createCharm({ id: 'street_urchins', force: false }); return 'The duckling salutes. Two of its cousins come out from behind the cactus.'; } },
+      { label: 'Recruit it', detail: 'Gain a random Boon', can: room, apply: (c) => { c.createCharm({ id: 'street_urchins', force: false }); return 'The duckling salutes. Two of its cousins come out from behind the cactus.'; } },
     ],
   },
   {
@@ -113,7 +113,7 @@ export const EVENTS: EventDef[] = [
     icon: 'fist',
     text: 'A chair flies past your head. Two geese are fighting over the last pickled egg, and now everyone is involved.',
     choices: [
-      { label: 'Jump in', detail: 'Gain an extra path. -3 Grit', can: room, apply: (c) => { loseGrit(c, 3); c.createCharm({ rarity: 3 }); return 'You win the egg, a black eye, and directions to a back road off the loser. -3 Grit.'; } },
+      { label: 'Jump in', detail: 'Gain a random Boon. -3 Grit', can: room, apply: (c) => { loseGrit(c, 3); c.createCharm({ rarity: 3 }); return 'You win the egg, a black eye, and directions to a back road off the loser. -3 Grit.'; } },
       { label: 'Duck under a table', detail: 'Gain $6', apply: (c) => { c.money(6); return 'You find $6 on the floor under there.'; } },
       { label: 'Take bets', detail: 'Gain $3 and heal 1 Grit', apply: (c) => { c.money(3); gainGrit(c, 1); return 'You take bets on the fight. The bigger goose wins. +$3, +1 Grit.'; } },
     ],
@@ -163,7 +163,7 @@ export const EVENTS: EventDef[] = [
     icon: 'balloon',
     text: 'A wagon hung with bunting. A flamingo is juggling and selling mystery boxes.',
     choices: [
-      { label: 'Buy a mystery box', detail: 'Gain an extra path', cost: 4, can: room, apply: (c) => { c.createCharm(); return 'There’s a hand-drawn map in the box, packed in straw.'; } },
+      { label: 'Buy a mystery box', detail: 'Gain a random Boon', cost: 4, can: room, apply: (c) => { c.createCharm(); return 'There’s a hand-drawn map in the box, packed in straw.'; } },
       { label: 'Join the act', detail: 'Gain $8. -1 Grit', apply: (c) => { c.money(8); loseGrit(c, 1); return 'The flamingo juggles you. The crowd pays $8. You’re dizzy for an hour. -1 Grit.'; } },
       { label: 'Watch the show', detail: 'Heal 1 Grit', apply: (c) => { gainGrit(c, 1); return 'You sit at the back and eat peanuts. +1 Grit.'; } },
     ],
@@ -234,7 +234,7 @@ export const EVENTS: EventDef[] = [
     minTown: 2,
     text: 'A gang of geese in bandanas is about to rob the 4:15. They’re one goose short.',
     choices: [
-      { label: 'Join the gang', detail: 'Gain an extra path. -4 Grit', can: room, apply: (c) => { c.createCharm({ rarity: 3 }); loseGrit(c, 4); return 'The robbery goes badly, but you get away with a gang member’s map. -4 Grit.'; } },
+      { label: 'Join the gang', detail: 'Gain a random Boon. -4 Grit', can: room, apply: (c) => { c.createCharm({ rarity: 3 }); loseGrit(c, 4); return 'The robbery goes badly, but you get away with a gang member’s map. -4 Grit.'; } },
       { label: 'Warn the conductor', detail: 'Gain $12 and a Telegram', apply: (c) => { c.money(12); c.addTag(c.rng.pick(['economy', 'investment', 'orbital', 'topup', 'oil'])); return 'The conductor pays you $12 and wires a Telegram ahead.'; } },
       { label: 'Watch from a hill', detail: 'Gain $3', apply: (c) => { c.money(3); return 'You sell popcorn to the other folks on the hill. +$3.'; } },
     ],
@@ -255,7 +255,7 @@ export const EVENTS: EventDef[] = [
     icon: 'wheelbarrow',
     text: 'A pack rat with a wheelbarrow full of junk wants to trade for one of your abilities.',
     choices: [
-      { label: 'Trade an ability', detail: 'Lose a random ability, good or bad. Gain an extra path', can: (run) => run.charms.length > 0,
+      { label: 'Trade an ability', detail: 'Lose a random ability, good or bad. Gain a random Boon', can: (run) => run.charms.length > 0,
         apply: (c) => {
           const k = c.rng.pick(c.run.charms);
           c.destroyCharm(k.uid);
@@ -284,7 +284,7 @@ export const EVENTS: EventDef[] = [
     text: 'A herd of cows is stampeding through the canyon. A turkey on horseback is yelling for help.',
     choices: [
       { label: 'Help drive the herd', detail: 'Gain $15. -2 Grit', apply: (c) => { loseGrit(c, 2); c.money(15); return '$15 for a day of eating dust. -2 Grit.'; } },
-      { label: 'Ride a cow', detail: 'Half the time: gain an extra path. Otherwise: -3 Grit', can: room,
+      { label: 'Ride a cow', detail: 'Half the time: gain a random Boon. Otherwise: -3 Grit', can: room,
         apply: (c) => { if (c.rng.next() < 0.5) { c.createCharm({ rarity: 3 }); return 'You stay on the cow. The turkey shows you a shortcut for it.'; } loseGrit(c, 3); return 'The cow throws you into a fence. -3 Grit.'; } },
       { label: 'Stay out of it', detail: 'Nothing happens', apply: () => 'You climb a rock and wait for the cows to pass.' },
     ],
@@ -369,7 +369,7 @@ export const EVENTS: EventDef[] = [
     text: 'A vulture lives in a cave halfway up the mesa. He says he used to deal cards in Tombstone Pond.',
     choices: [
       { label: 'Ask for his secret', detail: 'Your most played hand type levels up twice. -2 Grit', apply: (c) => { const ht = mostPlayed(c.run); c.levelUp(ht, 2); loseGrit(c, 2); return `The climb nearly kills you. His secret is about ${HAND_TYPES.find((h) => h.id === ht)?.name}. It’s a good one.`; } },
-      { label: 'Trade him an ability', detail: 'Lose a random ability, good or bad. Gain an extra path', can: (run) => run.charms.length > 0, apply: (c) => { const k = c.rng.pick(c.run.charms); c.destroyCharm(k.uid); c.createCharm(); return `He takes your ${CHARM[k.id]?.name} and points you down a trail you’d never have found.`; } },
+      { label: 'Trade him an ability', detail: 'Lose a random ability, good or bad. Gain a random Boon', can: (run) => run.charms.length > 0, apply: (c) => { const k = c.rng.pick(c.run.charms); c.destroyCharm(k.uid); c.createCharm(); return `He takes your ${CHARM[k.id]?.name} and points you down a trail you’d never have found.`; } },
       { label: 'Leave him be', detail: 'Nothing happens', apply: () => 'He waves a bone at you as you go.' },
     ],
   },

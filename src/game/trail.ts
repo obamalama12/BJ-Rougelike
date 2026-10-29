@@ -24,11 +24,11 @@ export const TABLE_INFO: Record<'saloon' | 'highstakes' | 'bank' | 'gang' | 'out
 export const NODE_INFO: Record<NodeKind, { name: string; icon: string; blurb: string }> = {
   saloon: { name: 'Saloon Game', icon: 'saloon', blurb: 'A regular card table. Low target, small purse' },
   highstakes: { name: 'High Stakes', icon: 'tophat', blurb: 'Bigger target, bigger purse' },
-  bank: { name: 'Bank Job', icon: 'moneybag', blurb: 'A table under the Outlaw’s curse. Win it for an extra path to choose' },
+  bank: { name: 'Bank Job', icon: 'moneybag', blurb: 'A table under the Outlaw’s curse. Win it for loot from the vault' },
   doc: { name: 'Doc Hoot', icon: 'tonic', blurb: 'Patch up your Grit, or have a card removed' },
   camp: { name: 'Campfire', icon: 'campfire', blurb: 'Rest, or spin a yarn to level up a hand' },
   event: { name: 'Strange Happenings', icon: 'wanted', blurb: 'A random encounter. Could help, could cost you' },
-  gang: { name: 'Gang Member', icon: 'wanted', blurb: 'One of the Outlaw’s gang, carrying the boss’s curse. Beat them for a Bounty: an extra path to choose' },
+  gang: { name: 'Gang Member', icon: 'wanted', blurb: 'One of the Outlaw’s gang, carrying the boss’s curse. Beat them for a Bounty: the trail forks and you pick a path' },
   outlaw: { name: 'Showdown', icon: 'revolver', blurb: 'The boss of this town. Win to ride on to the next one' },
 };
 
@@ -87,11 +87,18 @@ export function generateTrail(run: Run) {
     }
   }
   // One boss per town: the gang and the Bank Jobs all carry the Outlaw's curse.
-  const goons = r.shuffle([...GOONS]);
+  // Henchmen the run hasn't met come first, so faces only repeat once every one has turned up.
+  // (Only the ones you actually sit down with count as met: see travel.)
+  let met: string[] = run.flags.goonsMet ?? [];
+  if (GOONS.filter((g) => !met.includes(g)).length < 6) met = [];
+  run.flags.goonsMet = met;
+  const goons = [...r.shuffle(GOONS.filter((g) => !met.includes(g))), ...r.shuffle(GOONS.filter((g) => met.includes(g)))];
   let goon = 0;
   for (const n of nodes) {
     if (n.kind === 'bank' || n.kind === 'gang') n.hostId = run.nightHost;
-    if (n.kind === 'gang') n.goonId = goons[goon++ % goons.length];
+    if (n.kind === 'gang') {
+      n.goonId = goons[goon++ % goons.length];
+    }
     if (n.kind === 'event') {
       // Prefer events this run hasn't met yet, then any not already on this map.
       const seen: string[] = run.flags.eventsSeen ?? [];
@@ -177,7 +184,10 @@ export function travel(run: Run, id: number) {
       const info = TABLE_INFO[n.kind];
       if (n.hostId) discover(run, 'host', n.hostId);
       startTable(run, info.kind, nodeTarget(run, n), n.hostId);
-      if (n.goonId) run.table!.goonId = n.goonId;
+      if (n.goonId) {
+        run.table!.goonId = n.goonId;
+        run.flags.goonsMet = [...(run.flags.goonsMet ?? []).filter((g: string) => g !== n.goonId), n.goonId];
+      }
       break;
     }
     case 'doc':

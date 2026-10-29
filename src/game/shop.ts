@@ -89,15 +89,11 @@ export function winTable(run: Run) {
     const v = d.endMoney(run, k);
     if (v) lines.push({ label: d.name, amount: v, tone: 'gold' });
   }
-  // Bank Jobs and Gang bounties pay out in roads: an extra path to choose after this win.
-  if (t.kind === 'bank') {
-    run.flags.bonusPaths = (run.flags.bonusPaths ?? 0) + 1;
-    lines.push({ label: 'Loot: an extra path to choose', amount: 0, tone: 'chips' });
-  }
+  // Bank Jobs pay out in loot; a beaten gang member's Bounty is the fork in the road.
+  if (t.kind === 'bank') lines.push({ label: 'Loot from the vault', amount: 5, tone: 'gold' });
   if (t.kind === 'gang') {
-    run.flags.bonusPaths = (run.flags.bonusPaths ?? 0) + 1;
     run.stats.gangBeaten = (run.stats.gangBeaten ?? 0) + 1;
-    lines.push({ label: 'Bounty: an extra path to choose', amount: 0, tone: 'chips' });
+    lines.push({ label: 'Bounty: the trail forks', amount: 0, tone: 'chips' });
     if (run.grit < gritCap(run)) {
       heal(run, 1);
       lines.push({ label: 'You take his canteen: +1 Grit', amount: 0, tone: 'chips' });
@@ -143,6 +139,7 @@ export function failTable(run: Run) {
 export function cashOut(run: Run) {
   if (!run.cashout) return;
   const failed = run.cashout.failed;
+  const kind = run.table?.kind;
   run.money += run.cashout.total;
   run.stats.moneyEarned += run.cashout.total;
   run.cashout = null;
@@ -160,8 +157,9 @@ export function cashOut(run: Run) {
     finishNode(run);
     return;
   }
-  // Every table you win, the trail forks.
-  startRoad(run);
+  // Only beating one of the Outlaw's gang forks the trail; any other win rides straight on.
+  if (kind === 'gang') startRoad(run);
+  else finishNode(run);
 }
 
 /** Move on after a victory screen into endless mode. */

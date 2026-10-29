@@ -21,7 +21,7 @@ import type { CharmDef, Ctx, HostDef } from './api';
 import { CHARM, CHARMS, charmSlotsFree } from '../content/charms';
 import { CONS, FORTUNES, MASKS, STARS } from '../content/consumables';
 import { VOUCHER } from '../content/vouchers';
-import { HOST } from '../content/hosts';
+import { GOON_PERKS, HOST } from '../content/hosts';
 import { SHOE } from '../content/shoes';
 import { TAG } from '../content/tags';
 import { startTownState } from './trail';
@@ -210,7 +210,7 @@ export function currentHost(run: Run) {
   return HOST[t.hostId] ?? null;
 }
 
-const NIGHT_BASE = [160, 390, 660, 960, 1160, 1270, 2250];
+const NIGHT_BASE = [160, 270, 400, 710, 1200, 1700, 3700];
 
 export function nightBase(run: Run, night = run.night): number {
   let base: number;
@@ -236,7 +236,8 @@ export function getRules(run: Run): Rules {
   const r: Rules = {
     bustLimit: 21,
     dealerStand: 17,
-    dealerHitSoft17: false,
+    // House rule: the dealer stands on a hard 17 and hits a soft one.
+    dealerHitSoft17: true,
     dealerHitsToBust: false,
     charlieSize: 5,
     canDouble: true,
@@ -272,11 +273,13 @@ export function getRules(run: Run): Rules {
     maxHits: 99,
     splitAces21: false,
   };
-  if (run.stake >= 5) r.dealerHitSoft17 = true;
   for (const v of run.vouchers) VOUCHER[v]?.rules?.(r, run);
   SHOE[run.shoeId]?.rules?.(r, run);
   for (const k of activeCharms(run)) CHARM[k.id]?.rules?.(r, k, run);
   currentHost(run)?.rules?.(r, run);
+  // A henchman's side ability, if he has one.
+  const t = run.table;
+  if (t?.kind === 'gang' && t.goonId) GOON_PERKS[t.goonId]?.rules(r);
   return r;
 }
 
@@ -470,10 +473,19 @@ export function createCons(run: Run, kind: ConsKind, id?: string, finish?: Finis
   return true;
 }
 
-/** Anything that used to hand out a Doodad now grants an extra mystery path after your next win. */
+/** Anything that used to hand out a Doodad now hands over a random Boon on the spot (or $6 when
+ *  the belt is full), so events never add another fork in the road. */
 export function createCharm(run: Run, _o: { rarity?: Rarity; id?: string; finish?: FinishId; force?: boolean } = {}): boolean {
-  run.flags.bonusPaths = (run.flags.bonusPaths ?? 0) + 1;
-  fxQueue.push({ t: 'msg', text: 'An extra path!', color: '#7fe07a', src: { kind: 'deck' } });
+  const pool = CHARMS.filter((d) => !d.bane && d.rarity === 1 && !run.charms.some((k) => k.id === d.id));
+  if (run.charms.length >= charmSlots(run) || !pool.length) {
+    run.money += 6;
+    fxQueue.push({ t: 'money', v: 6, src: { kind: 'deck' } });
+    return true;
+  }
+  const d = rng(run).pick(pool);
+  run.charms.push(makeCharm(run, d.id));
+  discover(run, 'charm', d.id);
+  fxQueue.push({ t: 'msg', text: `${d.name}!`, color: '#7fe07a', src: { kind: 'deck' } });
   return true;
 }
 
@@ -574,3 +586,11 @@ export function log(run: Run, msg: string) {
 }
 
 export { CONS };
+
+/** How the dealer plays under these rules, in a few words: "stands on hard 17, hits soft 17". */
+export function dealerRuleText(r: Rules): string {
+  if (r.dealerHitsToBust) return 'hits until he busts';
+  if (r.dealerStand > 17) return `draws to ${r.dealerStand}`;
+  if (r.dealerStand < 17) return `stands on ${r.dealerStand}`;
+  return r.dealerHitSoft17 ? 'stands on hard 17, hits soft 17' : 'stands on all 17s';
+}

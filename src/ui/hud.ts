@@ -6,11 +6,11 @@ import type { Run, HandTypeId } from '../core/types';
 import { HAND_TYPE } from '../core/cards';
 import { CHARM, sellValue } from '../content/charms';
 import { CONS, consSellValue } from '../content/consumables';
-import { HOST } from '../content/hosts';
+import { GOON_PERKS, HOST } from '../content/hosts';
 import { app, button, jiggle, modal, popup, save, tip, toast, hideTip, endingHold } from './app';
 import { charmCard, charmTooltip, consCard, consTooltip, hostTooltip, tagToken, tagTooltip } from './art';
 import { h, div, fmtNum, fmtMult, clear, fmt, esc } from './dom';
-import { charmSlots, consSlots, getRules, NIGHTS } from '../game/engine';
+import { charmSlots, consSlots, dealerRuleText, getRules, NIGHTS } from '../game/engine';
 import { canUseCons, consNeeds, moveCharm, sellCons, useCons } from '../game/shop';
 import { gritCap, nodeTarget } from '../game/trail';
 import { sfx } from '../fx/audio';
@@ -218,6 +218,7 @@ export class Hud {
         face,
         name,
         curse ?? '',
+        isGang && t?.goonId && GOON_PERKS[t.goonId] ? h('div', { class: 'poster-perk', html: `<b>${GOON_PERKS[t.goonId].name}:</b> ${GOON_PERKS[t.goonId].text}` }) : '',
         div('poster-row', div('poster-label', t ? 'Score at least' : 'Showdown target'), this.refs.target),
         t ? div('poster-row', div('poster-label', 'Winnings'), this.refs.score) : '',
         t ? div('poster-bar', this.refs.scoreBar) : '',
@@ -236,7 +237,7 @@ export class Hud {
     this.refs.target.classList.toggle('xlong', this.refs.target.textContent.length > 7);
     if (t) {
       const rules = getRules(run);
-      this.refs.rules.textContent = `${rules.dealerHitsToBust ? 'Dealer hits until he busts' : `Dealer draws to ${rules.dealerStand}${rules.dealerHitSoft17 ? ' (hits soft 17)' : ''}`} \u00b7 Over ${rules.bustLimit} busts \u00b7 ${rules.charlieSize} cards without busting wins`;
+      this.refs.rules.textContent = `Dealer ${dealerRuleText(rules)} \u00b7 Over ${rules.bustLimit} busts \u00b7 ${rules.charlieSize} cards without busting wins`;
     } else this.refs.rules.textContent = 'Beat the Outlaw to ride on to the next town';
     if (t) this.setScore(t.score, t.target);
   }
@@ -416,7 +417,7 @@ export class Hud {
     });
     for (let i = run.charms.length; i < slots; i++) {
       const empty = div('charm-slot empty', div('loop'));
-      tip(empty, () => '<div class="tt-title">Empty slot</div><div class="tt-body">Room for one more ability. Every table you win, you pick a path, and what you find there may fill it. Good or bad.</div>', 'top');
+      tip(empty, () => '<div class="tt-title">Empty slot</div><div class="tt-body">Room for one more ability. Beat one of the Outlaw’s gang and the trail forks; what you find down the path you pick may fill it. Good or bad.</div>', 'top');
       this.charmRow.appendChild(empty);
     }
     this.charmCount.innerHTML = `Abilities<b>${run.charms.length}/${slots}</b>`;
