@@ -236,8 +236,6 @@
 .btn.act.split { --bc: var(--plate-sage); }
 .btn.act.fold { --bc: var(--plate-leather); }
 .btn.act.peek { --bc: #6a4c9c; box-shadow: 0 0 14px rgba(255, 210, 63, 0.55); }
-.btn.act.monkey { --bc: #8a4fc0; box-shadow: 0 0 16px rgba(200, 107, 255, 0.6); }
-.monkey-on { font-family: var(--font-display, inherit); font-size: 15px; color: #ffd8ff; text-align: center; padding: 8px 10px; border-radius: 8px; background: rgba(90, 40, 120, 0.55); }
 .rescue-box { max-width: 460px; text-align: center; display: flex; flex-direction: column; gap: 16px; align-items: center; }
 .rescue-text { font-size: 19px; line-height: 1.4; }
 .rescue-btns { display: flex; flex-direction: column; gap: 10px; align-items: center; }

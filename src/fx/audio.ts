@@ -16,6 +16,9 @@ class AudioEngine {
   musicBus!: GainNode;
   reverb!: ConvolverNode;
   reverbSend!: GainNode;
+  /** Echo sends that follow each volume slider, so a muted bus leaves no echo behind. */
+  musicWet!: GainNode;
+  sfxWet!: GainNode;
   delay!: DelayNode;
   delaySend!: GainNode;
   sfxVol = 0.7;
@@ -31,7 +34,8 @@ class AudioEngine {
 
   unlock() {
     if (this.ctx) {
-      if (this.ctx.state === 'suspended') void this.ctx.resume();
+      // (Stay paused while both sliders are at zero.)
+      if (this.ctx.state === 'suspended' && (this.sfxVol > 0 || this.musicVol > 0)) void this.ctx.resume();
       return;
     }
     const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
@@ -55,6 +59,14 @@ class AudioEngine {
     this.reverbSend = ctx.createGain();
     this.reverbSend.gain.value = 0.35;
     this.reverbSend.connect(this.reverb).connect(this.master);
+    // Music and effects reach the reverb through their own volume, not around it: the drone fed
+    // the reverb directly, so with every slider at zero its echo still hummed.
+    this.musicWet = ctx.createGain();
+    this.musicWet.gain.value = this.wetFor(this.musicVol, 0.5);
+    this.musicWet.connect(this.reverbSend);
+    this.sfxWet = ctx.createGain();
+    this.sfxWet.gain.value = this.wetFor(this.sfxVol, 0.7);
+    this.sfxWet.connect(this.reverbSend);
     this.delay = ctx.createDelay(1.5);
     this.delay.delayTime.value = 0.39;
     const fb = ctx.createGain();
@@ -68,6 +80,7 @@ class AudioEngine {
     this.delaySend.connect(this.delay);
     dl.connect(this.musicBus);
     if (this.mood !== 'silent') this.startMusic();
+    if (this.sfxVol <= 0 && this.musicVol <= 0) void ctx.suspend();
   }
 
   private impulse(seconds: number, decay: number): AudioBuffer {
@@ -81,12 +94,22 @@ class AudioEngine {
     return buf;
   }
 
+  /** Echo level for a slider: full echo at the default setting (as before), fading to none at zero. */
+  private wetFor(vol: number, dflt: number) {
+    return vol / dflt;
+  }
+
   setVolumes(sfx: number, music: number) {
     this.sfxVol = sfx;
     this.musicVol = music;
     if (!this.ctx) return;
     this.sfxBus.gain.setTargetAtTime(sfx, this.ctx.currentTime, 0.05);
     this.musicBus.gain.setTargetAtTime(music * 0.6, this.ctx.currentTime, 0.2);
+    this.musicWet.gain.setTargetAtTime(this.wetFor(music, 0.5), this.ctx.currentTime, 0.2);
+    this.sfxWet.gain.setTargetAtTime(this.wetFor(sfx, 0.7), this.ctx.currentTime, 0.05);
+    // Both sliders at zero: pause the whole engine, so nothing at all can be heard.
+    if (sfx <= 0 && music <= 0) void this.ctx.suspend();
+    else if (this.ctx.state === 'suspended') void this.ctx.resume();
   }
 
   // -------------------------------------------------------------------------
@@ -276,7 +299,7 @@ class AudioEngine {
     if (!this.ok(name, name === 'hover' ? 0.05 : 0.018)) return;
     const t = this.ctx.currentTime + 0.005;
     const out = this.sfxBus;
-    const wet = this.reverbSend;
+    const wet = this.sfxWet;
     switch (name) {
       case 'hover':
         this.wood(t, 1800 + Math.random() * 300, 0.05, out);
@@ -453,7 +476,7 @@ class AudioEngine {
     }
     lp.connect(g);
     g.connect(this.musicBus);
-    g.connect(this.reverbSend);
+    g.connect(this.musicWet);
     osc.forEach((o) => o.start());
     this.droneNodes = { osc, gain: g };
   }
@@ -491,8 +514,8 @@ class AudioEngine {
       const f = this.freq(scaleNote(this.melodyIdx));
       const g = this.pluck(f, t, 0.11, bus, 1.6, this.mood === 'host' ? 1.1 : 0.55);
       g.connect(this.delaySend);
-      g.connect(this.reverbSend);
-      if (Math.random() < 0.18) this.pluck(f * 1.5, t + 0.09, 0.05, bus, 1, 0.9).connect(this.reverbSend);
+      g.connect(this.musicWet);
+      if (Math.random() < 0.18) this.pluck(f * 1.5, t + 0.09, 0.05, bus, 1, 0.9).connect(this.musicWet);
     }
     // Bass pulse
     if (b % 8 === 0) {
@@ -510,7 +533,7 @@ class AudioEngine {
         const n = scaleNote(8 + Math.floor(Math.random() * 4)) + 12;
         const w = this.freq(n);
         this.whistle(w, t, 0.05, bus, 1.4);
-        this.whistle(w, t, 0.025, this.reverbSend, 1.4);
+        this.whistle(w, t, 0.025, this.musicWet, 1.4);
       }
     } else if (this.mood === 'shop') {
       if (clip) this.wood(t, clip + 200, 0.05, bus);
@@ -524,7 +547,7 @@ class AudioEngine {
     }
     // Wind chime shimmer
     if (b % 32 === 24 && Math.random() < 0.5) {
-      for (let i = 0; i < 3; i++) this.bell(this.freq(scaleNote(10 + i * 2) + 12), t + i * 0.11, 0.025, this.reverbSend, 2);
+      for (let i = 0; i < 3; i++) this.bell(this.freq(scaleNote(10 + i * 2) + 12), t + i * 0.11, 0.025, this.musicWet, 2);
     }
   }
 }

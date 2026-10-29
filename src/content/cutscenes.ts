@@ -48,7 +48,6 @@ export const SCENES: Record<string, SceneDef> = {
   long_reach: S('treasure', 'A coiled lasso hangs on a dead branch. With it, you can reach one card further than anybody.'),
   quick_draw: S('stranger', 'An old gunslinger shows you how to clear leather before the other fella blinks. Fast hands win fast.', { prop: 'revolver' }),
   rabbits_foot: S('stranger', 'A tinker with a twinkle in his eye presses something soft into your palm. “Rub it when it all goes wrong. Once. Only once.”', { prop: 'clover' }),
-  monkey_business: S('ghost', 'A monkey in a tiny hat drops from a tree, chattering. It swipes your bandana, then leaves something behind: a grin, and a little of its madness.', { prop: 'monkey' }),
   gamblers_glass: S('treasure', 'A gambler’s monocle, gold-rimmed, half-buried in the sand. Look through it and the backs of cards go thin as paper. Three looks, maybe, before it cracks.', { prop: 'eye' }),
   sidewinder: S('snake', 'A sidewinder slithers right past your boot without biting, then turns back like it’s sizing up the dealer for you.'),
   card_counter: S('cards', 'A schoolmarm with a slate keeps count of every card that’s been played. She lets you copy her method.'),

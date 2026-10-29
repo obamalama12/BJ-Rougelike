@@ -52,7 +52,7 @@ npm run build:single  # one self-contained HTML file in dist-single/
 
   There are 100 paths. Which outcome waits on which path is shuffled by the run's seed, so the
   same seed always leads the same way. You carry up to **5 abilities**, Boons and Banes alike;
-  when your belt is full, a new one must replace one you already have. Some encounters hand
+  when your belt is full you can pass on a new Boon, but a new Bane must replace one you have. Some encounters hand
   you a random Boon on the spot.
 - **A table** is blackjack against a dealer, who stands on a hard 17 and hits a soft 17. You have a number of **Hands** and **Folds**.
   Reach the target score before you run out of hands, or you lose Grit.

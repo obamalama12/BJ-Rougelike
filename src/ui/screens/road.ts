@@ -3,7 +3,7 @@
 
 import type { Run } from '../../core/types';
 import { ABILITY, INSTANT, PATHS, isGood } from '../../content/paths';
-import { dropAbility, leaveRoad, takeRoad } from '../../game/roads';
+import { canRefuseNew, dropAbility, leaveRoad, takeRoad } from '../../game/roads';
 import { charmSlots } from '../../game/engine';
 import { app, burstAt, button, save, screenShake, tip } from '../app';
 import { div, fmt, h, clear } from '../dom';
@@ -100,16 +100,21 @@ export function roadScreen(hud: Hud): HTMLElement {
       }
       card.appendChild(reveal);
       if (road.mustDrop) {
-        // Belt's full: the new ability stays, one of the others goes.
+        // Belt's full. A new Boon can be passed up; a new Bane stays and one of the others goes.
         const keep = road.mustDrop;
-        card.appendChild(div('road-drop-title', `Your belt holds ${charmSlots(run)}. Leave one behind:`));
+        const refusable = canRefuseNew(run);
+        card.appendChild(
+          div('road-drop-title', refusable ? `Your belt holds ${charmSlots(run)}. Pass on the new one, or leave one behind:` : `A Bane can’t be refused. Your belt holds ${charmSlots(run)}: leave one behind:`),
+        );
         const belt = div('road-drop');
-        for (const k of run.charms) {
-          if (k.uid === keep) continue;
+        // The new one comes first, under its own label, when you're allowed to turn it down.
+        const order = refusable ? [...run.charms.filter((k) => k.uid === keep), ...run.charms.filter((k) => k.uid !== keep)] : run.charms.filter((k) => k.uid !== keep);
+        for (const k of order) {
           const c = charmCard(k.id);
           c.classList.add('road-drop-card');
           tip(c, () => charmTooltip(run, k.id, k));
-          const slot = h('button', { class: 'road-drop-slot', type: 'button' }, c, h('span', { class: 'rd-label' }, 'Leave it'));
+          const isNew = k.uid === keep;
+          const slot = h('button', { class: `road-drop-slot${isNew ? ' is-new' : ''}`, type: 'button' }, c, h('span', { class: 'rd-label' }, isNew ? 'Pass on it' : 'Leave it'));
           slot.addEventListener('click', () => {
             if (!dropAbility(run, k.uid)) return;
             sfx('sell');

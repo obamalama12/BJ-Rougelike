@@ -3,7 +3,7 @@
 
 import { newRun, getRules, NIGHTS } from '../src/game/engine';
 import {
-  afterDeal, availableActions, canRescue, rescueBust, monkeyLeft, useMonkey, beginHand, cardsOf, dealTo, dealerHit, dealerShouldHit, double, endFold,
+  afterDeal, availableActions, canRescue, rescueBust, beginHand, cardsOf, dealTo, dealerHit, dealerShouldHit, double, endFold,
   endRound, fillSplit, fold, hit, scoreHand, settleOutcomes, settleSplit, split, stand,
 } from '../src/game/table';
 import { cashOut, failTable, pickFromPack, skipPack, winTable, maybeOpenTagPack } from '../src/game/shop';
@@ -54,8 +54,6 @@ export function botTurn(run: Run) {
       hit(run);
       if (canRescue(run, hi)) rescueBust(run, hi);
     } else {
-      // Monkey Business: save it for the gang and the Outlaw, when the dealer shows a strong card.
-      if ((t.kind === 'host' || t.kind === 'gang') && upv >= 7 && monkeyLeft(run)) useMonkey(run);
       stand(run);
     }
   }

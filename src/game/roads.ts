@@ -1,8 +1,9 @@
 // The fork in the road after you beat one of the Outlaw's gang: three unmarked paths, one pick. What waits down a path comes from
-// content/paths, shuffled per seed. A new ability that doesn't fit pushes out one you already have.
+// content/paths, shuffled per seed. With a full belt, a new Boon can be passed up; a new Bane pushes
+// out one you already have.
 
 import type { Run } from '../core/types';
-import { ABILITY, INSTANT, PATHS, RARE_PEEK, RARE_PEEK_CHANCE, RARE_SAVE, RARE_SAVE_CHANCE, SUPER_RARE, SUPER_RARE_CHANCE, isGood, outcomeOf, type Outcome } from '../content/paths';
+import { ABILITY, INSTANT, PATHS, RARE_PEEK, RARE_PEEK_CHANCE, RARE_SAVE, RARE_SAVE_CHANCE, isGood, outcomeOf, type Outcome } from '../content/paths';
 import { charmSlots, clampGrit, discover, makeCharm, rng } from './engine';
 import { finishNode } from './trail';
 
@@ -49,12 +50,12 @@ export function takeRoad(run: Run, path: number): Outcome | null {
   const road = run.road;
   if (!road || road.taken || !road.options.includes(path)) return null;
   let outcome = outcomeOf(run, path);
-  // Now and then a good road turns up something rarer than what it was hiding: Monkey Business
-  // 2% of the time, Lucky Rabbit's Foot 5%, Gambler's Glass 5%. Never one you already carry.
+  // Now and then a good road turns up something rarer than what it was hiding: Lucky Rabbit's
+  // Foot 5% of the time, Gambler's Glass 5%. Never one you already carry.
   if (isGood(outcome)) {
     const roll = rng(run).next();
     let edge = 0;
-    for (const [d, chance] of [[SUPER_RARE, SUPER_RARE_CHANCE], [RARE_SAVE, RARE_SAVE_CHANCE], [RARE_PEEK, RARE_PEEK_CHANCE]] as const) {
+    for (const [d, chance] of [[RARE_SAVE, RARE_SAVE_CHANCE], [RARE_PEEK, RARE_PEEK_CHANCE]] as const) {
       if (roll < (edge += chance)) {
         if (!run.charms.some((k) => k.id === d.id)) outcome = { kind: 'ability', id: d.id };
         break;
@@ -77,10 +78,18 @@ export function takeRoad(run: Run, path: number): Outcome | null {
   return outcome;
 }
 
-/** Leave an ability behind to make room for the one you just found. */
+/** Can the ability just found be turned down? A Boon can; a Bane is forced on you. */
+export function canRefuseNew(run: Run): boolean {
+  const k = run.charms.find((x) => x.uid === run.road?.mustDrop);
+  return !!k && !ABILITY[k.id]?.bane;
+}
+
+/** Leave an ability behind to make room for the one you just found (or, for a Boon, pass on the
+ *  new one instead). */
 export function dropAbility(run: Run, uid: number): boolean {
   const road = run.road;
-  if (!road?.mustDrop || uid === road.mustDrop) return false;
+  if (!road?.mustDrop) return false;
+  if (uid === road.mustDrop && !canRefuseNew(run)) return false;
   if (!run.charms.some((k) => k.uid === uid)) return false;
   run.charms = run.charms.filter((k) => k.uid !== uid);
   clampGrit(run);

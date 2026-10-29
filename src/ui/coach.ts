@@ -23,7 +23,7 @@ const NOTES: Record<string, string> = {
   wager: 'Pick a wager before you deal. {g:Dollar} doubles the score and {g:Bankroll} triples it, but losing the hand costs 1 or 2 {g:Grit}. The tickets on the felt are $2 {g:side bets} that pay Bucks. Win hands in a row to build a {g:Hot Streak}.',
   hand: 'Get closer to 21 than the dealer without going over. {g:Hit} takes a card, {g:Stand} ends your turn. {g:Double} takes one card and doubles the score but uses an extra hand. {g:Fold} throws a bad hand away for free, a few times per table.',
   score: 'A winning hand scores {c:Pot} × {m:Odds}. The kind of win sets the starting numbers, every card adds its value to the {c:Pot}, and your abilities pile on more (or take some away).',
-  road: 'Beat one of the Outlaw’s gang and the trail forks. None of the paths are marked: you only find out what waited down one after you take it. It might be a {g:Boon}, a {r:Bane}, or something that happens on the spot. You carry up to 5 abilities; a full belt means the new one pushes an old one out.',
+  road: 'Beat one of the Outlaw’s gang and the trail forks. None of the paths are marked: you only find out what waited down one after you take it. It might be a {g:Boon}, a {r:Bane}, or something that happens on the spot. You carry up to 5 abilities. With a full belt you can pass on a new Boon, but a new Bane pushes an old one out.',
   outlaw: 'Every Outlaw bends one rule. The curse is printed on the Wanted poster. Read it before you play.',
   gang: 'This one rides with the Outlaw and carries the boss’s curse, printed on the poster. Get used to it before the showdown. Beat them and you collect a {g:Bounty}: the trail forks and you choose a path.',
 };
@@ -110,7 +110,7 @@ const RULES: [string, string, string][] = [
   ['wanted', 'Beat the score', 'Every table has a target on the poster. Winning hands add to your winnings. Reach the target before your bullets (hands) run out and you collect the reward.'],
   ['coins', 'Pot × Odds', 'A winning hand scores {c:Pot} × {m:Odds}. The kind of win (a plain win, a {h:blackjack}, a hand of one suit and so on) sets the starting numbers. Each card adds its value to the Pot. Level up a kind of win with Tall Tales or at the campfire.'],
   ['horseshoe', 'Grit', 'Grit is your health. You lose it when you miss a target or lose a hand with a big wager. At zero the run ends.'],
-  ['map', 'Forks in the road', 'Beat one of the Outlaw’s gang and the trail forks: choose one of three unmarked paths. Each hides a {g:Boon}, a {r:Bane} or an event, and you don’t know which until you take it. The same seed always leads the same way. You hold up to 5 abilities; when they’re full, a new one must replace an old one.'],
+  ['map', 'Forks in the road', 'Beat one of the Outlaw’s gang and the trail forks: choose one of three unmarked paths. Each hides a {g:Boon}, a {r:Bane} or an event, and you don’t know which until you take it. The same seed always leads the same way. You hold up to 5 abilities. When they’re full you can pass on a new Boon, but a Bane must replace one.'],
 ];
 
 export function openHowToPlay() {

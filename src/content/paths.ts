@@ -332,16 +332,7 @@ export const RARE_SAVE: AbilityDef = {
   text: '{g:Rare.} When you bust, you may rub it to win the hand instead. One use, then it’s gone',
 };
 
-/** Super rare: a good path hands this over 2% of the time. */
-export const SUPER_RARE_CHANCE = 0.02;
-export const MONKEY_USES = 3;
-export const SUPER_RARE: AbilityDef = {
-  id: 'monkey_business', name: 'Monkey Business', icon: 'monkey', rarity: 4, cost: 0, hue: '#c86bff',
-  init: () => ({ uses: MONKEY_USES }),
-  text: (s) => `{g:Super rare.} Use it during your turn and the dealer plays like Woodgas: he keeps hitting until he busts, whatever his total. {g:${st(s).uses ?? MONKEY_USES}} use${(st(s).uses ?? MONKEY_USES) === 1 ? '' : 's'} left`,
-};
-
-for (const d of [RARE_PEEK, RARE_SAVE, SUPER_RARE]) {
+for (const d of [RARE_PEEK, RARE_SAVE]) {
   ABILITIES.push(d);
   ABILITY[d.id] = d;
 }

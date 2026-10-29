@@ -493,6 +493,9 @@
 .road-drop { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
 .road-drop-slot { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 6px; background: none; border: 2px dashed transparent; border-radius: 10px; cursor: pointer; }
 .road-drop-slot:hover { border-color: #a8321e; background: rgba(168, 50, 30, 0.08); }
+.road-drop-slot.is-new { border-color: rgba(79, 191, 106, 0.6); margin-right: 14px; position: relative; }
+.road-drop-slot.is-new::after { content: ''; position: absolute; right: -10px; top: 12%; bottom: 12%; border-right: 1.5px solid var(--rule, rgba(60, 30, 10, 0.35)); }
+.road-drop-slot.is-new .rd-label { color: #2f7a3e; }
 .road-drop-card { position: relative; width: 84px; height: 112px; }
 .rd-label { font: 700 11px var(--f-body); letter-spacing: 0.12em; text-transform: uppercase; color: #a8321e; }
 .rr-text .t-hl, .road-reveal .t-money { color: #2f6a3a; }

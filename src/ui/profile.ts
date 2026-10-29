@@ -2,6 +2,7 @@
 
 import type { Run } from '../core/types';
 import { RUN_VERSION, discovered } from '../game/engine';
+import { CHARM } from '../content/charms';
 
 export interface Settings {
   speed: number;
@@ -108,6 +109,8 @@ export function saveRun(run: Run | null) {
 export function loadRun(): Run | null {
   const r = read<Run>(RUN_KEY);
   if (!r || r.version !== RUN_VERSION) return null;
+  // Abilities removed from the game since the run was saved quietly drop off the belt.
+  r.charms = r.charms.filter((k) => CHARM[k.id]);
   return r;
 }
 

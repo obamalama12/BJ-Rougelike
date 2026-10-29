@@ -54,10 +54,10 @@ describe('content', () => {
   it('has 100 paths, each hiding a different outcome', async () => {
     const { PATHS, ABILITIES, INSTANTS, pathOutcomes } = await import('../src/content/paths');
     expect(PATHS.length).toBe(100);
-    // Every ability and instant but the three rare ones, which no path hides.
-    expect(ABILITIES.length + INSTANTS.length).toBe(103);
+    // Every ability and instant but the two rare ones, which no path hides.
+    expect(ABILITIES.length + INSTANTS.length).toBe(102);
     expect(pathOutcomes('SEED1').length).toBe(100);
-    for (const rare of ['gamblers_glass', 'rabbits_foot', 'monkey_business']) expect(pathOutcomes('SEED1').some((o) => o.id === rare)).toBe(false);
+    for (const rare of ['gamblers_glass', 'rabbits_foot']) expect(pathOutcomes('SEED1').some((o) => o.id === rare)).toBe(false);
     const map = pathOutcomes('SEED1');
     expect(new Set(map.map((o) => `${o.kind}:${o.id}`)).size).toBe(100);
     // Same seed, same roads; another seed shuffles them.
@@ -134,7 +134,7 @@ describe('rare abilities', () => {
     const { startTable, beginHand, dealTo, afterDeal } = await import('../src/game/table');
     const { makeCharm } = await import('../src/game/engine');
     const run = newRun(seed, 'paper', 1);
-    run.charms.push(makeCharm(run, 'monkey_business'), makeCharm(run, 'rabbits_foot'));
+    run.charms.push(makeCharm(run, 'rabbits_foot'));
     startTable(run, 'paper', 100);
     beginHand(run);
     dealTo(run, 'player');
@@ -144,27 +144,6 @@ describe('rare abilities', () => {
     afterDeal(run);
     return run;
   };
-  it('Monkey Business makes the dealer hit until he busts, three times', async () => {
-    const { useMonkey, monkeyLeft, stand, dealerShouldHit, dealerHit, cardsOf } = await import('../src/game/table');
-    let checked = 0;
-    for (let i = 0; i < 40 && checked < 10; i++) {
-      const run = await deal(`MONK${i}`);
-      if (run.table!.phase !== 'player') continue;
-      expect(useMonkey(run)).toBe(true);
-      expect(monkeyLeft(run)).toBe(0); // once per hand
-      stand(run);
-      if (!run.table!.hands.some((h) => !h.outcome)) continue;
-      while (dealerShouldHit(run)) dealerHit(run);
-      expect(handTotal(cardsOf(run, run.table!.dealer), getRules(run), 21, true).bust).toBe(true);
-      checked++;
-    }
-    expect(checked).toBeGreaterThan(5);
-    const run = await deal('MONKX');
-    run.charms.find((k) => k.id === 'monkey_business')!.state.uses = 1;
-    run.table!.phase = 'player';
-    useMonkey(run);
-    expect(run.charms.some((k) => k.id === 'monkey_business')).toBe(false);
-  });
   it('Lucky Rabbit’s Foot turns one bust into a win, then it’s gone', async () => {
     const { canRescue, rescueBust, hit } = await import('../src/game/table');
     for (let i = 0; i < 40; i++) {
@@ -182,7 +161,7 @@ describe('rare abilities', () => {
     }
     throw new Error('never busted');
   });
-  it('good paths turn up the rare ones at about 2%, 5% and 5%', async () => {
+  it('good paths turn up the rare ones at about 5% each', async () => {
     const { startRoad, takeRoad } = await import('../src/game/roads');
     const { isGood, outcomeOf } = await import('../src/content/paths');
     const n: Record<string, number> = {};
@@ -196,7 +175,7 @@ describe('rare abilities', () => {
       const o = takeRoad(run, path)!;
       n[o.id] = (n[o.id] ?? 0) + 1;
     }
-    expect((n.monkey_business ?? 0) / good).toBeCloseTo(0.02, 1);
+    expect(n.monkey_business).toBeUndefined();
     expect((n.rabbits_foot ?? 0) / good).toBeCloseTo(0.05, 1);
     expect((n.gamblers_glass ?? 0) / good).toBeCloseTo(0.05, 1);
   });
@@ -259,16 +238,17 @@ describe('house rules', () => {
 });
 
 describe('the fork in the road', () => {
-  it('a new ability on a full belt has to push one of the others out', async () => {
+  it('on a full belt a new Boon can be passed up, but a new Bane pushes another out', async () => {
     const { startRoad, takeRoad, dropAbility, leaveRoad } = await import('../src/game/roads');
     const { outcomeOf, ABILITY } = await import('../src/content/paths');
     const { makeCharm, charmSlots } = await import('../src/game/engine');
     const run = newRun('ROADS', 'paper', 1);
     for (const id of ['steady_hand', 'sharp_eye', 'iron_nerve', 'quick_feet', 'patience']) run.charms.push(makeCharm(run, id));
     expect(run.charms.length).toBe(charmSlots(run));
-    // Find an offered path that leads to an ability we don't have.
+    // Find offered paths that lead to abilities we don't have, until we've met a Boon and a Bane.
     let found = false;
-    for (let tries = 0; tries < 40 && !found; tries++) {
+    const seen: Record<string, boolean> = {};
+    for (let tries = 0; tries < 200 && !found; tries++) {
       startRoad(run);
       const p = run.road!.options.find((x) => { const o = outcomeOf(run, x); return o.kind === 'ability' && !run.charms.some((k) => k.id === o.id) && ABILITY[o.id].slots?.charm === undefined; });
       if (p === undefined) continue;
@@ -277,11 +257,19 @@ describe('the fork in the road', () => {
       const keep = run.road!.mustDrop!;
       expect(keep).toBeTruthy();
       expect(leaveRoad(run)).toBe(false); // can't ride on with an over-full belt
-      expect(dropAbility(run, keep)).toBe(false); // and the new one can't be the one dropped
-      expect(dropAbility(run, run.charms[0].uid)).toBe(true);
+      const newId = run.charms.find((k) => k.uid === keep)!.id;
+      const boon = !ABILITY[newId].bane;
+      seen[boon ? 'boon' : 'bane'] = true;
+      // A Boon can be the one left behind; a Bane can't.
+      expect(dropAbility(run, keep)).toBe(boon);
+      if (!boon) {
+        expect(dropAbility(run, run.charms[0].uid)).toBe(true);
+        expect(run.charms.some((k) => k.uid === keep)).toBe(true);
+      } else expect(run.charms.some((k) => k.uid === keep)).toBe(false);
       expect(run.charms.length).toBe(charmSlots(run));
-      expect(run.charms.some((k) => k.uid === keep)).toBe(true);
+      expect(leaveRoad(run)).toBe(true);
+      if (!seen.boon || !seen.bane) found = false;
     }
-    expect(found).toBe(true);
+    expect(seen).toEqual({ boon: true, bane: true });
   });
 });
